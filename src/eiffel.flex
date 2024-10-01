@@ -4,8 +4,8 @@
 
 %option noyywrap
 %option yylineno
-%option case-insensitive
 %option never-interactive
+
 
 IDENTIFIER [_a-zA-Z][_a-zA-Z0-9]*
 
