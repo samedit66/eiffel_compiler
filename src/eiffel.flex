@@ -52,22 +52,22 @@ class { printf("Line %d: found keyword class", yylineno); } /* Ключевые 
 <CHARACTER,STRING>%%               { printf("Line %d: percent character\n", yylineno); }
 <CHARACTER,STRING>%[nN]            { printf("Line %d: newline character\n", yylineno); }
 <CHARACTER,STRING>%[tT]            { printf("Line %d: horizontal tab character\n", yylineno); }
-<CHARACTER,STRING>%[aA]            { printf("Line %d: at sign character\n"); }
-<CHARACTER,STRING>%[bB]            { printf("Line %d: backspace character\n"); }
-<CHARACTER,STRING>%[cC]            { printf("Line %d: circumflex character\n"); }
-<CHARACTER,STRING>%[dD]            { printf("Line %d: dollar character\n"); }
-<CHARACTER,STRING>%[fF]            { printf("Line %d: form feed character\n"); }
-<CHARACTER,STRING>%[hH]            { printf("Line %d: backslash character\n"); }
-<CHARACTER,STRING>%[lL]            { printf("Line %d: tilde character\n"); }
-<CHARACTER,STRING>%[qQ]            { printf("Line %d: backquote character\n"); }
-<CHARACTER,STRING>%[rR]            { printf("Line %d: carriage return character\n"); }
-<CHARACTER,STRING>%[sS]            { printf("Line %d: sharp character\n"); }
-<CHARACTER,STRING>%[uU]            { printf("Line %d: null character\n"); }
-<CHARACTER,STRING>%[vV]            { printf("Line %d: vertical bar character\n"); }
-<CHARACTER,STRING>%\(              { printf("Line %d: opening bracket character\n"); }
-<CHARACTER,STRING>%\)              { printf("Line %d: closing bracket character\n"); }
-<CHARACTER,STRING>%\<              { printf("Line %d: opening brace character\n"); }
-<CHARACTER,STRING>%\>              { printf("Line %d: closingg brace character\n"); }
+<CHARACTER,STRING>%[aA]            { printf("Line %d: at sign character\n", yylineno); }
+<CHARACTER,STRING>%[bB]            { printf("Line %d: backspace character\n", yylineno); }
+<CHARACTER,STRING>%[cC]            { printf("Line %d: circumflex character\n", yylineno); }
+<CHARACTER,STRING>%[dD]            { printf("Line %d: dollar character\n", yylineno); }
+<CHARACTER,STRING>%[fF]            { printf("Line %d: form feed character\n", yylineno); }
+<CHARACTER,STRING>%[hH]            { printf("Line %d: backslash character\n", yylineno); }
+<CHARACTER,STRING>%[lL]            { printf("Line %d: tilde character\n", yylineno); }
+<CHARACTER,STRING>%[qQ]            { printf("Line %d: backquote character\n", yylineno); }
+<CHARACTER,STRING>%[rR]            { printf("Line %d: carriage return character\n", yylineno); }
+<CHARACTER,STRING>%[sS]            { printf("Line %d: sharp character\n", yylineno); }
+<CHARACTER,STRING>%[uU]            { printf("Line %d: null character\n", yylineno); }
+<CHARACTER,STRING>%[vV]            { printf("Line %d: vertical bar character\n", yylineno); }
+<CHARACTER,STRING>%\(              { printf("Line %d: opening bracket character\n", yylineno); }
+<CHARACTER,STRING>%\)              { printf("Line %d: closing bracket character\n", yylineno); }
+<CHARACTER,STRING>%\<              { printf("Line %d: opening brace character\n", yylineno); }
+<CHARACTER,STRING>%\>              { printf("Line %d: closingg brace character\n", yylineno); }
 <CHARACTER,STRING>%\"              { printf("Line %d: double quote character\n", yylineno); }
 <CHARACTER,STRING>%\'              { printf("Line %d: single quote character\n", yylineno); }
 <CHARACTER,STRING>%.               { printf("Line %d: ERROR: invalid escape sequence\n", yylineno); return -1; }
