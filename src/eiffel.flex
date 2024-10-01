@@ -44,7 +44,7 @@ class { printf("Line %d: found keyword class", yylineno); } /* Ключевые 
 <SINGLE_LINE_COMMENT>\n { printf("Line %d: single line comment end\n", yylineno); BEGIN(INITIAL); }
 
 
-\"                                 { printf("Line %d: ", yylineno); BEGIN(STRING); }
+\"                                 { printf("Line %d: string start\n", yylineno); BEGIN(STRING); }
 
 \'                                 { printf("Line %d: character start\n", yylineno); BEGIN(CHARACTER); }
 
@@ -85,7 +85,7 @@ class { printf("Line %d: found keyword class", yylineno); } /* Ключевые 
 
 <STRING><<EOF>>                    { printf("Line %d: ERROR: unclosed string\n", yylineno); return -1; }
 
-<STRING>\"                         { printf("Line %d: string end\n", yylineno); }
+<STRING>\"                         { printf("Line %d: string end\n", yylineno); BEGIN(INITIAL); }
 
 
 {IDENTIFIER}     { printf("Line %d: found identifier: %s\n", yylineno, yytext); }
