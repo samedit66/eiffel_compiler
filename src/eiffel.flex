@@ -34,7 +34,7 @@ REAL_NUMBER_EXPONENT       {REAL_NUMBER}[eE][\-+]?{DECIMAL_NUMBER}
 
 %%
 
-class { printf("Line %d: found keyword class", yylineno); } /* Ключевые слова начинаются тут */
+
 ":="					{ printf("Found operator \"%s\" in line %d\n", "ASSIGN", yylineno); }
 "="						{ printf("Found operator \"%s\" in line %d\n", "EQUALS", yylineno); }
 "/="					{ printf("Found operator \"%s\" in line %d\n", "NOT_EQUALS", yylineno); }
@@ -46,12 +46,11 @@ class { printf("Line %d: found keyword class", yylineno); } /* Ключевые 
 "xor" 					{ printf("Found operator \"%s\" in line %d\n", "XOR", yylineno); }
 "or" 					{ printf("Found operator \"%s\" in line %d\n", "OR", yylineno); }
 "not" 					{ printf("Found operator \"%s\" in line %d\n", "NOT", yylineno); }
-and{WHITESPACE}+then 	{ printf("Found operator \"%s\" in line %d\n", "AND_THEN", yylineno); }
-or{WHITESPACE}+else 	{ printf("Found operator \"%s\" in line %d\n", "OR_ELSE", yylineno); }
+and{WHITESPACE}then 	{ printf("Found operator \"%s\" in line %d\n", "AND_THEN", yylineno); }
+or{WHITESPACE}else 	    { printf("Found operator \"%s\" in line %d\n", "OR_ELSE", yylineno); }
 "implies" 				{ printf("Found operator \"%s\" in line %d\n", "IMPLIES", yylineno); }
 "//"					{ printf("Found operator \"%s\" in line %d\n", "DIV", yylineno); }
-"\\"					{ printf("Found operator \"%s\" in line %d\n", "MOD", yylineno); }
-
+\\\\					{ printf("Found operator \"%s\" in line %d\n", "MOD", yylineno); }
 "+" 					{ printf("Found operator \"%s\" in line %d\n", yytext, yylineno); }
 "-" 					{ printf("Found operator \"%s\" in line %d\n", yytext, yylineno); }
 "*" 					{ printf("Found operator \"%s\" in line %d\n", yytext, yylineno); }
@@ -129,7 +128,7 @@ or{WHITESPACE}+else 	{ printf("Found operator \"%s\" in line %d\n", "OR_ELSE", y
 "REAL" 					{ printf("Found keyword \"%s\" in line %d\n", "REAL", yylineno); }
 "CHARACTER" 			{ printf("Found keyword \"%s\" in line %d\n", "CHARACTER", yylineno); }
 "STRING" 				{ printf("Found keyword \"%s\" in line %d\n", "STRING", yylineno); }
-"TUPLE"
+"TUPLE"                 { printf("Found keyword \"%s\" in line %d\n", "TUPLE", yylineno); }
 "BOOLEAN" 				{ printf("Found keyword \"%s\" in line %d\n", "BOOLEAN", yylineno); }
 
 
@@ -203,7 +202,9 @@ or{WHITESPACE}+else 	{ printf("Found operator \"%s\" in line %d\n", "OR_ELSE", y
 
 .                { printf("Line %d: found unknown symbol\n", yylineno); }
 
+
 %%
+
 
 int main(void) {
     yylex();
