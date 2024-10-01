@@ -79,7 +79,7 @@ class { printf("Line %d: found keyword class", yylineno); } /* Ключевые 
 
 <CHARACTER>\'                      { printf("Line %d: character end\n", yylineno); BEGIN(INITIAL); }
 
-<STRING>[^\"\n]                    { printf("Line %d: part of string\n", yylineno); }
+<STRING>[^\"\n%]*                  { printf("Line %d: part of string\n", yylineno); }
 
 <STRING>\n                         { printf("Line %d: ERROR: unclosed string\n", yylineno); return -1; }
 
