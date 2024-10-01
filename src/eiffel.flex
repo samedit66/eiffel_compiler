@@ -1,5 +1,8 @@
 %{
     #include <stdio.h>
+    #include <stdint.h>
+
+    #include "src/lex_utils.h"
 %}
 
 %option noyywrap
@@ -35,6 +38,10 @@ REAL_NUMBER_EXPONENT       ({REAL_NUMBER}|{DECIMAL_NUMBER})[eE][\-+]?{DECIMAL_NU
 
 %%
 
+%{
+    int64_t int_number;
+    double real_number;
+%}
 
 ":="					{ printf("Found operator \"%s\" in line %d\n", "ASSIGN", yylineno); }
 "="						{ printf("Found operator \"%s\" in line %d\n", "EQUALS", yylineno); }
@@ -195,19 +202,39 @@ or{WHITESPACE}else 	    { printf("Found operator \"%s\" in line %d\n", "OR_ELSE"
 \'                                     { printf("Line %d: character start\n", yylineno); BEGIN(CHARACTER); }
 
 
-{IDENTIFIER}     { printf("Line %d: found identifier: %s\n", yylineno, yytext); }
+{IDENTIFIER} {
+    printf("Line %d: found identifier: %s\n", yylineno, yytext);
+}
 
-{DECIMAL_NUMBER} { printf("Line %d: found decimal number: %s\n", yylineno, yytext); }
+{DECIMAL_NUMBER} {
+    parse_integer(&int_number, yytext, 10);
+    printf("Line %d: found decimal number: %d\n", yylineno, int_number);
+}
 
-{HEX_NUMBER}     { printf("Line %d: found hex number: %s\n", yylineno, yytext); }
+{HEX_NUMBER} {
+    parse_integer(&int_number, yytext, 16);
+    printf("Line %d: found hex number: %d\n", yylineno, int_number);
+}
 
-{OCT_NUMBER}     { printf("Line %d: found oct number: %s\n", yylineno, yytext); }
+{OCT_NUMBER} {
+    parse_integer(&int_number, yytext, 8);
+    printf("Line %d: found oct number: %d\n", yylineno, int_number);
+}
 
-{BIN_NUMBER}     { printf("Line %d: found bin number: %s\n", yylineno, yytext); }
+{BIN_NUMBER} {
+    parse_integer(&int_number, yytext, 2);
+    printf("Line %d: found bin number: %d\n", yylineno, int_number);
+}
 
-{REAL_NUMBER}    { printf("Line %d: found real number: %s\n", yylineno, yytext); }
+{REAL_NUMBER} {
+    parse_real(&real_number, yytext);
+    printf("Line %d: found real number: %f\n", yylineno, real_number);
+}
 
-{REAL_NUMBER_EXPONENT} { printf("Line %d: found real exponent number: %s\n", yylineno, yytext); }
+{REAL_NUMBER_EXPONENT} {
+    parse_real(&real_number, yytext);
+    printf("Line %d: found real exponent number: %f\n", yylineno, real_number);
+}
 
 {WHITESPACE}     { printf("Line %d: found whitespace\n", yylineno); }
 
