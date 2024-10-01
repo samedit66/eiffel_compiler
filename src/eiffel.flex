@@ -70,19 +70,20 @@ class { printf("Line %d: found keyword class", yylineno); } /* Ключевые 
 <CHARACTER,STRING>%\>              { printf("Line %d: closingg brace character\n"); }
 <CHARACTER,STRING>%\"              { printf("Line %d: double quote character\n", yylineno); }
 <CHARACTER,STRING>%\'              { printf("Line %d: single quote character\n", yylineno); }
+<CHARACTER,STRING>%.               { printf("Line %d: ERROR: invalid escape sequence\n", yylineno); return -1; }
 <CHARACTER>[^\'\n]+                { printf("Line %d: character content: %s\n", yylineno, yytext); }
 
-<CHARACTER>\n                      { printf("Line %d: ERROR: unclosed character\n", yylineno); }
+<CHARACTER>\n                      { printf("Line %d: ERROR: unclosed character\n", yylineno); return -1; }
 
-<CHARACTER><<EOF>>                 { printf("Line %d: ERROR: unclosed character\n", yylineno); BEGIN(INITIAL); }
+<CHARACTER><<EOF>>                 { printf("Line %d: ERROR: unclosed character\n", yylineno); return -1; }
 
 <CHARACTER>\'                      { printf("Line %d: character end\n", yylineno); BEGIN(INITIAL); }
 
 <STRING>[^\"\n]                    { printf("Line %d: part of string\n", yylineno); }
 
-<STRING>\n                         { printf("Line %d: ERROR: unclosed string\n", yylineno); }
+<STRING>\n                         { printf("Line %d: ERROR: unclosed string\n", yylineno); return -1; }
 
-<STRING><<EOF>>                    { printf("Line %d: ERROR: unclosed string\n", yylineno); BEGIN(INITIAL); }
+<STRING><<EOF>>                    { printf("Line %d: ERROR: unclosed string\n", yylineno); return -1; }
 
 <STRING>\"                         { printf("Line %d: string end\n", yylineno); }
 
