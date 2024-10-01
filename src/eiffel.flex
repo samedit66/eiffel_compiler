@@ -56,14 +56,12 @@ class { printf("Line %d: found keyword class", yylineno); } /* Ключевые 
 <CHARACTER,STRING>%[bB]            { printf("Line %d: backspace character\n"); }
 <CHARACTER,STRING>%[cC]            { printf("Line %d: circumflex character\n"); }
 <CHARACTER,STRING>%[dD]            { printf("Line %d: dollar character\n"); }
-<CHARACTER,STRING>%[bB]            { printf("Line %d: backspace character\n"); }
 <CHARACTER,STRING>%[fF]            { printf("Line %d: form feed character\n"); }
 <CHARACTER,STRING>%[hH]            { printf("Line %d: backslash character\n"); }
 <CHARACTER,STRING>%[lL]            { printf("Line %d: tilde character\n"); }
 <CHARACTER,STRING>%[qQ]            { printf("Line %d: backquote character\n"); }
 <CHARACTER,STRING>%[rR]            { printf("Line %d: carriage return character\n"); }
 <CHARACTER,STRING>%[sS]            { printf("Line %d: sharp character\n"); }
-<CHARACTER,STRING>%[tT]            { printf("Line %d: horizontal tab character\n"); }
 <CHARACTER,STRING>%[uU]            { printf("Line %d: null character\n"); }
 <CHARACTER,STRING>%[vV]            { printf("Line %d: vertical bar character\n"); }
 <CHARACTER,STRING>%\(              { printf("Line %d: opening bracket character\n"); }
