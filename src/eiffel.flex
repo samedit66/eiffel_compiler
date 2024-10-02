@@ -2,7 +2,8 @@
     #include <stdio.h>
     #include <stdint.h>
 
-    #include "src/lex_utils.h"
+    #include "lex_utils.h"
+    #include "strbuf.h"
 %}
 
 %option noyywrap
@@ -41,6 +42,7 @@ REAL_NUMBER_EXPONENT       ({REAL_NUMBER}|{DECIMAL_NUMBER})[eE][\-+]?{DECIMAL_NU
 %{
     int64_t int_number;
     double real_number;
+    strbuf* buf = strbuf_empty();
 %}
 
 ":="					{ printf("Found operator \"%s\" in line %d\n", "ASSIGN", yylineno); }
@@ -147,63 +149,94 @@ or{WHITESPACE}else 	    { printf("Found operator \"%s\" in line %d\n", "OR_ELSE"
 <SINGLE_LINE_COMMENT>\n { printf("Line %d: single line comment end\n", yylineno); BEGIN(INITIAL); }
 
 
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\/[0-9]{1,3}\/% { printf("Line %d: character decimal encoded\n", yylineno); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%%     { printf("Line %d: percent character\n", yylineno); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[nN]  { printf("Line %d: newline character\n", yylineno); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[tT]  { printf("Line %d: horizontal tab character\n", yylineno); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[aA]  { printf("Line %d: at sign character\n", yylineno); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[bB]  { printf("Line %d: backspace character\n", yylineno); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[cC]  { printf("Line %d: circumflex character\n", yylineno); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[dD]  { printf("Line %d: dollar character\n", yylineno); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[fF]  { printf("Line %d: form feed character\n", yylineno); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[hH]  { printf("Line %d: backslash character\n", yylineno); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[lL]  { printf("Line %d: tilde character\n", yylineno); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[qQ]  { printf("Line %d: backquote character\n", yylineno); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[rR]  { printf("Line %d: carriage return character\n", yylineno); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[sS]  { printf("Line %d: sharp character\n", yylineno); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[uU]  { printf("Line %d: null character\n", yylineno); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[vV]  { printf("Line %d: vertical bar character\n", yylineno); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\(    { printf("Line %d: opening bracket character\n", yylineno); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\)    { printf("Line %d: closing bracket character\n", yylineno); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\<    { printf("Line %d: opening brace character\n", yylineno); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\>    { printf("Line %d: closing brace character\n", yylineno); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\"    { printf("Line %d: double quote character\n", yylineno); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\'    { printf("Line %d: single quote character\n", yylineno); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%.     { printf("Line %d: ERROR: invalid escape sequence\n", yylineno); return -1; }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\/[0-9]{1,3}\/ {
+    printf("Line %d: character decimal encoded\n", yylineno);
+    strbuf_append_char(buf, convert_decimal_encoded_char(yytext));
+}
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%%      { printf("Line %d: percent character\n", yylineno); strbuf_append_char(buf, '%'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[nN]   { printf("Line %d: newline character\n", yylineno); strbuf_append_char(buf, '\n'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[tT]   { printf("Line %d: horizontal tab character\n", yylineno); strbuf_append_char(buf, '\t'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[aA]   { printf("Line %d: at sign character\n", yylineno); strbuf_append_char(buf, '@'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[bB]   { printf("Line %d: backspace character\n", yylineno); strbuf_append_char(buf, '\b'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[cC]   { printf("Line %d: circumflex character\n", yylineno); strbuf_append_char(buf, '^'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[dD]   { printf("Line %d: dollar character\n", yylineno); strbuf_append_char(buf, '$'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[fF]   { printf("Line %d: form feed character\n", yylineno); strbuf_append_char(buf, '\f'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[hH]   { printf("Line %d: backslash character\n", yylineno); strbuf_append_char(buf, '\\'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[lL]   { printf("Line %d: tilde character\n", yylineno); strbuf_append_char(buf, '~'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[qQ]   { printf("Line %d: backquote character\n", yylineno); strbuf_append_char(buf, '`'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[rR]   { printf("Line %d: carriage return character\n", yylineno); strbuf_append_char(buf, '\r'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[sS]   { printf("Line %d: sharp character\n", yylineno); strbuf_append_char(buf, '#'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[uU]   { printf("Line %d: null character\n", yylineno); strbuf_append_char(buf, '\0'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[vV]   { printf("Line %d: vertical bar character\n", yylineno); strbuf_append_char(buf, '\v'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\(     { printf("Line %d: opening bracket character\n", yylineno); strbuf_append_char(buf, '['); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\)     { printf("Line %d: closing bracket character\n", yylineno); strbuf_append_char(buf, ']'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\<     { printf("Line %d: opening brace character\n", yylineno); strbuf_append_char(buf, '{'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\>     { printf("Line %d: closing brace character\n", yylineno); strbuf_append_char(buf, '}'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\"     { printf("Line %d: double quote character\n", yylineno); strbuf_append_char(buf, '\"'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\'     { printf("Line %d: single quote character\n", yylineno); strbuf_append_char(buf, '\''); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%(.|\n) { printf("Line %d: ERROR: invalid escape sequence\n", yylineno); return -1; }
 
-<CHARACTER>[^\'\n]* { printf("Line %d: character content: %s\n", yylineno, yytext); }
+<CHARACTER>[^\'\n]* { strbuf_append(buf, yytext); }
 
 <CHARACTER>\n       { printf("Line %d: ERROR: unclosed character\n", yylineno); return -1; }
 
 <CHARACTER><<EOF>>  { printf("Line %d: ERROR: unclosed character\n", yylineno); return -1; }
 
-<CHARACTER>\'       { printf("Line %d: character end\n", yylineno); BEGIN(INITIAL); }
+<CHARACTER>\' { 
+    if (buf->size != 1) {
+        printf("Line %d: ERROR: character cannot consist of more than one symbol %d\n", yylineno, buf->size);
+        return -1;
+    }
 
-<STRING>[^\"\n%]*   { printf("Line %d: part of string\n", yylineno); }
+    printf("Line %d: character content: %c\n", yylineno, buf->buffer[0]);
+    BEGIN(INITIAL);
+}
+
+<STRING>[^\"\n%]*   { printf("Line %d: part of string\n", yylineno); strbuf_append(buf, yytext); }
 
 <STRING>\n          { printf("Line %d: ERROR: unclosed string\n", yylineno); return -1; }
 
 <STRING><<EOF>>     { printf("Line %d: ERROR: unclosed string\n", yylineno); return -1; }
 
-<STRING>\"          { printf("Line %d: string end\n", yylineno); BEGIN(INITIAL); }
+<STRING>\" {
+    printf("Line %d: string content: %s\n", yylineno, buf->buffer);
+    BEGIN(INITIAL);
+}
 
-\"\[\n?                                { printf("Line %d: verbatim aligned string start\n", yylineno); BEGIN(VERBATIM_ALIGNED_STRING); }
+\"\[\n? {
+    printf("Line %d: verbatim aligned string start\n", yylineno);
+    strbuf_clear(buf);
+    BEGIN(VERBATIM_ALIGNED_STRING);
+}
 
-<VERBATIM_ALIGNED_STRING>\]\"          { printf("Line %d: verbatim aligned string end\n", yylineno); BEGIN(INITIAL); }
+<VERBATIM_ALIGNED_STRING>\]\" {
+    printf("Line %d: verbatim string content: %s\n", yylineno, buf->buffer);
+    BEGIN(INITIAL);
+}
 
-<VERBATIM_ALIGNED_STRING>([^\]%]*\n?)* { printf("Line %d: verbatim aligned string part\n", yylineno); }
+<VERBATIM_ALIGNED_STRING>([^\]%]*\n?)* { strbuf_append(buf, yytext); }
 
-<VERBATIM_ALIGNED_STRING>\]            { printf("Line %d: verbatim aligned string part bracket\n", yylineno); }
+<VERBATIM_ALIGNED_STRING>\]            { strbuf_append_char(buf, ']'); }
 
 <VERBATIM_ALIGNED_STRING><<EOF>>       { printf("Line %d: ERROR: verbatium aligned string unclosed", yylineno); return -1; }
 
-\"                                     { printf("Line %d: string start\n", yylineno); BEGIN(STRING); }
+\" {
+    printf("Line %d: string start\n", yylineno);
+    strbuf_clear(buf);
+    BEGIN(STRING);
+}
 
-\'                                     { printf("Line %d: character start\n", yylineno); BEGIN(CHARACTER); }
+\' {
+    printf("Line %d: character start\n", yylineno);
+    strbuf_clear(buf);
+    BEGIN(CHARACTER);
+}
 
 
 {IDENTIFIER} {
-    printf("Line %d: found identifier: %s\n", yylineno, yytext);
+    strbuf_clear(buf);
+    strbuf_append(buf, yytext);
+    printf("Line %d: found identifier: %s\n", yylineno, buf->buffer);
 }
 
 {DECIMAL_NUMBER} {

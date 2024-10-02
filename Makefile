@@ -7,16 +7,17 @@ LEXER_EXE_NAME = lexer
 LEXER_TEST_FILE = program.e
 
 .PHONY: build
-build: clean flex $(LEX_YY_C_FILE)
-	$(CC) $(LEX_YY_C_FILE) -o $(LEXER_EXE_NAME)
+build: clean flex
+	$(CC) ./src/$(LEX_YY_C_FILE) -o $(LEXER_EXE_NAME)
 
 .PHONY: flex
 flex: $(FLEX_FILE)
 	flex ./$(FLEX_FILE)
+	mv ./$(LEX_YY_C_FILE) ./src/
 
 .PHONY: clean
 clean:
-	rm -rf $(wildcard *.exe) $(wildcard *.o) $(LEX_YY_C_FILE)
+	rm -rf $(wildcard *.exe) $(wildcard *.o) ./src/$(LEX_YY_C_FILE)
 
 .PHONY: test
 test:
