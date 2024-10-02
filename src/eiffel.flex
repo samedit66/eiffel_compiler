@@ -15,17 +15,17 @@ IDENTIFIER [_a-zA-Z][_a-zA-Z0-9]*
 
 WHITESPACE [ \n\t]+
 
-DIGIT          [0-9]
-DECIMAL_NUMBER ({DIGIT}+_+)*{DIGIT}+
+DIGIT   [0-9]
+INT_10  ({DIGIT}+_+)*{DIGIT}+
 
-HEXIT          [0-9a-fA-F]
-HEX_NUMBER     0[xX]({HEXIT}+_+)*{HEXIT}+
+HEXIT    [0-9a-fA-F]
+INT_16   0[xX]({HEXIT}+_+)*{HEXIT}+
 
-OCTIT          [0-7]
-OCT_NUMBER     0[cCoO]({OCTIT}+_+)*{OCTIT}+
+OCTIT    [0-7]
+INT_8    0[cCoO]({OCTIT}+_+)*{OCTIT}+
 
-BINIT          [01]
-BIN_NUMBER     0[bB]({BINIT}+_+)*{BINIT}+
+BINIT    [01]
+INT_2    0[bB]({BINIT}+_+)*{BINIT}+
 
 REAL_NUMBER_PART           {DIGIT}+
 REAL_NUMBER                {REAL_NUMBER_PART}?\.{REAL_NUMBER_PART}|{REAL_NUMBER_PART}\.{REAL_NUMBER_PART}?
@@ -243,22 +243,22 @@ or{WHITESPACE}else 	    { printf("Found operator \"%s\" in line %d\n", "OR_ELSE"
     printf("Line %d: found identifier: %s\n", yylineno, buf->buffer);
 }
 
-{DECIMAL_NUMBER} {
+{INT_10} {
     parse_integer(&int_number, yytext, 10);
     printf("Line %d: found decimal number: %d\n", yylineno, int_number);
 }
 
-{HEX_NUMBER} {
+{INT_16} {
     parse_integer(&int_number, yytext, 16);
     printf("Line %d: found hex number: %d\n", yylineno, int_number);
 }
 
-{OCT_NUMBER} {
+{INT_8} {
     parse_integer(&int_number, yytext, 8);
     printf("Line %d: found oct number: %d\n", yylineno, int_number);
 }
 
-{BIN_NUMBER} {
+{INT_2} {
     parse_integer(&int_number, yytext, 2);
     printf("Line %d: found bin number: %d\n", yylineno, int_number);
 }
