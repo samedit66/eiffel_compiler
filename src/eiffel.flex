@@ -1,6 +1,7 @@
 %{
     #include <stdio.h>
     #include <stdint.h>
+    #include <stdbool.h>
 
     #include "lex_utils.h"
     #include "strbuf.h"
@@ -45,6 +46,8 @@ REAL_NUMBER_EXPONENT       ({REAL_NUMBER}|{REAL_NUMBER_PART})[eE][\-+]?{REAL_NUM
     int64_t int_number;
     double real_number;
     strbuf* buf = strbuf_empty();
+
+    bool needDelimeter = false;
 %}
 
 ":="					{ printf("Found operator \"%s\" in line %d\n", "ASSIGN", yylineno); }
@@ -187,9 +190,11 @@ or{WHITESPACE}else 	    { printf("Found operator \"%s\" in line %d\n", "OR_ELSE"
 <CHARACTER>\' { 
     if (buf->size != 1) {
         printf("Line %d: ERROR: expected only one character in single quotes%d\n", yylineno, buf->size);
+        needDelimeter = false;
     }
     else {
         printf("Line %d: character content: %c\n", yylineno, buf->buffer[0]);
+        needDelimeter = true;
     }
     BEGIN(INITIAL);
 }
@@ -201,7 +206,8 @@ or{WHITESPACE}else 	    { printf("Found operator \"%s\" in line %d\n", "OR_ELSE"
 <STRING><<EOF>>     { printf("Line %d: ERROR: unclosed string\n", yylineno); return -1; }
 
 <STRING>\" {
-    printf("Line %d: string content: %s\n", yylineno, buf->buffer);
+    printf("Line %d: string content: %s\n", yylineno, buf->buffer);\
+    needDelimeter = true;
     BEGIN(INITIAL);
 }
 
@@ -215,6 +221,7 @@ or{WHITESPACE}else 	    { printf("Found operator \"%s\" in line %d\n", "OR_ELSE"
     printf("Found verbatim string at %d to %d line.\n", start_line, yylineno);
     printf("Verbatim string:\n");
     puts(buf->buffer);
+    needDelimeter = true;
     BEGIN(INITIAL);
 }
 
@@ -238,45 +245,59 @@ or{WHITESPACE}else 	    { printf("Found operator \"%s\" in line %d\n", "OR_ELSE"
 
 
 {IDENTIFIER} {
-    strbuf_clear(buf);
-    strbuf_append(buf, yytext);
-    printf("Line %d: found identifier: %s\n", yylineno, buf->buffer);
+    if (needDelimeter) {
+        printf("Line %d: invalid number literal\n", yylineno);
+    }
+    else {
+        strbuf_clear(buf);
+        strbuf_append(buf, yytext);
+        printf("Line %d: found identifier: %s\n", yylineno, buf->buffer);
+    }
+    needDelimeter = false;
 }
 
 {INT_10} {
     parse_integer(&int_number, yytext, 10);
     printf("Line %d: found decimal number: %d\n", yylineno, int_number);
+    needDelimeter = true;
 }
 
 {INT_16} {
     parse_integer(&int_number, yytext, 16);
     printf("Line %d: found hex number: %d\n", yylineno, int_number);
+    needDelimeter = true;
 }
 
 {INT_8} {
     parse_integer(&int_number, yytext, 8);
     printf("Line %d: found oct number: %d\n", yylineno, int_number);
+    needDelimeter = true;
 }
 
 {INT_2} {
     parse_integer(&int_number, yytext, 2);
     printf("Line %d: found bin number: %d\n", yylineno, int_number);
+    needDelimeter = true;
 }
 
 {REAL_NUMBER} {
     parse_real(&real_number, yytext);
     printf("Line %d: found real number: %f\n", yylineno, real_number);
+    needDelimeter = true;
 }
 
 {REAL_NUMBER_EXPONENT} {
     parse_real(&real_number, yytext);
     printf("Line %d: found real exponent number: %f\n", yylineno, real_number);
+    needDelimeter = true;
 }
 
-{WHITESPACE}     { printf("Line %d: found whitespace\n", yylineno); }
+{WHITESPACE} {
+    needDelimeter = false;
+}
 
 
-.                { printf("Line %d: found unknown symbol\n", yylineno); }
+. { printf("Line %d: found unknown symbol\n", yylineno); }
 
 
 %%
