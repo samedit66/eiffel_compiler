@@ -16,19 +16,20 @@ IDENTIFIER [_a-zA-Z][_a-zA-Z0-9]*
 WHITESPACE [ \n\t]+
 
 DIGIT          [0-9]
-DECIMAL_NUMBER ({DIGIT}+_)*{DIGIT}+
+DECIMAL_NUMBER ({DIGIT}+_+)*{DIGIT}+
 
 HEXIT          [0-9a-fA-F]
-HEX_NUMBER     0[xX]({HEXIT}+_)*{HEXIT}+
+HEX_NUMBER     0[xX]({HEXIT}+_+)*{HEXIT}+
 
 OCTIT          [0-7]
-OCT_NUMBER     0[cCoO]({OCTIT}+_)*{OCTIT}+
+OCT_NUMBER     0[cCoO]({OCTIT}+_+)*{OCTIT}+
 
 BINIT          [01]
-BIN_NUMBER     0[bB]({BINIT}+_)*{BINIT}+
+BIN_NUMBER     0[bB]({BINIT}+_+)*{BINIT}+
 
-REAL_NUMBER                {DECIMAL_NUMBER}?\.{DECIMAL_NUMBER}|{DECIMAL_NUMBER}\.{DECIMAL_NUMBER}?
-REAL_NUMBER_EXPONENT       ({REAL_NUMBER}|{DECIMAL_NUMBER})[eE][\-+]?{DECIMAL_NUMBER}
+REAL_NUMBER_PART           {DIGIT}+
+REAL_NUMBER                {REAL_NUMBER_PART}?\.{REAL_NUMBER_PART}|{REAL_NUMBER_PART}\.{REAL_NUMBER_PART}?
+REAL_NUMBER_EXPONENT       ({REAL_NUMBER}|{REAL_NUMBER_PART})[eE][\-+]?{REAL_NUMBER_PART}
 
 
 %x SINGLE_LINE_COMMENT
@@ -154,28 +155,28 @@ or{WHITESPACE}else 	    { printf("Found operator \"%s\" in line %d\n", "OR_ELSE"
     printf("Line %d: character decimal encoded\n", yylineno);
     strbuf_append_char(buf, convert_decimal_encoded_char(yytext));
 }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%%      { printf("Line %d: percent character\n", yylineno); strbuf_append_char(buf, '%'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[nN]   { printf("Line %d: newline character\n", yylineno); strbuf_append_char(buf, '\n'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[tT]   { printf("Line %d: horizontal tab character\n", yylineno); strbuf_append_char(buf, '\t'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[aA]   { printf("Line %d: at sign character\n", yylineno); strbuf_append_char(buf, '@'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[bB]   { printf("Line %d: backspace character\n", yylineno); strbuf_append_char(buf, '\b'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[cC]   { printf("Line %d: circumflex character\n", yylineno); strbuf_append_char(buf, '^'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[dD]   { printf("Line %d: dollar character\n", yylineno); strbuf_append_char(buf, '$'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[fF]   { printf("Line %d: form feed character\n", yylineno); strbuf_append_char(buf, '\f'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[hH]   { printf("Line %d: backslash character\n", yylineno); strbuf_append_char(buf, '\\'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[lL]   { printf("Line %d: tilde character\n", yylineno); strbuf_append_char(buf, '~'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[qQ]   { printf("Line %d: backquote character\n", yylineno); strbuf_append_char(buf, '`'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[rR]   { printf("Line %d: carriage return character\n", yylineno); strbuf_append_char(buf, '\r'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[sS]   { printf("Line %d: sharp character\n", yylineno); strbuf_append_char(buf, '#'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[uU]   { printf("Line %d: null character\n", yylineno); strbuf_append_char(buf, '\0'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[vV]   { printf("Line %d: vertical bar character\n", yylineno); strbuf_append_char(buf, '\v'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\(     { printf("Line %d: opening bracket character\n", yylineno); strbuf_append_char(buf, '['); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\)     { printf("Line %d: closing bracket character\n", yylineno); strbuf_append_char(buf, ']'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\<     { printf("Line %d: opening brace character\n", yylineno); strbuf_append_char(buf, '{'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\>     { printf("Line %d: closing brace character\n", yylineno); strbuf_append_char(buf, '}'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\"     { printf("Line %d: double quote character\n", yylineno); strbuf_append_char(buf, '\"'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\'     { printf("Line %d: single quote character\n", yylineno); strbuf_append_char(buf, '\''); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%(.|\n) { printf("Line %d: ERROR: invalid escape sequence\n", yylineno); return -1; }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%%      { strbuf_append_char(buf, '%'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[nN]   { strbuf_append_char(buf, '\n'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[tT]   { strbuf_append_char(buf, '\t'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[aA]   { strbuf_append_char(buf, '@'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[bB]   { strbuf_append_char(buf, '\b'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[cC]   { strbuf_append_char(buf, '^'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[dD]   { strbuf_append_char(buf, '$'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[fF]   { strbuf_append_char(buf, '\f'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[hH]   { strbuf_append_char(buf, '\\'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[lL]   { strbuf_append_char(buf, '~'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[qQ]   { strbuf_append_char(buf, '`'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[rR]   { strbuf_append_char(buf, '\r'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[sS]   { strbuf_append_char(buf, '#'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[uU]   { strbuf_append_char(buf, '\0'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[vV]   { strbuf_append_char(buf, '\v'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\(     { strbuf_append_char(buf, '['); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\)     { strbuf_append_char(buf, ']'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\<     { strbuf_append_char(buf, '{'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\>     { strbuf_append_char(buf, '}'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\"     { strbuf_append_char(buf, '\"'); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\'     { strbuf_append_char(buf, '\''); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%(.|\n) { printf("Line %d: ERROR: invalid escape sequence\n", yylineno); }
 
 <CHARACTER>[^\'\n]* { strbuf_append(buf, yytext); }
 
@@ -185,11 +186,11 @@ or{WHITESPACE}else 	    { printf("Found operator \"%s\" in line %d\n", "OR_ELSE"
 
 <CHARACTER>\' { 
     if (buf->size != 1) {
-        printf("Line %d: ERROR: character cannot consist of more than one symbol %d\n", yylineno, buf->size);
-        return -1;
+        printf("Line %d: ERROR: expected only one character in single quotes%d\n", yylineno, buf->size);
     }
-
-    printf("Line %d: character content: %c\n", yylineno, buf->buffer[0]);
+    else {
+        printf("Line %d: character content: %c\n", yylineno, buf->buffer[0]);
+    }
     BEGIN(INITIAL);
 }
 
