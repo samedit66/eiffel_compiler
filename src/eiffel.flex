@@ -40,6 +40,7 @@ REAL_NUMBER_EXPONENT       ({REAL_NUMBER}|{DECIMAL_NUMBER})[eE][\-+]?{DECIMAL_NU
 %%
 
 %{
+    int start_line;
     int64_t int_number;
     double real_number;
     strbuf* buf = strbuf_empty();
@@ -204,13 +205,15 @@ or{WHITESPACE}else 	    { printf("Found operator \"%s\" in line %d\n", "OR_ELSE"
 }
 
 \"\[\n? {
-    printf("Line %d: verbatim aligned string start\n", yylineno);
+    start_line = yylineno;
     strbuf_clear(buf);
     BEGIN(VERBATIM_ALIGNED_STRING);
 }
 
 <VERBATIM_ALIGNED_STRING>\]\" {
-    printf("Line %d: verbatim string content: %s\n", yylineno, buf->buffer);
+    printf("Found verbatim string at %d to %d line.\n", start_line, yylineno);
+    printf("Verbatim string:\n");
+    puts(buf->buffer);
     BEGIN(INITIAL);
 }
 
