@@ -1,7 +1,9 @@
 %{
+    #include <ctype.h>
     #include <stdio.h>
     #include <stdint.h>
     #include <stdbool.h>
+    #include <string.h>
 
     #include "lex_utils.h"
     #include "strbuf.h"
@@ -251,21 +253,33 @@ or{WHITESPACE}else 	    { printf("Found operator \"%s\" in line %d\n", "OR_ELSE"
 
 
 {IDENTIFIER} {
-    if (needDelimeter) {
-        printf("Line %d: invalid number literal\n", yylineno);
-    }
-    else {
-        strbuf_clear(buf);
-        strbuf_append(buf, yytext);
-        printf("Line %d: found identifier: %s\n", yylineno, buf->buffer);
-    }
-    needDelimeter = false;
+    strbuf_clear(buf);
+    strbuf_append(buf, yytext);
+    printf("Line %d: found identifier: %s\n", yylineno, buf->buffer);
 }
 
 {INT_10} {
-    parse_integer(&int_number, yytext, 10);
-    printf("Line %d: found decimal number: %d\n", yylineno, int_number);
-    needDelimeter = true;
+    int line_start = yylineno;
+    char* yycopy = strdup(yytext);
+
+    char nc = input();
+    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'')) {
+        strbuf_append(buf, yycopy);
+        do {
+            strbuf_append_char(buf, nc);
+            nc = input();
+        } while (nc != EOF && nc != '\0' && !isdelim(nc));
+
+        printf("Line %d: ERROR: invalid decimal integer literal: \"%s\"\n", line_start, buf->buffer);
+
+        if (nc != EOF) unput(nc);
+    }
+    else {
+        parse_integer(&int_number, yycopy, 10);
+        printf("Line %d: found decimal number: %d\n", line_start, int_number);
+    }
+
+    free(yycopy);
 }
 
 {INT_16} {

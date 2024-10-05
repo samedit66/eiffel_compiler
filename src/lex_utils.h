@@ -38,3 +38,8 @@ void parse_real(double* real, char* str_real) {
 char convert_decimal_encoded_char(char *decimal_encoded) {
     return (char) atoi(decimal_encoded + 2);
 }
+
+bool isdelim(char c) { 
+    static char* delims = " \n\t";
+    return strchr(delims, c) != NULL;
+}
