@@ -187,14 +187,20 @@ or{WHITESPACE}else 	    { printf("Found operator \"%s\" in line %d\n", "OR_ELSE"
 
 <CHARACTER><<EOF>>  { printf("Line %d: ERROR: unclosed character\n", yylineno); return -1; }
 
-<CHARACTER>\' { 
-    if (buf->size != 1) {
-        printf("Line %d: ERROR: expected only one character in single quotes%d\n", yylineno, buf->size);
-        needDelimeter = false;
+<CHARACTER>\' {
+    if (buf->size == 0) {
+        printf("Line %d: ERROR: empty characters are not permitted\n", yylineno);
+    }
+    else if (buf->size > 1) {
+        printf(
+            "Line %d: ERROR: expected only one character in single quotes, but got \"%s\"\n",
+            yylineno,
+            buf->size,
+            buf->buffer
+        );
     }
     else {
-        printf("Line %d: character content: %c\n", yylineno, buf->buffer[0]);
-        needDelimeter = true;
+        printf("Line %d: found character: '%c'\n", yylineno, buf->buffer[0]);
     }
     BEGIN(INITIAL);
 }
