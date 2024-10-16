@@ -1,4 +1,5 @@
 CC = gcc
+CFLAGS = 
 
 FLEX_FILE = src/eiffel.flex
 LEX_YY_C_FILE = lex.yy.c
@@ -8,7 +9,7 @@ LEXER_TEST_FILE = program.e
 
 .PHONY: build
 build: clean flex
-	$(CC) ./src/$(LEX_YY_C_FILE) -o $(LEXER_EXE_NAME)
+	$(CC) $(CFLAGS) ./src/$(LEX_YY_C_FILE) -o $(LEXER_EXE_NAME)
 
 .PHONY: flex
 flex: $(FLEX_FILE)

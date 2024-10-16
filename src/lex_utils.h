@@ -40,6 +40,14 @@ char convert_decimal_encoded_char(char *decimal_encoded) {
 }
 
 bool isdelim(char c) { 
-    static char* delims = " \n\t";
+    static char* delims = " \n\t*/\\-+:;,.()[]{}^<>=";
     return strchr(delims, c) != NULL;
+}
+
+bool isoctdigit(char c) {
+    return '0' <= c && c <= '7';
+}
+
+bool isbindigit(char c) {
+    return c == '0' || c == '1';
 }

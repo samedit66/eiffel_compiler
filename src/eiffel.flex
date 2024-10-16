@@ -4,9 +4,28 @@
     #include <stdint.h>
     #include <stdbool.h>
     #include <string.h>
+    #include <ctype.h>
 
     #include "lex_utils.h"
     #include "strbuf.h"
+
+    #define LOG_LEXEM_AT_LINENO(lineno, lexem_type, lexem)\
+        printf("Line %d: found %s: \"%s\"\n", lineno, lexem_type, lexem)
+
+    #define LOG_LEXEM(lexem_type, lexem) LOG_LEXEM_AT_LINENO(yylineno, lexem_type, lexem)
+
+    #define ERROR_F(lineno, msg, ...)\
+        printf("Line %d: error: ", lineno);\
+        printf(msg, __VA_ARGS__);\
+        printf("\n")
+
+    #define ERROR_AT_LINENO(lineno, msg)\
+        printf("Line %d: error: %s\n", lineno, msg)
+
+    #define ERROR(msg) ERROR_AT_LINENO(yylineno, msg)
+
+    #define EXPECTED_BUT(expected, but)\
+        printf("Line %d: error: expected %s, but got %s\n", yylineno, expected, but);
 %}
 
 %option noyywrap
@@ -52,112 +71,115 @@ REAL_NUMBER_EXPONENT       ({REAL_NUMBER}|{REAL_NUMBER_PART})[eE][\-+]?{REAL_NUM
     bool needDelimeter = false;
 %}
 
-":="					{ printf("Found operator \"%s\" in line %d\n", "ASSIGN", yylineno); }
-"="						{ printf("Found operator \"%s\" in line %d\n", "EQUALS", yylineno); }
-"/="					{ printf("Found operator \"%s\" in line %d\n", "NOT_EQUALS", yylineno); }
-"<" 					{ printf("Found operator \"%s\" in line %d\n", "LESS", yylineno); }
-"<=" 					{ printf("Found operator \"%s\" in line %d\n", "LESS_OR_EQUAL", yylineno); }
-">" 					{ printf("Found operator \"%s\" in line %d\n", "GREATER", yylineno); }
-">=" 					{ printf("Found operator \"%s\" in line %d\n", "GREATER_OR_EQUAL", yylineno); }
-"and" 					{ printf("Found operator \"%s\" in line %d\n", "AND", yylineno); }
-"xor" 					{ printf("Found operator \"%s\" in line %d\n", "XOR", yylineno); }
-"or" 					{ printf("Found operator \"%s\" in line %d\n", "OR", yylineno); }
-"not" 					{ printf("Found operator \"%s\" in line %d\n", "NOT", yylineno); }
-and{WHITESPACE}then 	{ printf("Found operator \"%s\" in line %d\n", "AND_THEN", yylineno); }
-or{WHITESPACE}else 	    { printf("Found operator \"%s\" in line %d\n", "OR_ELSE", yylineno); }
-"implies" 				{ printf("Found operator \"%s\" in line %d\n", "IMPLIES", yylineno); }
-"//"					{ printf("Found operator \"%s\" in line %d\n", "DIV", yylineno); }
-\\\\					{ printf("Found operator \"%s\" in line %d\n", "MOD", yylineno); }
-"+" 					{ printf("Found operator \"%s\" in line %d\n", yytext, yylineno); }
-"-" 					{ printf("Found operator \"%s\" in line %d\n", yytext, yylineno); }
-"*" 					{ printf("Found operator \"%s\" in line %d\n", yytext, yylineno); }
-"/"						{ printf("Found operator \"%s\" in line %d\n", yytext, yylineno); }
-"^" 					{ printf("Found operator \"%s\" in line %d\n", yytext, yylineno); }
-";" 					{ printf("Found operator \"%s\" in line %d\n", yytext, yylineno); }
+":="					{ LOG_LEXEM("operator", ":="); }
+"="						{ LOG_LEXEM("operator", "EQUALS"); }
+"/="					{ LOG_LEXEM("operator", "NOT_EQUALS"); }
+"<" 					{ LOG_LEXEM("operator", "LESS"); }
+"<=" 					{ LOG_LEXEM("operator", "LESS_OR_EQUAL"); }
+">" 					{ LOG_LEXEM("operator", "GREATER"); }
+">=" 					{ LOG_LEXEM("operator", "GREATER_OR_EQUAL"); }
+"and" 					{ LOG_LEXEM("operator", "AND"); }
+"xor" 					{ LOG_LEXEM("operator", "XOR"); }
+"or" 					{ LOG_LEXEM("operator", "OR"); }
+"not" 					{ LOG_LEXEM("operator", "NOT"); }
+and{WHITESPACE}then 	{ LOG_LEXEM("operator", "AND_THEN"); }
+or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
+"implies" 				{ LOG_LEXEM("operator", "IMPLIES"); }
+"//"					{ LOG_LEXEM("operator", "DIV"); }
+"\\\\"					{ LOG_LEXEM("operator", "MOD"); }
+"+" 					{ LOG_LEXEM("operator", "+"); }
+"-" 					{ LOG_LEXEM("operator", "-"); }
+"*" 					{ LOG_LEXEM("operator", "*"); }
+"/"						{ LOG_LEXEM("operator", "/"); }
+"^" 					{ LOG_LEXEM("operator", "^"); }
+";" 					{ LOG_LEXEM("operator", ";"); }
 
-"(" 					{ printf("Found symbol \"%s\" in line %d\n", yytext, yylineno); }
-")" 					{ printf("Found symbol \"%s\" in line %d\n", yytext, yylineno); }
-"{" 					{ printf("Found symbol \"%s\" in line %d\n", yytext, yylineno); }
-"}" 					{ printf("Found symbol \"%s\" in line %d\n", yytext, yylineno); }
-"[" 					{ printf("Found symbol \"%s\" in line %d\n", yytext, yylineno); }
-"]" 					{ printf("Found symbol \"%s\" in line %d\n", yytext, yylineno); }
-":" 					{ printf("Found symbol \"%s\" in line %d\n", yytext, yylineno); }
-"." 					{ printf("Found symbol \"%s\" in line %d\n", yytext, yylineno); }
-"," 					{ printf("Found symbol \"%s\" in line %d\n", yytext, yylineno); }
+"(" 					{ LOG_LEXEM("symbol", "("); }
+")" 					{ LOG_LEXEM("symbol", ")"); }
+"{" 					{ LOG_LEXEM("symbol", "{"); }
+"}" 					{ LOG_LEXEM("symbol", "}"); }
+"[" 					{ LOG_LEXEM("symbol", "["); }
+"]" 					{ LOG_LEXEM("symbol", "]"); }
+":" 					{ LOG_LEXEM("symbol", ":"); }
+"." 					{ LOG_LEXEM("symbol", "."); }
+"," 					{ LOG_LEXEM("symbol", ","); }
 
-"all" 					{ printf("Found keyword \"%s\" in line %d\n", "ALL", yylineno); }
-"across"                { printf("Found keyword \"%s\" in line %d\n", "ACROSS", yylineno); }
-"agent"                 { printf("Found keyword \"%s\" in line %d\n", "AGENT", yylineno); }
-"alias"                 { printf("Found keyword \"%s\" in line %d\n", "ALIAS", yylineno); }
-"as"                    { printf("Found keyword \"%s\" in line %d\n", "AS", yylineno); }
-"assign"                { printf("Found keyword \"%s\" in line %d\n", "ASSING", yylineno); }
-"attribute"             { printf("Found keyword \"%s\" in line %d\n", "ATTRIBUTE", yylineno); }
-"class" 				{ printf("Found keyword \"%s\" in line %d\n", "CLASS", yylineno); }
-"check"                 { printf("Found keyword \"%s\" in line %d\n", "CHECK", yylineno); }
-"convert"               { printf("Found keyword \"%s\" in line %d\n", "CONVERT", yylineno); }
-"create" 				{ printf("Found keyword \"%s\" in line %d\n", "CREATE", yylineno); }
-"Current" 				{ printf("Found keyword \"%s\" in line %d\n", "CURRENT", yylineno); }
-"do" 					{ printf("Found keyword \"%s\" in line %d\n", "DO", yylineno); }
-"debug"                 { printf("Found keyword \"%s\" in line %d\n", "DEBUG", yylineno); }
-"deferred"              { printf("Found keyword \"%s\" in line %d\n", "DEFERRED", yylineno); }
-"else" 					{ printf("Found keyword \"%s\" in line %d\n", "ELSE", yylineno); }
-"elseif" 				{ printf("Found keyword \"%s\" in line %d\n", "ELSEIF", yylineno); }
-"end" 					{ printf("Found keyword \"%s\" in line %d\n", "END", yylineno); }
-"ensure"                { printf("Found keyword \"%s\" in line %d\n", "ENSURE", yylineno); }
-"expanded"              { printf("Found keyword \"%s\" in line %d\n", "EXPANDED", yylineno); }
-"export"                { printf("Found keyword \"%s\" in line %d\n", "EXPORT", yylineno); }
-"external"              { printf("Found keyword \"%s\" in line %d\n", "EXTERNAL", yylineno); }
-"feature" 				{ printf("Found keyword \"%s\" in line %d\n", "FEATURE", yylineno); }
-"from" 					{ printf("Found keyword \"%s\" in line %d\n", "FROM", yylineno); }
-"False"                 { printf("Found keyword \"%s\" in line %d\n", "FALSE", yylineno); }
-"frozen"                { printf("Found keyword \"%s\" in line %d\n", "FROZEN", yylineno); }
-"if" 					{ printf("Found keyword \"%s\" in line %d\n", "IF", yylineno); }
-"inherit" 				{ printf("Found keyword \"%s\" in line %d\n", "INHERIT", yylineno); }
-"inspect"               { printf("Found keyword \"%s\" in line %d\n", "INSPECT", yylineno); }
-"invariant"             { printf("Found keyword \"%s\" in line %d\n", "INVARIANT", yylineno); }
-"local" 				{ printf("Found keyword \"%s\" in line %d\n", "LOCAL", yylineno); }
-"loop" 					{ printf("Found keyword \"%s\" in line %d\n", "LOOP", yylineno); }
-"like"                  { printf("Found keyword \"%s\" in line %d\n", "LIKE", yylineno); }
-"note" 					{ printf("Found keyword \"%s\" in line %d\n", "NOTE", yylineno); }
-"obsolete"              { printf("Found keyword \"%s\" in line %d\n", "OBSOLETE", yylineno); }
-"old"                   { printf("Found keyword \"%s\" in line %d\n", "OLD", yylineno); }
-"once"                  { printf("Found keyword \"%s\" in line %d\n", "ONCE", yylineno); }
-"only"                  { printf("Found keyword \"%s\" in line %d\n", "ONLY", yylineno); }
-"Precursor" 			{ printf("Found keyword \"%s\" in line %d\n", "PRECURSOR", yylineno); }
-"redefine" 				{ printf("Found keyword \"%s\" in line %d\n", "REDEFINE", yylineno); }
-"rename" 				{ printf("Found keyword \"%s\" in line %d\n", "RENAME", yylineno); }
-"Result" 				{ printf("Found keyword \"%s\" in line %d\n", "RESULT", yylineno); }
-"require"               { printf("Found keyword \"%s\" in line %d\n", "REQUIRE", yylineno); }
-"rescue"                { printf("Found keyword \"%s\" in line %d\n", "RESCUE", yylineno); }
-"retry"                 { printf("Found keyword \"%s\" in line %d\n", "RETRY", yylineno); }
-"separate"              { printf("Found keyword \"%s\" in line %d\n", "SEPARATE", yylineno); }
-"select" 				{ printf("Found keyword \"%s\" in line %d\n", "SELECT", yylineno); }
-"then" 					{ printf("Found keyword \"%s\" in line %d\n", "THEN", yylineno); }
-"True"                  { printf("Found keyword \"%s\" in line %d\n", "TRUE", yylineno); }
-"undefine" 				{ printf("Found keyword \"%s\" in line %d\n", "UNDEFINE", yylineno); }
-"until" 				{ printf("Found keyword \"%s\" in line %d\n", "UNTIL", yylineno); }
-"variant"               { printf("Found keyword \"%s\" in line %d\n", "VARIANT", yylineno); }
-"Void"                  { printf("Found keyword \"%s\" in line %d\n", "VOID", yylineno); }
-"when"                  { printf("Found keyword \"%s\" in line %d\n", "WHEN", yylineno); }
+"all" 					{ LOG_LEXEM("keyword", "ALL"); }
+"across"                { LOG_LEXEM("keyword", "ACROSS"); }
+"agent"                 { LOG_LEXEM("keyword", "AGENT"); }
+"alias"                 { LOG_LEXEM("keyword", "ALIAS"); }
+"as"                    { LOG_LEXEM("keyword", "AS"); }
+"assign"                { LOG_LEXEM("keyword", "ASSIGN"); }
+"attribute"             { LOG_LEXEM("keyword", "ATTRIBUTE"); }
+"class" 				{ LOG_LEXEM("keyword", "CLASS"); }
+"check"                 { LOG_LEXEM("keyword", "CHECK"); }
+"convert"               { LOG_LEXEM("keyword", "CONVERT"); }
+"create" 				{ LOG_LEXEM("keyword", "CREATE"); }
+"Current" 				{ LOG_LEXEM("keyword", "CURRENT"); }
+"do" 					{ LOG_LEXEM("keyword", "DO"); }
+"debug"                 { LOG_LEXEM("keyword", "DEBUG"); }
+"deferred"              { LOG_LEXEM("keyword", "DEFERRED"); }
+"else" 					{ LOG_LEXEM("keyword", "ELSE"); }
+"elseif" 				{ LOG_LEXEM("keyword", "ELSEIF"); }
+"end" 					{ LOG_LEXEM("keyword", "END"); }
+"ensure"                { LOG_LEXEM("keyword", "ENSURE"); }
+"expanded"              { LOG_LEXEM("keyword", "EXPANDED"); }
+"export"                { LOG_LEXEM("keyword", "EXPORT"); }
+"external"              { LOG_LEXEM("keyword", "EXTERNAL"); }
+"feature" 				{ LOG_LEXEM("keyword", "FEATURE"); }
+"from" 					{ LOG_LEXEM("keyword", "FROM"); }
+"False"                 { LOG_LEXEM("keyword", "FALSE"); }
+"frozen"                { LOG_LEXEM("keyword", "FROZEN"); }
+"if" 					{ LOG_LEXEM("keyword", "IF"); }
+"inherit" 				{ LOG_LEXEM("keyword", "INHERIT"); }
+"inspect"               { LOG_LEXEM("keyword", "INSPECT"); }
+"invariant"             { LOG_LEXEM("keyword", "INVARIANT"); }
+"local" 				{ LOG_LEXEM("keyword", "LOCAL"); }
+"loop" 					{ LOG_LEXEM("keyword", "LOOP"); }
+"like"                  { LOG_LEXEM("keyword", "LIKE"); }
+"note" 					{ LOG_LEXEM("keyword", "NOTE"); }
+"obsolete"              { LOG_LEXEM("keyword", "OBSOLETE"); }
+"old"                   { LOG_LEXEM("keyword", "OLD"); }
+"once"                  { LOG_LEXEM("keyword", "ONCE"); }
+"only"                  { LOG_LEXEM("keyword", "ONLY"); }
+"Precursor" 			{ LOG_LEXEM("keyword", "PRECURSOR"); }
+"redefine" 				{ LOG_LEXEM("keyword", "REDEFINE"); }
+"rename" 				{ LOG_LEXEM("keyword", "RENAME"); }
+"Result" 				{ LOG_LEXEM("keyword", "RESULT"); }
+"require"               { LOG_LEXEM("keyword", "REQUIRE"); }
+"rescue"                { LOG_LEXEM("keyword", "RESCUE"); }
+"retry"                 { LOG_LEXEM("keyword", "RETRY"); }
+"separate"              { LOG_LEXEM("keyword", "SEPARATE"); }
+"select" 				{ LOG_LEXEM("keyword", "SELECT"); }
+"then" 					{ LOG_LEXEM("keyword", "THEN"); }
+"True"                  { LOG_LEXEM("keyword", "TRUE"); }
+"undefine" 				{ LOG_LEXEM("keyword", "UNDEFINE"); }
+"until" 				{ LOG_LEXEM("keyword", "UNTIL"); }
+"variant"               { LOG_LEXEM("keyword", "VARIANT"); }
+"Void"                  { LOG_LEXEM("keyword", "VOID"); }
+"when"                  { LOG_LEXEM("keyword", "WHEN"); }
 
-"ARRAY" 				{ printf("Found keyword \"%s\" in line %d\n", "ARRAY", yylineno); }
-"INTEGER" 				{ printf("Found keyword \"%s\" in line %d\n", "INTEGER", yylineno); }
-"REAL" 					{ printf("Found keyword \"%s\" in line %d\n", "REAL", yylineno); }
-"CHARACTER" 			{ printf("Found keyword \"%s\" in line %d\n", "CHARACTER", yylineno); }
-"STRING" 				{ printf("Found keyword \"%s\" in line %d\n", "STRING", yylineno); }
-"TUPLE"                 { printf("Found keyword \"%s\" in line %d\n", "TUPLE", yylineno); }
-"BOOLEAN" 				{ printf("Found keyword \"%s\" in line %d\n", "BOOLEAN", yylineno); }
+"ARRAY" 				{ LOG_LEXEM("keyword", "ARRAY"); }
+"INTEGER" 				{ LOG_LEXEM("keyword", "INTEGER"); }
+"REAL" 					{ LOG_LEXEM("keyword", "REAL"); }
+"CHARACTER" 			{ LOG_LEXEM("keyword", "CHARACTER"); }
+"STRING" 				{ LOG_LEXEM("keyword", "STRING"); }
+"TUPLE"                 { LOG_LEXEM("keyword", "TUPLE"); }
+"BOOLEAN" 				{ LOG_LEXEM("keyword", "BOOLEAN"); }
 
 
---                      { printf("Line %d: comment start\n", yylineno); BEGIN(SINGLE_LINE_COMMENT); }
 
-<SINGLE_LINE_COMMENT>.* { printf("Line %d: comment: %s\n", yylineno, yytext); }
+--                      { BEGIN(SINGLE_LINE_COMMENT); }
 
-<SINGLE_LINE_COMMENT>\n { printf("Line %d: single line comment end\n", yylineno); BEGIN(INITIAL); }
+<SINGLE_LINE_COMMENT>.* {
+    strbuf_clear(buf);
+    strbuf_append(buf, yytext);
+}
 
+<SINGLE_LINE_COMMENT>\n      { LOG_LEXEM_AT_LINENO(yylineno-1, "single line comment", buf->buffer); BEGIN(INITIAL); }
+<SINGLE_LINE_COMMENT><<EOF>> { LOG_LEXEM("single line comment", buf->buffer); BEGIN(INITIAL); }
 
 <CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\/[0-9]{1,3}\/ {
-    printf("Line %d: character decimal encoded\n", yylineno);
     strbuf_append_char(buf, convert_decimal_encoded_char(yytext));
 }
 <CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%%      { strbuf_append_char(buf, '%'); }
@@ -181,41 +203,39 @@ or{WHITESPACE}else 	    { printf("Found operator \"%s\" in line %d\n", "OR_ELSE"
 <CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\>     { strbuf_append_char(buf, '}'); }
 <CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\"     { strbuf_append_char(buf, '\"'); }
 <CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\'     { strbuf_append_char(buf, '\''); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%(.|\n) { printf("Line %d: ERROR: invalid escape sequence\n", yylineno); }
+<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%(.|\n) { ERROR("invalid escape sequence"); }
 
-<CHARACTER>[^\'\n]* { strbuf_append(buf, yytext); }
+<CHARACTER>[^\'\n]* {
+    strbuf_append(buf, yytext);
+    
+    if (buf->size > 1) {
+        EXPECTED_BUT("only one character in single quotes", buf->buffer);
+    }
+}
 
-<CHARACTER>\n       { printf("Line %d: ERROR: unclosed character\n", yylineno); return -1; }
-
-<CHARACTER><<EOF>>  { printf("Line %d: ERROR: unclosed character\n", yylineno); return -1; }
+<CHARACTER>\n       { ERROR_AT_LINENO(yylineno-1, "unclosed character literal"); return -1; }
+<CHARACTER><<EOF>>  { ERROR("unclosed character literal"); return -1; }
 
 <CHARACTER>\' {
     if (buf->size == 0) {
-        printf("Line %d: ERROR: empty characters are not permitted\n", yylineno);
+        ERROR("empty characters are not permitted");
     }
     else if (buf->size > 1) {
-        printf(
-            "Line %d: ERROR: expected only one character in single quotes, but got \"%s\"\n",
-            yylineno,
-            buf->size,
-            buf->buffer
-        );
+        EXPECTED_BUT("only one character in single quotes", buf->buffer);
     }
     else {
-        printf("Line %d: found character: '%c'\n", yylineno, buf->buffer[0]);
+        LOG_LEXEM("character", buf->buffer);
     }
     BEGIN(INITIAL);
 }
 
-<STRING>[^\"\n%]*   { printf("Line %d: part of string\n", yylineno); strbuf_append(buf, yytext); }
+<STRING>[^\"\n%]*   { LOG_LEXEM("string_part", yytext); strbuf_append(buf, yytext); }
 
-<STRING>\n          { printf("Line %d: ERROR: unclosed string\n", yylineno); return -1; }
-
-<STRING><<EOF>>     { printf("Line %d: ERROR: unclosed string\n", yylineno); return -1; }
+<STRING>\n          { ERROR("unclosed string"); return -1; }
+<STRING><<EOF>>     { ERROR("unclosed string"); return -1; }
 
 <STRING>\" {
-    printf("Line %d: string content: %s\n", yylineno, buf->buffer);\
-    needDelimeter = true;
+    LOG_LEXEM("string content", buf->buffer);
     BEGIN(INITIAL);
 }
 
@@ -226,36 +246,29 @@ or{WHITESPACE}else 	    { printf("Found operator \"%s\" in line %d\n", "OR_ELSE"
 }
 
 <VERBATIM_ALIGNED_STRING>\]\" {
-    printf("Found verbatim string at %d to %d line.\n", start_line, yylineno);
-    printf("Verbatim string:\n");
-    puts(buf->buffer);
-    needDelimeter = true;
+    LOG_LEXEM("verbatim string", buf->buffer);
     BEGIN(INITIAL);
 }
 
 <VERBATIM_ALIGNED_STRING>([^\]%]*\n?)* { strbuf_append(buf, yytext); }
 
 <VERBATIM_ALIGNED_STRING>\]            { strbuf_append_char(buf, ']'); }
-
-<VERBATIM_ALIGNED_STRING><<EOF>>       { printf("Line %d: ERROR: verbatium aligned string unclosed", yylineno); return -1; }
+<VERBATIM_ALIGNED_STRING><<EOF>>       { ERROR("verbatim string unclosed"); return -1; }
 
 \" {
-    printf("Line %d: string start\n", yylineno);
     strbuf_clear(buf);
     BEGIN(STRING);
 }
 
 \' {
-    printf("Line %d: character start\n", yylineno);
     strbuf_clear(buf);
     BEGIN(CHARACTER);
 }
 
-
 {IDENTIFIER} {
     strbuf_clear(buf);
     strbuf_append(buf, yytext);
-    printf("Line %d: found identifier: %s\n", yylineno, buf->buffer);
+    LOG_LEXEM("identifier", buf->buffer);
 }
 
 {INT_10} {
@@ -270,54 +283,141 @@ or{WHITESPACE}else 	    { printf("Found operator \"%s\" in line %d\n", "OR_ELSE"
             nc = input();
         } while (nc != EOF && nc != '\0' && !isdelim(nc));
 
-        printf("Line %d: ERROR: invalid decimal integer literal: \"%s\"\n", line_start, buf->buffer);
+        ERROR_F(line_start, "invalid decimal integer literal: \"%s\"", buf->buffer);
 
-        if (nc != EOF) unput(nc);
+        //if (nc != EOF) unput(nc);
     }
     else {
         parse_integer(&int_number, yycopy, 10);
-        printf("Line %d: found decimal number: %d\n", line_start, int_number);
+        LOG_LEXEM("decimal integer literal", yycopy);
     }
 
     free(yycopy);
 }
 
 {INT_16} {
-    parse_integer(&int_number, yytext, 16);
-    printf("Line %d: found hex number: %d\n", yylineno, int_number);
-    needDelimeter = true;
+    int line_start = yylineno;
+    char* yycopy = strdup(yytext);
+
+    char nc = input();
+    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || !isxdigit(nc))) {
+        strbuf_append(buf, yycopy);
+        do {
+            strbuf_append_char(buf, nc);
+            nc = input();
+        } while (nc != EOF && nc != '\0' && !isdelim(nc));
+
+        ERROR_F(line_start, "invalid hexadecimal integer literal: \"%s\"", buf->buffer);
+
+        // if (nc != EOF) unput(nc);
+    }
+    else {
+        parse_integer(&int_number, yycopy, 16);
+        LOG_LEXEM("hexadecimal integer literal", yycopy);
+    }
+
+    free(yycopy);
 }
 
 {INT_8} {
-    parse_integer(&int_number, yytext, 8);
-    printf("Line %d: found oct number: %d\n", yylineno, int_number);
-    needDelimeter = true;
+    int line_start = yylineno;
+    char* yycopy = strdup(yytext);
+
+    char nc = input();
+    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || !isoctdigit(nc))) {
+        strbuf_append(buf, yycopy);
+        do {
+            strbuf_append_char(buf, nc);
+            nc = input();
+        } while (nc != EOF && nc != '\0' && !isdelim(nc));
+
+        ERROR_F(line_start, "invalid octal integer literal: \"%s\"", buf->buffer);
+
+        // if (nc != EOF) unput(nc);
+    }
+    else {
+        parse_integer(&int_number, yycopy, 8);
+        LOG_LEXEM("octal integer literal", yycopy);
+    }
+
+    free(yycopy);
 }
 
 {INT_2} {
-    parse_integer(&int_number, yytext, 2);
-    printf("Line %d: found bin number: %d\n", yylineno, int_number);
-    needDelimeter = true;
+    int line_start = yylineno;
+    char* yycopy = strdup(yytext);
+
+    char nc = input();
+    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || !isbindigit(nc))) {
+        strbuf_append(buf, yycopy);
+        do {
+            strbuf_append_char(buf, nc);
+            nc = input();
+        } while (nc != EOF && nc != '\0' && !isdelim(nc));
+
+        ERROR_F(line_start, "invalid binary integer literal: \"%s\"", buf->buffer);
+
+        // if (nc != EOF) unput(nc);
+    }
+    else {
+        parse_integer(&int_number, yycopy, 2);
+        LOG_LEXEM("binary integer literal", yycopy);
+    }
+
+    free(yycopy);
 }
 
 {REAL_NUMBER} {
-    parse_real(&real_number, yytext);
-    printf("Line %d: found real number: %f\n", yylineno, real_number);
-    needDelimeter = true;
+    int line_start = yylineno;
+    char* yycopy = strdup(yytext);
+
+    char nc = input();
+    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'')) {
+        strbuf_append(buf, yycopy);
+        do {
+            strbuf_append_char(buf, nc);
+            nc = input();
+        } while (nc != EOF && nc != '\0' && !isdelim(nc));
+
+        ERROR_F(line_start, "invalid real number literal: \"%s\"", buf->buffer);
+
+        // if (nc != EOF) unput(nc);
+    }
+    else {
+        parse_real(&real_number, yytext);
+        LOG_LEXEM("real number literal", yycopy);
+    }
+
+    free(yycopy);
 }
 
 {REAL_NUMBER_EXPONENT} {
-    parse_real(&real_number, yytext);
-    printf("Line %d: found real exponent number: %f\n", yylineno, real_number);
-    needDelimeter = true;
+    int line_start = yylineno;
+    char* yycopy = strdup(yytext);
+
+    char nc = input();
+    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'')) {
+        strbuf_append(buf, yycopy);
+        do {
+            strbuf_append_char(buf, nc);
+            nc = input();
+        } while (nc != EOF && nc != '\0' && !isdelim(nc));
+
+        ERROR_F(line_start, "invalid real exponent number literal: \"%s\"", buf->buffer);
+
+        // if (nc != EOF) unput(nc);
+    }
+    else {
+        parse_real(&real_number, yytext);
+        LOG_LEXEM("real exponent number literal", yycopy);
+    }
+
+    free(yycopy);
 }
 
-{WHITESPACE} {
-    needDelimeter = false;
-}
+{WHITESPACE} { }
 
-
-. { printf("Line %d: found unknown symbol\n", yylineno); }
+. { LOG_LEXEM("unknown symbol", yytext); }
 
 
 %%
