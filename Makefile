@@ -21,5 +21,5 @@ clean:
 	rm -rf $(wildcard *.exe) $(wildcard *.o) ./src/$(LEX_YY_C_FILE)
 
 .PHONY: test
-test:
+test: build
 	cat ./$(LEXER_TEST_FILE) | ./$(LEXER_EXE_NAME)

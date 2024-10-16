@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 void remove_underscores_in_integer(char* str_integer) {
     int i, j;

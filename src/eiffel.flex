@@ -168,7 +168,6 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
 "BOOLEAN" 				{ LOG_LEXEM("keyword", "BOOLEAN"); }
 
 
-
 --                      { BEGIN(SINGLE_LINE_COMMENT); }
 
 <SINGLE_LINE_COMMENT>.* {
@@ -277,6 +276,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
 
     char nc = input();
     if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'')) {
+        strbuf_clear(buf);
         strbuf_append(buf, yycopy);
         do {
             strbuf_append_char(buf, nc);
@@ -300,7 +300,8 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
     char* yycopy = strdup(yytext);
 
     char nc = input();
-    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || !isxdigit(nc))) {
+    if (nc != EOF && nc != '\0' && ((isalpha(nc) && !isxdigit(nc)) || nc == '"' || nc == '\'')) {
+        strbuf_clear(buf);
         strbuf_append(buf, yycopy);
         do {
             strbuf_append_char(buf, nc);
@@ -325,6 +326,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
 
     char nc = input();
     if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || !isoctdigit(nc))) {
+        strbuf_clear(buf);
         strbuf_append(buf, yycopy);
         do {
             strbuf_append_char(buf, nc);
@@ -349,6 +351,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
 
     char nc = input();
     if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || !isbindigit(nc))) {
+        strbuf_clear(buf);
         strbuf_append(buf, yycopy);
         do {
             strbuf_append_char(buf, nc);
@@ -373,6 +376,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
 
     char nc = input();
     if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'')) {
+        strbuf_clear(buf);
         strbuf_append(buf, yycopy);
         do {
             strbuf_append_char(buf, nc);
@@ -397,6 +401,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
 
     char nc = input();
     if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'')) {
+        strbuf_clear(buf);
         strbuf_append(buf, yycopy);
         do {
             strbuf_append_char(buf, nc);
