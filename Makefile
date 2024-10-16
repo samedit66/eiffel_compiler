@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = 
+CFLAGS = -Wall
 
 FLEX_FILE = src/eiffel.flex
 LEX_YY_C_FILE = lex.yy.c
