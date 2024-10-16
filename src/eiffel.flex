@@ -11,14 +11,19 @@
 
     // Возможно, это не лучшая практика...
     #ifdef DEBUG_LEXER
-        #define LOG_LEXEM_AT_LINENO(lineno, lexem_type, lexem)\
-            printf("Line %d: found %s: \"%s\"\n", lineno, lexem_type, lexem)
-
-        #define LOG_LEXEM(lexem_type, lexem) LOG_LEXEM_AT_LINENO(yylineno, lexem_type, lexem)
+        #define LOG_F(lineno, msg, ...) {\
+            printf("Line %d: ", lineno);\
+            printf(msg, __VA_ARGS__);\
+        }
     #else
-        #define LOG_LEXEM_AT_LINENO(lineno, lexem_type, lexem)
-        #define LOG_LEXEM(lexem_type, lexem)
+        #define LOG_F(lineno, msg, ...)
     #endif
+
+    #define LOG_LEXEM_AT_LINENO(lineno, lexem_type, lexem)\
+        LOG_F(lineno, "found %s: \"%s\"\n", lexem_type, lexem)
+
+    #define LOG_LEXEM(lexem_type, lexem)\
+        LOG_LEXEM_AT_LINENO(yylineno, lexem_type, lexem)
 
     #ifdef COLORFUL
         #define RED_TEXT "\033[31m%s\033[0m"
@@ -28,10 +33,11 @@
         #define UNDERSCORED_TEXT ""
     #endif
     
-    #define ERROR_F(lineno, msg, ...)\
+    #define ERROR_F(lineno, msg, ...) {\
         printf("Line %d: " RED_TEXT ": ", lineno, "error");\
         printf(msg, __VA_ARGS__);\
-        printf("\n")
+        printf("\n");\
+    }
 
     #define ERROR_AT_LINENO(lineno, msg)\
         printf("Line %d: " RED_TEXT ": %s", lineno, "error", msg)
@@ -246,7 +252,11 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
 <STRING><<EOF>>     { ERROR("unclosed string"); return -1; }
 
 <STRING>\" {
-    LOG_LEXEM("string content", buf->buffer);
+    // TODO: возможно не стоит экранировать строку, 
+    // если выключен режим дебага
+    char* escaped = escape(buf->buffer);
+    LOG_LEXEM("string content", escaped);
+    free(escaped);
     BEGIN(INITIAL);
 }
 
