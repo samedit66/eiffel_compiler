@@ -9,23 +9,37 @@
     #include "lex_utils.h"
     #include "strbuf.h"
 
-    #define LOG_LEXEM_AT_LINENO(lineno, lexem_type, lexem)\
-        printf("Line %d: found %s: \"%s\"\n", lineno, lexem_type, lexem)
+    // Возможно, это не лучшая практика...
+    #ifdef DEBUG_LEXER
+        #define LOG_LEXEM_AT_LINENO(lineno, lexem_type, lexem)\
+            printf("Line %d: found %s: \"%s\"\n", lineno, lexem_type, lexem)
 
-    #define LOG_LEXEM(lexem_type, lexem) LOG_LEXEM_AT_LINENO(yylineno, lexem_type, lexem)
+        #define LOG_LEXEM(lexem_type, lexem) LOG_LEXEM_AT_LINENO(yylineno, lexem_type, lexem)
+    #else
+        #define LOG_LEXEM_AT_LINENO(lineno, lexem_type, lexem)
+        #define LOG_LEXEM(lexem_type, lexem)
+    #endif
 
+    #ifdef COLORFUL
+        #define RED_TEXT "\033[31m%s\033[0m"
+        #define UNDERSCORED_TEXT "\033[4m%s\033[0m"
+    #else
+        #define RED_TEXT ""
+        #define UNDERSCORED_TEXT ""
+    #endif
+    
     #define ERROR_F(lineno, msg, ...)\
-        printf("Line %d: error: ", lineno);\
+        printf("Line %d: " RED_TEXT ": ", lineno, "error");\
         printf(msg, __VA_ARGS__);\
         printf("\n")
 
     #define ERROR_AT_LINENO(lineno, msg)\
-        printf("Line %d: error: %s\n", lineno, msg)
+        printf("Line %d: " RED_TEXT ": %s", lineno, "error", msg)
 
     #define ERROR(msg) ERROR_AT_LINENO(yylineno, msg)
 
     #define EXPECTED_BUT(expected, but)\
-        printf("Line %d: error: expected %s, but got %s\n", yylineno, expected, but);
+        printf("Line %d: " RED_TEXT ": expected " UNDERSCORED_TEXT ", but got " UNDERSCORED_TEXT "\n", yylineno, "error", expected, but);
 %}
 
 %option noyywrap
@@ -33,7 +47,7 @@
 %option never-interactive
 
 
-IDENTIFIER [_a-zA-Z][_a-zA-Z0-9]*
+IDENTIFIER [_a-zA-Z][_a-zA-sZ0-9]*
 
 WHITESPACE [ \n\t]+
 
@@ -67,8 +81,6 @@ REAL_NUMBER_EXPONENT       ({REAL_NUMBER}|{REAL_NUMBER_PART})[eE][\-+]?{REAL_NUM
     int64_t int_number;
     double real_number;
     strbuf* buf = strbuf_empty();
-
-    bool needDelimeter = false;
 %}
 
 ":="					{ LOG_LEXEM("operator", ":="); }
@@ -228,7 +240,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
     BEGIN(INITIAL);
 }
 
-<STRING>[^\"\n%]*   { LOG_LEXEM("string_part", yytext); strbuf_append(buf, yytext); }
+<STRING>[^\"\n%]*   { strbuf_append(buf, yytext); }
 
 <STRING>\n          { ERROR("unclosed string"); return -1; }
 <STRING><<EOF>>     { ERROR("unclosed string"); return -1; }
@@ -284,8 +296,6 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
         } while (nc != EOF && nc != '\0' && !isdelim(nc));
 
         ERROR_F(line_start, "invalid decimal integer literal: \"%s\"", buf->buffer);
-
-        //if (nc != EOF) unput(nc);
     }
     else {
         parse_integer(&int_number, yycopy, 10);
@@ -309,8 +319,6 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
         } while (nc != EOF && nc != '\0' && !isdelim(nc));
 
         ERROR_F(line_start, "invalid hexadecimal integer literal: \"%s\"", buf->buffer);
-
-        // if (nc != EOF) unput(nc);
     }
     else {
         parse_integer(&int_number, yycopy, 16);
@@ -334,8 +342,6 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
         } while (nc != EOF && nc != '\0' && !isdelim(nc));
 
         ERROR_F(line_start, "invalid octal integer literal: \"%s\"", buf->buffer);
-
-        // if (nc != EOF) unput(nc);
     }
     else {
         parse_integer(&int_number, yycopy, 8);
@@ -359,8 +365,6 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
         } while (nc != EOF && nc != '\0' && !isdelim(nc));
 
         ERROR_F(line_start, "invalid binary integer literal: \"%s\"", buf->buffer);
-
-        // if (nc != EOF) unput(nc);
     }
     else {
         parse_integer(&int_number, yycopy, 2);
@@ -384,8 +388,6 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
         } while (nc != EOF && nc != '\0' && !isdelim(nc));
 
         ERROR_F(line_start, "invalid real number literal: \"%s\"", buf->buffer);
-
-        // if (nc != EOF) unput(nc);
     }
     else {
         parse_real(&real_number, yytext);
@@ -409,8 +411,6 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
         } while (nc != EOF && nc != '\0' && !isdelim(nc));
 
         ERROR_F(line_start, "invalid real exponent number literal: \"%s\"", buf->buffer);
-
-        // if (nc != EOF) unput(nc);
     }
     else {
         parse_real(&real_number, yytext);
