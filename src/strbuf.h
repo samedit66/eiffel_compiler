@@ -1,3 +1,6 @@
+#ifndef _STRBUF_H
+#define _STRBUF_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -80,3 +83,5 @@ void strbuf_destroy(strbuf* const buf) {
     free(buf->buffer);
     free(buf);
 }
+
+#endif

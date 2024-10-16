@@ -8,38 +8,42 @@
 
     #include "lex_utils.h"
     #include "strbuf.h"
+    #include "strlist.h"
 
     // Возможно, это не лучшая практика...
     #ifdef DEBUG_LEXER
-        #define LOG_LEXEM_AT_LINENO(lineno, lexem_type, lexem)\
-            printf("Line %d: found %s: \"%s\"\n", lineno, lexem_type, lexem)
-
-        #define LOG_LEXEM(lexem_type, lexem) LOG_LEXEM_AT_LINENO(yylineno, lexem_type, lexem)
+        #define LOG_F(lineno, msg, ...) {\
+            printf("Line %d: ", lineno);\
+            printf(msg, __VA_ARGS__);\
+        }
     #else
-        #define LOG_LEXEM_AT_LINENO(lineno, lexem_type, lexem)
-        #define LOG_LEXEM(lexem_type, lexem)
+        #define LOG_F(lineno, msg, ...)
     #endif
+
+    #define LOG_LEXEM_AT_LINENO(lineno, lexem_type, lexem)\
+        LOG_F(lineno, "found %s: \"%s\"\n", lexem_type, lexem)
+
+    #define LOG_LEXEM(lexem_type, lexem)\
+        LOG_LEXEM_AT_LINENO(yylineno, lexem_type, lexem)
 
     #ifdef COLORFUL
         #define RED_TEXT "\033[31m%s\033[0m"
         #define UNDERSCORED_TEXT "\033[4m%s\033[0m"
     #else
-        #define RED_TEXT ""
-        #define UNDERSCORED_TEXT ""
+        #define RED_TEXT "%s"
+        #define UNDERSCORED_TEXT "%s"
     #endif
     
-    #define ERROR_F(lineno, msg, ...)\
+    #define ERROR_F(lineno, msg, ...) {\
         printf("Line %d: " RED_TEXT ": ", lineno, "error");\
         printf(msg, __VA_ARGS__);\
-        printf("\n")
+        printf("\n");\
+    }
 
     #define ERROR_AT_LINENO(lineno, msg)\
         printf("Line %d: " RED_TEXT ": %s", lineno, "error", msg)
 
     #define ERROR(msg) ERROR_AT_LINENO(yylineno, msg)
-
-    #define EXPECTED_BUT(expected, but)\
-        printf("Line %d: " RED_TEXT ": expected " UNDERSCORED_TEXT ", but got " UNDERSCORED_TEXT "\n", yylineno, "error", expected, but);
 %}
 
 %option noyywrap
@@ -49,7 +53,7 @@
 
 IDENTIFIER [_a-zA-Z][_a-zA-sZ0-9]*
 
-WHITESPACE [ \n\t]+
+WHITESPACE [ \n\t\r]+
 
 DIGIT   [0-9]
 INT_10  ({DIGIT}+_+)*{DIGIT}+
@@ -77,10 +81,10 @@ REAL_NUMBER_EXPONENT       ({REAL_NUMBER}|{REAL_NUMBER_PART})[eE][\-+]?{REAL_NUM
 %%
 
 %{
-    int start_line;
     int64_t int_number;
     double real_number;
-    strbuf* buf = strbuf_empty();
+    strbuf *buf = strbuf_empty();
+    strlist *verbatim_str = strlist_new();
 %}
 
 ":="					{ LOG_LEXEM("operator", ":="); }
@@ -190,37 +194,38 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
 <SINGLE_LINE_COMMENT>\n      { LOG_LEXEM_AT_LINENO(yylineno-1, "single line comment", buf->buffer); BEGIN(INITIAL); }
 <SINGLE_LINE_COMMENT><<EOF>> { LOG_LEXEM("single line comment", buf->buffer); BEGIN(INITIAL); }
 
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\/[0-9]{1,3}\/ {
+<CHARACTER,STRING>%\/[0-9]{1,3}\/ {
     strbuf_append_char(buf, convert_decimal_encoded_char(yytext));
 }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%%      { strbuf_append_char(buf, '%'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[nN]   { strbuf_append_char(buf, '\n'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[tT]   { strbuf_append_char(buf, '\t'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[aA]   { strbuf_append_char(buf, '@'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[bB]   { strbuf_append_char(buf, '\b'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[cC]   { strbuf_append_char(buf, '^'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[dD]   { strbuf_append_char(buf, '$'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[fF]   { strbuf_append_char(buf, '\f'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[hH]   { strbuf_append_char(buf, '\\'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[lL]   { strbuf_append_char(buf, '~'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[qQ]   { strbuf_append_char(buf, '`'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[rR]   { strbuf_append_char(buf, '\r'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[sS]   { strbuf_append_char(buf, '#'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[uU]   { strbuf_append_char(buf, '\0'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%[vV]   { strbuf_append_char(buf, '\v'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\(     { strbuf_append_char(buf, '['); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\)     { strbuf_append_char(buf, ']'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\<     { strbuf_append_char(buf, '{'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\>     { strbuf_append_char(buf, '}'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\"     { strbuf_append_char(buf, '\"'); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%\'     { strbuf_append_char(buf, '\''); }
-<CHARACTER,STRING,VERBATIM_ALIGNED_STRING>%(.|\n) { ERROR("invalid escape sequence"); }
+<CHARACTER,STRING>%%      { strbuf_append_char(buf, '%'); }
+<CHARACTER,STRING>%[nN]   { strbuf_append_char(buf, '\n'); }
+<CHARACTER,STRING>%[tT]   { strbuf_append_char(buf, '\t'); }
+<CHARACTER,STRING>%[aA]   { strbuf_append_char(buf, '@'); }
+<CHARACTER,STRING>%[bB]   { strbuf_append_char(buf, '\b'); }
+<CHARACTER,STRING>%[cC]   { strbuf_append_char(buf, '^'); }
+<CHARACTER,STRING>%[dD]   { strbuf_append_char(buf, '$'); }
+<CHARACTER,STRING>%[fF]   { strbuf_append_char(buf, '\f'); }
+<CHARACTER,STRING>%[hH]   { strbuf_append_char(buf, '\\'); }
+<CHARACTER,STRING>%[lL]   { strbuf_append_char(buf, '~'); }
+<CHARACTER,STRING>%[qQ]   { strbuf_append_char(buf, '`'); }
+<CHARACTER,STRING>%[rR]   { strbuf_append_char(buf, '\r'); }
+<CHARACTER,STRING>%[sS]   { strbuf_append_char(buf, '#'); }
+<CHARACTER,STRING>%[uU]   { strbuf_append_char(buf, '\0'); }
+<CHARACTER,STRING>%[vV]   { strbuf_append_char(buf, '\v'); }
+<CHARACTER,STRING>%\(     { strbuf_append_char(buf, '['); }
+<CHARACTER,STRING>%\)     { strbuf_append_char(buf, ']'); }
+<CHARACTER,STRING>%\<     { strbuf_append_char(buf, '{'); }
+<CHARACTER,STRING>%\>     { strbuf_append_char(buf, '}'); }
+<CHARACTER,STRING>%\"     { strbuf_append_char(buf, '\"'); }
+<CHARACTER,STRING>%\'     { strbuf_append_char(buf, '\''); }
+<CHARACTER,STRING>%(.|\n) { ERROR("invalid escape sequence"); }
 
 <CHARACTER>[^\'\n]* {
     strbuf_append(buf, yytext);
     
     if (buf->size > 1) {
-        EXPECTED_BUT("only one character in single quotes", buf->buffer);
+        ERROR_F(yylineno, "expected only one character in singles quotes, but got: '%s'", buf->buffer);
+        return -1;
     }
 }
 
@@ -232,7 +237,8 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
         ERROR("empty characters are not permitted");
     }
     else if (buf->size > 1) {
-        EXPECTED_BUT("only one character in single quotes", buf->buffer);
+        ERROR_F(yylineno, "expected only one character in singles quotes, but got: '%s'", buf->buffer);
+        return -1;
     }
     else {
         LOG_LEXEM("character", buf->buffer);
@@ -246,25 +252,43 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
 <STRING><<EOF>>     { ERROR("unclosed string"); return -1; }
 
 <STRING>\" {
-    LOG_LEXEM("string content", buf->buffer);
+    // Добавил проверку на режим дебага, чтобы не выделять память,
+    // на экранирование строки, если это не нужно
+    #ifdef DEBUG_LEXER
+        char* escaped = escape(buf->buffer);
+        LOG_LEXEM("string content", escaped);
+        free(escaped);
+    #endif
+
     BEGIN(INITIAL);
 }
 
-\"\[\n? {
-    start_line = yylineno;
+\"\[\n {
     strbuf_clear(buf);
+    strlist_clear(verbatim_str);
     BEGIN(VERBATIM_ALIGNED_STRING);
 }
 
-<VERBATIM_ALIGNED_STRING>\]\" {
-    LOG_LEXEM("verbatim string", buf->buffer);
+<VERBATIM_ALIGNED_STRING>[ \t]*\]\"[ \t]*\n? {
+    adjust_unaligned_verbatim_string(verbatim_str);
+    for (int i = 0; i < strlist_count(verbatim_str); i++) {
+        strbuf_append(buf, strlist_get(verbatim_str, i));
+    }
+
+    // Добавил проверку на режим дебага, чтобы не выделять память,
+    // на экранирование строки, если это не нужно
+    #ifdef DEBUG_LEXER
+        char* escaped = escape(buf->buffer);
+        LOG_LEXEM("verbatim string", escaped);
+        free(escaped);
+    #endif
+
     BEGIN(INITIAL);
 }
 
-<VERBATIM_ALIGNED_STRING>([^\]%]*\n?)* { strbuf_append(buf, yytext); }
+<VERBATIM_ALIGNED_STRING>.*\n { strlist_push(verbatim_str, yytext); }
 
-<VERBATIM_ALIGNED_STRING>\]            { strbuf_append_char(buf, ']'); }
-<VERBATIM_ALIGNED_STRING><<EOF>>       { ERROR("verbatim string unclosed"); return -1; }
+<VERBATIM_ALIGNED_STRING><<EOF>> { ERROR("unclosed verbatim string"); return -1; }
 
 \" {
     strbuf_clear(buf);
@@ -287,7 +311,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
     char* yycopy = strdup(yytext);
 
     char nc = input();
-    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'')) {
+    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || nc == '_')) {
         strbuf_clear(buf);
         strbuf_append(buf, yycopy);
         do {
@@ -310,7 +334,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
     char* yycopy = strdup(yytext);
 
     char nc = input();
-    if (nc != EOF && nc != '\0' && ((isalpha(nc) && !isxdigit(nc)) || nc == '"' || nc == '\'')) {
+    if (nc != EOF && nc != '\0' && ((isalpha(nc) && !isxdigit(nc)) || nc == '"' || nc == '\'' || nc == '_')) {
         strbuf_clear(buf);
         strbuf_append(buf, yycopy);
         do {
@@ -333,7 +357,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
     char* yycopy = strdup(yytext);
 
     char nc = input();
-    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || !isoctdigit(nc))) {
+    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || !isoctdigit(nc) || nc == '_')) {
         strbuf_clear(buf);
         strbuf_append(buf, yycopy);
         do {
@@ -356,7 +380,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
     char* yycopy = strdup(yytext);
 
     char nc = input();
-    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || !isbindigit(nc))) {
+    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || !isbindigit(nc) || nc == '_')) {
         strbuf_clear(buf);
         strbuf_append(buf, yycopy);
         do {
@@ -379,7 +403,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
     char* yycopy = strdup(yytext);
 
     char nc = input();
-    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'')) {
+    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || nc == '_')) {
         strbuf_clear(buf);
         strbuf_append(buf, yycopy);
         do {
