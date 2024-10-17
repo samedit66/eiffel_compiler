@@ -1,36 +1,8 @@
-note
-    description : "root class of the application"
-    date        : "$Date$"
-    revision    : "$Revision$"
-
-class
-    APPLICATION
-
-inherit
-    ARGUMENTS_32
-
-create
-    make
-
-feature {NONE} -- Initialization
-
-    make
-            -- Run application.
-        local
-            n1: INTEGER
-            n2: REAL
-        do
-            n1 := 100__000_____000
-            n2 := .5
-            -- Add your code here
-            print (n1)
-            io.put_new_line
-            print (n2)
-            io.put_new_line
-            print ("Hello Eiffel World!%N")
-        end
-
-end
-
-1422412412vsavdds
-'sadsdasdasd
+    my_aligned_string: STRING =
+    "[
+      Thrice hail the still unconquered King of Song!
+          For all adore and love the Master Art
+          That reareth his throne in temple of the heart;
+   And smiteth chords of passion full and strong
+      Till music sweet allures the sorrowing throng!
+    ]"

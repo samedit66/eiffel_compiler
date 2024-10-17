@@ -95,4 +95,41 @@ char* escape(char* ptr) {
     strbuf_destroy(buf);
     return copy;
 }
+
+void adjust_verbatim_string(char* verbatim_string) {
+    int len = strlen(verbatim_string);
+
+    int min_space_count = -1;
+
+    int i = 0;
+    do {
+        min_space_count++;
+        i++;
+    } while (i < len && (verbatim_string[i] == ' ' || verbatim_string[i] == '\t') && verbatim_string[i] != '\n');
+
+    while (i < len && verbatim_string[i] != '\n')
+        i++;
+    i++;
+
+    int current_space_count = 0;
+    int stop = false;
+    for (; i < len; i++) {
+        if (!stop && (verbatim_string[i] == ' ' || verbatim_string[i] == '\t')) {
+            current_space_count++;
+        }
+        else if (verbatim_string[i] == '\n' || i + 1 == len) {
+            if (current_space_count < min_space_count) {
+                min_space_count = current_space_count;
+            }
+            current_space_count = 0;
+            stop = false;
+        }
+        else {
+            stop = true;
+        }
+    }
+
     
+
+    printf("min adjust: %d\n", min_space_count);
+}

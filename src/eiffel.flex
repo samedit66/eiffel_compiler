@@ -254,9 +254,13 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
 <STRING>\" {
     // TODO: возможно не стоит экранировать строку, 
     // если выключен режим дебага
+    // Update: добавил режим дебага, чтобы не выделять память,
+    // на экранирование строки, если это не нужно
+    #ifdef DEBUG_LEXER
     char* escaped = escape(buf->buffer);
     LOG_LEXEM("string content", escaped);
     free(escaped);
+    #endif
     BEGIN(INITIAL);
 }
 
@@ -268,6 +272,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
 
 <VERBATIM_ALIGNED_STRING>\]\" {
     LOG_LEXEM("verbatim string", buf->buffer);
+    adjust_verbatim_string(buf->buffer);
     BEGIN(INITIAL);
 }
 
