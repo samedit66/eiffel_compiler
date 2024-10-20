@@ -110,6 +110,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
 "^" 					{ LOG_LEXEM("operator", "^"); }
 ";" 					{ LOG_LEXEM("operator", ";"); }
 
+"->"                    { LOG_LEXEM("symbol", "->"); }
 "<<"                    { LOG_LEXEM("symbol", "<<"); }
 ">>"                    { LOG_LEXEM("symbol", ">>"); }
 "(" 					{ LOG_LEXEM("symbol", "("); }
