@@ -324,6 +324,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
         ERROR_F(line_start, "invalid decimal integer literal: \"%s\"", buf->buffer);
     }
     else {
+        unput(nc);
         parse_integer(&int_number, yycopy, 10);
         LOG_LEXEM("decimal integer literal", yycopy);
     }
@@ -347,6 +348,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
         ERROR_F(line_start, "invalid hexadecimal integer literal: \"%s\"", buf->buffer);
     }
     else {
+        unput(nc);
         parse_integer(&int_number, yycopy, 16);
         LOG_LEXEM("hexadecimal integer literal", yycopy);
     }
@@ -370,6 +372,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
         ERROR_F(line_start, "invalid octal integer literal: \"%s\"", buf->buffer);
     }
     else {
+        unput(nc);
         parse_integer(&int_number, yycopy, 8);
         LOG_LEXEM("octal integer literal", yycopy);
     }
@@ -393,6 +396,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
         ERROR_F(line_start, "invalid binary integer literal: \"%s\"", buf->buffer);
     }
     else {
+        unput(nc);
         parse_integer(&int_number, yycopy, 2);
         LOG_LEXEM("binary integer literal", yycopy);
     }
@@ -416,6 +420,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
         ERROR_F(line_start, "invalid real number literal: \"%s\"", buf->buffer);
     }
     else {
+        unput(nc);
         parse_real(&real_number, yytext);
         LOG_LEXEM("real number literal", yycopy);
     }
@@ -439,6 +444,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
         ERROR_F(line_start, "invalid real exponent number literal: \"%s\"", buf->buffer);
     }
     else {
+        unput(nc);
         parse_real(&real_number, yytext);
         LOG_LEXEM("real exponent number literal", yycopy);
     }
