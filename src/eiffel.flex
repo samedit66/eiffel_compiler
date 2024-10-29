@@ -9,6 +9,7 @@
     #include "./include/lex_utils.h"
     #include "./include/strbuf.h"
     #include "./include/strlist.h"
+    #include "eiffel.tab.h"
 
     #ifdef DEBUG_LEXER
         #define LOG_F(lineno, msg, ...) {\
@@ -48,6 +49,7 @@
 %option noyywrap
 %option yylineno
 %option never-interactive
+%option array
 
 
 IDENTIFIER [_a-zA-Z][_a-zA-Z0-9]*
@@ -310,36 +312,36 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
 
 {INT_10} {
     int line_start = yylineno;
-    char* yycopy = strdup(yytext);
 
     char nc = input();
-    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || nc == '_')) {
+    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || nc == '_') && !is_delim(nc)) {
         StringBuffer_clear(buf);
-        StringBuffer_append(buf, yycopy);
+        StringBuffer_append(buf, yytext);
         do {
             StringBuffer_append_char(buf, nc);
             nc = input();
         } while (nc != EOF && nc != '\0' && !is_delim(nc));
 
+        unput(nc);
         ERROR_F(line_start, "invalid decimal integer literal: \"%s\"", buf->buffer);
     }
     else {
         unput(nc);
-        parse_int(yycopy, &int_number, 10);
-        LOG_LEXEM("decimal integer literal", yycopy);
+        parse_int(yytext, &int_number, 10);
+        LOG_LEXEM("decimal integer literal", yytext);
+        
+        yylval.int_num = int_number;
+        return INTC;
     }
-
-    free(yycopy);
 }
 
 {INT_16} {
     int line_start = yylineno;
-    char* yycopy = strdup(yytext);
 
     char nc = input();
-    if (nc != EOF && nc != '\0' && ((isalpha(nc) && !isxdigit(nc)) || nc == '"' || nc == '\'' || nc == '_')) {
+    if (nc != EOF && nc != '\0' && ((isalpha(nc) && !isxdigit(nc)) || nc == '"' || nc == '\'' || nc == '_') && !is_delim(nc)) {
         StringBuffer_clear(buf);
-        StringBuffer_append(buf, yycopy);
+        StringBuffer_append(buf, yytext);
         do {
             StringBuffer_append_char(buf, nc);
             nc = input();
@@ -349,21 +351,21 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
     }
     else {
         unput(nc);
-        parse_int(yycopy, &int_number, 16);
-        LOG_LEXEM("hexadecimal integer literal", yycopy);
+        parse_int(yytext, &int_number, 16);
+        LOG_LEXEM("hexadecimal integer literal", yytext);
+        
+        yylval.int_num = int_number;
+        return INTC;
     }
-
-    free(yycopy);
 }
 
 {INT_8} {
     int line_start = yylineno;
-    char* yycopy = strdup(yytext);
 
     char nc = input();
-    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || !is_oct_digit(nc) || nc == '_')) {
+    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || !is_oct_digit(nc) || nc == '_') && !is_delim(nc)) {
         StringBuffer_clear(buf);
-        StringBuffer_append(buf, yycopy);
+        StringBuffer_append(buf, yytext);
         do {
             StringBuffer_append_char(buf, nc);
             nc = input();
@@ -373,21 +375,21 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
     }
     else {
         unput(nc);
-        parse_int(yycopy, &int_number, 8);
-        LOG_LEXEM("octal integer literal", yycopy);
-    }
+        parse_int(yytext, &int_number, 8);
+        LOG_LEXEM("octal integer literal", yytext);
 
-    free(yycopy);
+        yylval.int_num = int_number;
+        return INTC;
+    }
 }
 
 {INT_2} {
     int line_start = yylineno;
-    char* yycopy = strdup(yytext);
 
     char nc = input();
-    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || !is_bin_digit(nc) || nc == '_')) {
+    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || !is_bin_digit(nc) || nc == '_') && !is_delim(nc)) {
         StringBuffer_clear(buf);
-        StringBuffer_append(buf, yycopy);
+        StringBuffer_append(buf, yytext);
         do {
             StringBuffer_append_char(buf, nc);
             nc = input();
@@ -397,21 +399,21 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
     }
     else {
         unput(nc);
-        parse_int(yycopy, &int_number, 2);
-        LOG_LEXEM("binary integer literal", yycopy);
-    }
+        parse_int(yytext, &int_number, 2);
+        LOG_LEXEM("binary integer literal", yytext);
 
-    free(yycopy);
+        yylval.int_num = int_number;
+        return INTC;
+    }
 }
 
 {REAL_NUMBER} {
     int line_start = yylineno;
-    char* yycopy = strdup(yytext);
 
     char nc = input();
-    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || nc == '_')) {
+    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || nc == '_') && !is_delim(nc)) {
         StringBuffer_clear(buf);
-        StringBuffer_append(buf, yycopy);
+        StringBuffer_append(buf, yytext);
         do {
             StringBuffer_append_char(buf, nc);
             nc = input();
@@ -422,20 +424,20 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
     else {
         unput(nc);
         parse_real(yytext, &real_number);
-        LOG_LEXEM("real number literal", yycopy);
-    }
+        LOG_LEXEM("real number literal", yytext);
 
-    free(yycopy);
+        yylval.real_num = real_number;
+        return REALC;
+    }
 }
 
 {REAL_NUMBER_EXPONENT} {
     int line_start = yylineno;
-    char* yycopy = strdup(yytext);
 
     char nc = input();
-    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'')) {
+    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'') && !is_delim(nc)) {
         StringBuffer_clear(buf);
-        StringBuffer_append(buf, yycopy);
+        StringBuffer_append(buf, yytext);
         do {
             StringBuffer_append_char(buf, nc);
             nc = input();
@@ -446,19 +448,20 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
     else {
         unput(nc);
         parse_real(yytext, &real_number);
-        LOG_LEXEM("real exponent number literal", yycopy);
-    }
+        LOG_LEXEM("real exponent number literal", yytext);
 
-    free(yycopy);
+        yylval.real_num = real_number;
+        return REALC;
+    }
 }
 
 {WHITESPACE} { }
 
-. { LOG_LEXEM("unknown symbol", yytext); }
+. {
+    if (yytext[0] != '\0') {
+        LOG_LEXEM("unknown symbol", yytext);
+    }
+}
 
 
 %%
-
-int main(void) {
-    yylex();
-}

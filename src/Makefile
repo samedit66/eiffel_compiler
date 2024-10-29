@@ -1,15 +1,27 @@
 CC=gcc
 CFLAGS=-c -Wall
 LDFLAGS=
-SETTINGS=-DDEBUG_LEXER -DCOLORFUL
+
+SETTINGS=-DCOLORFUL #-DDEBUG_LEXER 
+
 SOURCES=$(wildcard *.c)
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=eiffelc
+
 FLEX_FILE=eiffel.flex
 FLEX_OUTPUT=lex.yy.c
 
+BISON_FILE=eiffel.y
+BISON_OUTPUT_C=eiffel.tab.c
+BISON_OUTPUT_H=eiffel.tab.h
+
 .PHONY: build
-build: clean flex $(SOURCES) $(EXECUTABLE)
+build: clean bison flex $(SOURCES) $(EXECUTABLE)
+
+.PHONY: bison
+bison: $(BISON_FILE)
+	bison -d $<
+	$(CC) $(CFLAGS) $(SETTINGS) $(BISON_OUTPUT_C) -o $(BISON_OUTPUT_C:.c=.o)
 
 .PHONY: flex
 flex: $(FLEX_FILE)
@@ -24,4 +36,4 @@ $(EXECUTABLE): $(OBJECTS)
 
 .PHONY: clean
 clean:
-	rm -rf $(OBJECTS) $(EXECUTABLE) $(FLEX_OUTPUT)
+	rm -rf $(OBJECTS) $(EXECUTABLE) $(FLEX_OUTPUT) $(BISON_OUTPUT_H) $(BISON_OUTPUT_C)
