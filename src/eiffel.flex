@@ -104,8 +104,8 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
 "implies" 				{ LOG_LEXEM("operator", "IMPLIES"); }
 "//"					{ LOG_LEXEM("operator", "DIV"); }
 "\\\\"					{ LOG_LEXEM("operator", "MOD"); }
-"+" 					{ LOG_LEXEM("operator", "+"); }
-"-" 					{ LOG_LEXEM("operator", "-"); }
+"+" 					{ LOG_LEXEM("operator", "+"); return '+'; }
+"-" 					{ LOG_LEXEM("operator", "-"); return '-'; }
 "*" 					{ LOG_LEXEM("operator", "*"); }
 "/"						{ LOG_LEXEM("operator", "/"); }
 "^" 					{ LOG_LEXEM("operator", "^"); }
