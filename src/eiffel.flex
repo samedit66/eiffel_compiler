@@ -6,11 +6,10 @@
     #include <string.h>
     #include <ctype.h>
 
-    #include "lex_utils.h"
-    #include "strbuf.h"
-    #include "strlist.h"
+    #include "./include/lex_utils.h"
+    #include "./include/strbuf.h"
+    #include "./include/strlist.h"
 
-    // Возможно, это не лучшая практика...
     #ifdef DEBUG_LEXER
         #define LOG_F(lineno, msg, ...) {\
             printf("Line %d: ", lineno);\
@@ -83,8 +82,8 @@ REAL_NUMBER_EXPONENT       ({REAL_NUMBER}|{REAL_NUMBER_PART})[eE][\-+]?{REAL_NUM
 %{
     int64_t int_number;
     double real_number;
-    strbuf *buf = strbuf_empty();
-    strlist *verbatim_str = strlist_new();
+    StringBuffer *buf = StringBuffer_empty();
+    StringList *verbatim_str = StringList_new();
 %}
 
 ":="					{ LOG_LEXEM("operator", ":="); }
@@ -190,41 +189,41 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
 --                      { BEGIN(SINGLE_LINE_COMMENT); }
 
 <SINGLE_LINE_COMMENT>.* {
-    strbuf_clear(buf);
-    strbuf_append(buf, yytext);
+    StringBuffer_clear(buf);
+    StringBuffer_append(buf, yytext);
 }
 
 <SINGLE_LINE_COMMENT>\n      { LOG_LEXEM_AT_LINENO(yylineno-1, "single line comment", buf->buffer); BEGIN(INITIAL); }
 <SINGLE_LINE_COMMENT><<EOF>> { LOG_LEXEM("single line comment", buf->buffer); BEGIN(INITIAL); }
 
 <CHARACTER,STRING>%\/[0-9]{1,3}\/ {
-    strbuf_append_char(buf, convert_decimal_encoded_char(yytext));
+    StringBuffer_append_char(buf, convert_decimal_encoded_char(yytext));
 }
-<CHARACTER,STRING>%%      { strbuf_append_char(buf, '%'); }
-<CHARACTER,STRING>%[nN]   { strbuf_append_char(buf, '\n'); }
-<CHARACTER,STRING>%[tT]   { strbuf_append_char(buf, '\t'); }
-<CHARACTER,STRING>%[aA]   { strbuf_append_char(buf, '@'); }
-<CHARACTER,STRING>%[bB]   { strbuf_append_char(buf, '\b'); }
-<CHARACTER,STRING>%[cC]   { strbuf_append_char(buf, '^'); }
-<CHARACTER,STRING>%[dD]   { strbuf_append_char(buf, '$'); }
-<CHARACTER,STRING>%[fF]   { strbuf_append_char(buf, '\f'); }
-<CHARACTER,STRING>%[hH]   { strbuf_append_char(buf, '\\'); }
-<CHARACTER,STRING>%[lL]   { strbuf_append_char(buf, '~'); }
-<CHARACTER,STRING>%[qQ]   { strbuf_append_char(buf, '`'); }
-<CHARACTER,STRING>%[rR]   { strbuf_append_char(buf, '\r'); }
-<CHARACTER,STRING>%[sS]   { strbuf_append_char(buf, '#'); }
-<CHARACTER,STRING>%[uU]   { strbuf_append_char(buf, '\0'); }
-<CHARACTER,STRING>%[vV]   { strbuf_append_char(buf, '\v'); }
-<CHARACTER,STRING>%\(     { strbuf_append_char(buf, '['); }
-<CHARACTER,STRING>%\)     { strbuf_append_char(buf, ']'); }
-<CHARACTER,STRING>%\<     { strbuf_append_char(buf, '{'); }
-<CHARACTER,STRING>%\>     { strbuf_append_char(buf, '}'); }
-<CHARACTER,STRING>%\"     { strbuf_append_char(buf, '\"'); }
-<CHARACTER,STRING>%\'     { strbuf_append_char(buf, '\''); }
+<CHARACTER,STRING>%%      { StringBuffer_append_char(buf, '%'); }
+<CHARACTER,STRING>%[nN]   { StringBuffer_append_char(buf, '\n'); }
+<CHARACTER,STRING>%[tT]   { StringBuffer_append_char(buf, '\t'); }
+<CHARACTER,STRING>%[aA]   { StringBuffer_append_char(buf, '@'); }
+<CHARACTER,STRING>%[bB]   { StringBuffer_append_char(buf, '\b'); }
+<CHARACTER,STRING>%[cC]   { StringBuffer_append_char(buf, '^'); }
+<CHARACTER,STRING>%[dD]   { StringBuffer_append_char(buf, '$'); }
+<CHARACTER,STRING>%[fF]   { StringBuffer_append_char(buf, '\f'); }
+<CHARACTER,STRING>%[hH]   { StringBuffer_append_char(buf, '\\'); }
+<CHARACTER,STRING>%[lL]   { StringBuffer_append_char(buf, '~'); }
+<CHARACTER,STRING>%[qQ]   { StringBuffer_append_char(buf, '`'); }
+<CHARACTER,STRING>%[rR]   { StringBuffer_append_char(buf, '\r'); }
+<CHARACTER,STRING>%[sS]   { StringBuffer_append_char(buf, '#'); }
+<CHARACTER,STRING>%[uU]   { StringBuffer_append_char(buf, '\0'); }
+<CHARACTER,STRING>%[vV]   { StringBuffer_append_char(buf, '\v'); }
+<CHARACTER,STRING>%\(     { StringBuffer_append_char(buf, '['); }
+<CHARACTER,STRING>%\)     { StringBuffer_append_char(buf, ']'); }
+<CHARACTER,STRING>%\<     { StringBuffer_append_char(buf, '{'); }
+<CHARACTER,STRING>%\>     { StringBuffer_append_char(buf, '}'); }
+<CHARACTER,STRING>%\"     { StringBuffer_append_char(buf, '\"'); }
+<CHARACTER,STRING>%\'     { StringBuffer_append_char(buf, '\''); }
 <CHARACTER,STRING>%(.|\n) { ERROR("invalid escape sequence"); }
 
 <CHARACTER>[^\'\n]* {
-    strbuf_append(buf, yytext);
+    StringBuffer_append(buf, yytext);
     
     if (buf->size > 1) {
         ERROR_F(yylineno, "expected only one character in singles quotes, but got: '%s'", buf->buffer);
@@ -249,7 +248,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
     BEGIN(INITIAL);
 }
 
-<STRING>[^\"\n%]*   { strbuf_append(buf, yytext); }
+<STRING>[^\"\n%]*   { StringBuffer_append(buf, yytext); }
 
 <STRING>\n          { ERROR("unclosed string"); return -1; }
 <STRING><<EOF>>     { ERROR("unclosed string"); return -1; }
@@ -267,15 +266,15 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
 }
 
 \"\[\n {
-    strbuf_clear(buf);
-    strlist_clear(verbatim_str);
+    StringBuffer_clear(buf);
+    StringList_clear(verbatim_str);
     BEGIN(VERBATIM_ALIGNED_STRING);
 }
 
 <VERBATIM_ALIGNED_STRING>[ \t]*\]\"[ \t]*\n? {
     adjust_unaligned_verbatim_string(verbatim_str);
-    for (int i = 0; i < strlist_count(verbatim_str); i++) {
-        strbuf_append(buf, strlist_get(verbatim_str, i));
+    for (int i = 0; i < StringList_size(verbatim_str); i++) {
+        StringBuffer_append(buf, StringList_get(verbatim_str, i));
     }
 
     // Добавил проверку на режим дебага, чтобы не выделять память,
@@ -289,23 +288,23 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
     BEGIN(INITIAL);
 }
 
-<VERBATIM_ALIGNED_STRING>.*\n { strlist_push(verbatim_str, yytext); }
+<VERBATIM_ALIGNED_STRING>.*\n { StringList_push(verbatim_str, yytext); }
 
 <VERBATIM_ALIGNED_STRING><<EOF>> { ERROR("unclosed verbatim string"); return -1; }
 
 \" {
-    strbuf_clear(buf);
+    StringBuffer_clear(buf);
     BEGIN(STRING);
 }
 
 \' {
-    strbuf_clear(buf);
+    StringBuffer_clear(buf);
     BEGIN(CHARACTER);
 }
 
 {IDENTIFIER} {
-    strbuf_clear(buf);
-    strbuf_append(buf, yytext);
+    StringBuffer_clear(buf);
+    StringBuffer_append(buf, yytext);
     LOG_LEXEM("identifier", buf->buffer);
 }
 
@@ -315,18 +314,18 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
 
     char nc = input();
     if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || nc == '_')) {
-        strbuf_clear(buf);
-        strbuf_append(buf, yycopy);
+        StringBuffer_clear(buf);
+        StringBuffer_append(buf, yycopy);
         do {
-            strbuf_append_char(buf, nc);
+            StringBuffer_append_char(buf, nc);
             nc = input();
-        } while (nc != EOF && nc != '\0' && !isdelim(nc));
+        } while (nc != EOF && nc != '\0' && !is_delim(nc));
 
         ERROR_F(line_start, "invalid decimal integer literal: \"%s\"", buf->buffer);
     }
     else {
         unput(nc);
-        parse_integer(&int_number, yycopy, 10);
+        parse_int(yycopy, &int_number, 10);
         LOG_LEXEM("decimal integer literal", yycopy);
     }
 
@@ -339,18 +338,18 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
 
     char nc = input();
     if (nc != EOF && nc != '\0' && ((isalpha(nc) && !isxdigit(nc)) || nc == '"' || nc == '\'' || nc == '_')) {
-        strbuf_clear(buf);
-        strbuf_append(buf, yycopy);
+        StringBuffer_clear(buf);
+        StringBuffer_append(buf, yycopy);
         do {
-            strbuf_append_char(buf, nc);
+            StringBuffer_append_char(buf, nc);
             nc = input();
-        } while (nc != EOF && nc != '\0' && !isdelim(nc));
+        } while (nc != EOF && nc != '\0' && !is_delim(nc));
 
         ERROR_F(line_start, "invalid hexadecimal integer literal: \"%s\"", buf->buffer);
     }
     else {
         unput(nc);
-        parse_integer(&int_number, yycopy, 16);
+        parse_int(yycopy, &int_number, 16);
         LOG_LEXEM("hexadecimal integer literal", yycopy);
     }
 
@@ -362,19 +361,19 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
     char* yycopy = strdup(yytext);
 
     char nc = input();
-    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || !isoctdigit(nc) || nc == '_')) {
-        strbuf_clear(buf);
-        strbuf_append(buf, yycopy);
+    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || !is_oct_digit(nc) || nc == '_')) {
+        StringBuffer_clear(buf);
+        StringBuffer_append(buf, yycopy);
         do {
-            strbuf_append_char(buf, nc);
+            StringBuffer_append_char(buf, nc);
             nc = input();
-        } while (nc != EOF && nc != '\0' && !isdelim(nc));
+        } while (nc != EOF && nc != '\0' && !is_delim(nc));
 
         ERROR_F(line_start, "invalid octal integer literal: \"%s\"", buf->buffer);
     }
     else {
         unput(nc);
-        parse_integer(&int_number, yycopy, 8);
+        parse_int(yycopy, &int_number, 8);
         LOG_LEXEM("octal integer literal", yycopy);
     }
 
@@ -386,19 +385,19 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
     char* yycopy = strdup(yytext);
 
     char nc = input();
-    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || !isbindigit(nc) || nc == '_')) {
-        strbuf_clear(buf);
-        strbuf_append(buf, yycopy);
+    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || !is_bin_digit(nc) || nc == '_')) {
+        StringBuffer_clear(buf);
+        StringBuffer_append(buf, yycopy);
         do {
-            strbuf_append_char(buf, nc);
+            StringBuffer_append_char(buf, nc);
             nc = input();
-        } while (nc != EOF && nc != '\0' && !isdelim(nc));
+        } while (nc != EOF && nc != '\0' && !is_delim(nc));
 
         ERROR_F(line_start, "invalid binary integer literal: \"%s\"", buf->buffer);
     }
     else {
         unput(nc);
-        parse_integer(&int_number, yycopy, 2);
+        parse_int(yycopy, &int_number, 2);
         LOG_LEXEM("binary integer literal", yycopy);
     }
 
@@ -411,18 +410,18 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
 
     char nc = input();
     if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || nc == '_')) {
-        strbuf_clear(buf);
-        strbuf_append(buf, yycopy);
+        StringBuffer_clear(buf);
+        StringBuffer_append(buf, yycopy);
         do {
-            strbuf_append_char(buf, nc);
+            StringBuffer_append_char(buf, nc);
             nc = input();
-        } while (nc != EOF && nc != '\0' && !isdelim(nc));
+        } while (nc != EOF && nc != '\0' && !is_delim(nc));
 
         ERROR_F(line_start, "invalid real number literal: \"%s\"", buf->buffer);
     }
     else {
         unput(nc);
-        parse_real(&real_number, yytext);
+        parse_real(yytext, &real_number);
         LOG_LEXEM("real number literal", yycopy);
     }
 
@@ -435,18 +434,18 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
 
     char nc = input();
     if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'')) {
-        strbuf_clear(buf);
-        strbuf_append(buf, yycopy);
+        StringBuffer_clear(buf);
+        StringBuffer_append(buf, yycopy);
         do {
-            strbuf_append_char(buf, nc);
+            StringBuffer_append_char(buf, nc);
             nc = input();
-        } while (nc != EOF && nc != '\0' && !isdelim(nc));
+        } while (nc != EOF && nc != '\0' && !is_delim(nc));
 
         ERROR_F(line_start, "invalid real exponent number literal: \"%s\"", buf->buffer);
     }
     else {
         unput(nc);
-        parse_real(&real_number, yytext);
+        parse_real(yytext, &real_number);
         LOG_LEXEM("real exponent number literal", yycopy);
     }
 
@@ -459,7 +458,6 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
 
 
 %%
-
 
 int main(void) {
     yylex();

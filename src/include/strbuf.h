@@ -17,7 +17,7 @@ typedef struct StringBuffer {
     int size;
     
     /**
-     * Емкость строки
+     * Емкость буффера
      */
     int cap;
 } StringBuffer;
@@ -45,6 +45,8 @@ StringBuffer_empty();
  * 
  * @param strbuf строковый буффер
  * @param cstr   строка, оканчивающаяся символом '\0'
+ * @return указатель на переданный буффер, либо NULL, если не получилось выделить память
+ * для добавления строки
  */
 StringBuffer*
 StringBuffer_append(StringBuffer *strbuf, char *cstr);
@@ -54,6 +56,8 @@ StringBuffer_append(StringBuffer *strbuf, char *cstr);
  * 
  * @param strbuf строковый буффер
  * @param ch     символ
+ * @return указатель на переданный буффер, либо NULL, если не получилось выделить память
+ * для добавления символа
  */
 StringBuffer*
 StringBuffer_append_char(StringBuffer *strbuf, char ch);

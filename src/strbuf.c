@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "./include/strbuf.h"
 
@@ -17,12 +18,13 @@ StringBuffer_new(char *cstr) {
     if (cstr == NULL) {
         size = 0;
         cap = DEFAULT_BUFFER_CAPACITY;
-        buffer = "\0";
+        buffer = calloc(cap, sizeof(char));
     }
     else {
         size = strlen(cstr);
         cap = calculate_capacity(size);
-        buffer = strdup(cstr);
+        buffer = calloc(cap, sizeof(char));
+        strcpy(buffer, cstr);
 
         if (buffer == NULL) return NULL;
     }
@@ -60,13 +62,15 @@ StringBuffer_append(StringBuffer *strbuf, char *cstr) {
 
     strcpy(strbuf->buffer + strbuf->size, cstr);
     strbuf->size += cstr_len;
+
+    return strbuf;
 }
 
 StringBuffer*
 StringBuffer_append_char(StringBuffer* strbuf, char ch) {
     char cstr[2];
     sprintf(cstr, "%c", ch);
-    StringBuffer_append(strbuf, cstr);
+    return StringBuffer_append(strbuf, cstr);
 }
 
 void
@@ -78,7 +82,7 @@ StringBuffer_clear(StringBuffer *strbuf) {
 }
 
 void
-StringBuffer_destroy(StringBuffer *strbuf) {
+StringBuffer_delete(StringBuffer *strbuf) {
     free(strbuf->buffer);
     free(strbuf);
 }
