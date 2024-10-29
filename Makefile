@@ -1,12 +1,17 @@
+SOURCES=src
+EXECUTABLE=eiffelc
+TEST_FILE=program.e
+
 .PHONY: build
 build:
-	$(MAKE) -C src
+	$(MAKE) -C $(SOURCES) build
+	mv $(SOURCES)/$(EXECUTABLE) ./
 
 .PHONY: clean
 clean:
-	$(MAKE) -C src clean
+	rm -rf $(EXECUTABLE)
+	$(MAKE) -C $(SOURCES) clean
 
 .PHONY: test
-export TEST_FILE=../program.e
-test:
-	$(MAKE) -C src test
+test: $(EXECUTABLE)
+	cat $(TEST_FILE) | ./$(EXECUTABLE)

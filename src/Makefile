@@ -4,7 +4,7 @@ LDFLAGS=
 SETTINGS=-DDEBUG_LEXER -DCOLORFUL
 SOURCES=$(wildcard *.c)
 OBJECTS=$(SOURCES:.c=.o)
-EXECUTABLE=lexer
+EXECUTABLE=eiffelc
 FLEX_FILE=eiffel.flex
 FLEX_OUTPUT=lex.yy.c
 
@@ -25,8 +25,3 @@ $(EXECUTABLE): $(OBJECTS)
 .PHONY: clean
 clean:
 	rm -rf $(OBJECTS) $(EXECUTABLE) $(FLEX_OUTPUT)
-
-.PHONY: test
-# TEST_FILE передается из внешнего Makefile
-test:
-	cat $(TEST_FILE) | ./$(EXECUTABLE)
