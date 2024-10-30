@@ -89,33 +89,33 @@ REAL_NUMBER_EXPONENT       ({REAL_NUMBER}|{REAL_NUMBER_PART})[eE][\-+]?{REAL_NUM
 %}
 
 ":="					{ LOG_LEXEM("operator", ":="); }
-"="						{ LOG_LEXEM("operator", "EQUALS"); }
-"/="					{ LOG_LEXEM("operator", "NOT_EQUALS"); }
-"<" 					{ LOG_LEXEM("operator", "LESS"); }
-"<=" 					{ LOG_LEXEM("operator", "LESS_OR_EQUAL"); }
-">" 					{ LOG_LEXEM("operator", "GREATER"); }
-">=" 					{ LOG_LEXEM("operator", "GREATER_OR_EQUAL"); }
-"and" 					{ LOG_LEXEM("operator", "AND"); }
-"xor" 					{ LOG_LEXEM("operator", "XOR"); }
-"or" 					{ LOG_LEXEM("operator", "OR"); }
-"not" 					{ LOG_LEXEM("operator", "NOT"); }
-and{WHITESPACE}then 	{ LOG_LEXEM("operator", "AND_THEN"); }
-or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
-"implies" 				{ LOG_LEXEM("operator", "IMPLIES"); }
-"//"					{ LOG_LEXEM("operator", "DIV"); }
-"\\\\"					{ LOG_LEXEM("operator", "MOD"); }
+"="						{ LOG_LEXEM("operator", "EQUALS"); return '='; }
+"/="					{ LOG_LEXEM("operator", "NOT_EQUALS"); return NEQ; }
+"<" 					{ LOG_LEXEM("operator", "LESS"); return '<'; }
+"<=" 					{ LOG_LEXEM("operator", "LESS_OR_EQUAL"); return LE; }
+">" 					{ LOG_LEXEM("operator", "GREATER"); return '>'; }
+">=" 					{ LOG_LEXEM("operator", "GREATER_OR_EQUAL"); return GE; }
+"and" 					{ LOG_LEXEM("operator", "AND"); return AND; }
+"xor" 					{ LOG_LEXEM("operator", "XOR"); return XOR; }
+"or" 					{ LOG_LEXEM("operator", "OR"); return OR; } 
+"not" 					{ LOG_LEXEM("operator", "NOT"); return NOT;}
+and{WHITESPACE}then 	{ LOG_LEXEM("operator", "AND_THEN"); return AND_THEN; }
+or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
+"implies" 				{ LOG_LEXEM("operator", "IMPLIES"); return IMPLIES; }
+"//"					{ LOG_LEXEM("operator", "DIV"); return INT_DIV; }
+"\\\\"					{ LOG_LEXEM("operator", "MOD"); return MOD; }
 "+" 					{ LOG_LEXEM("operator", "+"); return '+'; }
 "-" 					{ LOG_LEXEM("operator", "-"); return '-'; }
-"*" 					{ LOG_LEXEM("operator", "*"); }
-"/"						{ LOG_LEXEM("operator", "/"); }
-"^" 					{ LOG_LEXEM("operator", "^"); }
+"*" 					{ LOG_LEXEM("operator", "*"); return '*'; }
+"/"						{ LOG_LEXEM("operator", "/"); return '/'; }
+"^" 					{ LOG_LEXEM("operator", "^"); return '^'; }
 ";" 					{ LOG_LEXEM("operator", ";"); }
 
 "->"                    { LOG_LEXEM("symbol", "->"); }
 "<<"                    { LOG_LEXEM("symbol", "<<"); }
 ">>"                    { LOG_LEXEM("symbol", ">>"); }
-"(" 					{ LOG_LEXEM("symbol", "("); }
-")" 					{ LOG_LEXEM("symbol", ")"); }
+"(" 					{ LOG_LEXEM("symbol", "("); return '('; }
+")" 					{ LOG_LEXEM("symbol", ")"); return ')'; }
 "{" 					{ LOG_LEXEM("symbol", "{"); }
 "}" 					{ LOG_LEXEM("symbol", "}"); }
 "[" 					{ LOG_LEXEM("symbol", "["); }
@@ -308,6 +308,8 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); }
     StringBuffer_clear(buf);
     StringBuffer_append(buf, yytext);
     LOG_LEXEM("identifier", buf->buffer);
+    yylval.name = buf->buffer;
+    return NAME_LIT;
 }
 
 {INT_10} {
