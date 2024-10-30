@@ -66,19 +66,7 @@ stmt: assign_stmt
     ;
 
 
-loop_init: FROM stmt_list 
-         ;
-
-loop_cond: UNTIL expr
-         ;
-
-loop_prefix: loop_init
-           | loop_cond
-           | loop_init loop_cond
-           ;
-
-loop_stmt: loop_prefix LOOP stmt_list_opt END
-         ;
+loop_stmt: FROM stmt_list_opt UNTIL expr LOOP stmt_list_opt END
 
 
 if_stmt: IF expr THEN stmt_list_opt END
