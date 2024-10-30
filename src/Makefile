@@ -20,7 +20,7 @@ build: clean bison flex $(SOURCES) $(EXECUTABLE)
 
 .PHONY: bison
 bison: $(BISON_FILE)
-	bison -d $<
+	bison -Wcounterexamples -d $<
 	$(CC) $(CFLAGS) $(SETTINGS) $(BISON_OUTPUT_C) -o $(BISON_OUTPUT_C:.c=.o)
 
 .PHONY: flex

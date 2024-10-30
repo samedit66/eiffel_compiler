@@ -88,7 +88,7 @@ REAL_NUMBER_EXPONENT       ({REAL_NUMBER}|{REAL_NUMBER_PART})[eE][\-+]?{REAL_NUM
     StringList *verbatim_str = StringList_new();
 %}
 
-":="					{ LOG_LEXEM("operator", ":="); }
+":="					{ LOG_LEXEM("operator", ":="); return ASSIGN_TO; }
 "="						{ LOG_LEXEM("operator", "EQUALS"); return '='; }
 "/="					{ LOG_LEXEM("operator", "NOT_EQUALS"); return NEQ; }
 "<" 					{ LOG_LEXEM("operator", "LESS"); return '<'; }

@@ -10,7 +10,7 @@
         fprintf(stderr, "error: %s\n", str);
     }
 
-    Expr *result = NULL;
+    Stmt *result = NULL;
 %}
 
 
@@ -20,6 +20,7 @@
     char *name;
     char *str;
     struct Expr *expr;
+    struct Stmt *stmt;
 }
 
 %token <int_num> INTC
@@ -29,8 +30,11 @@
 %token INT_DIV MOD
 %token AND OR NOT AND_THEN OR_ELSE
 %token NEQ LE GE
+%token ASSIGN_TO
 
-%type <expr> expr root
+%type <stmt> stmt assign_stmt
+%type <expr> expr
+%type <expr> lvalue
 
 %right IMPLIES
 %left OR OR_ELSE XOR
@@ -43,7 +47,20 @@
 
 %%
 
-root: expr { $$ = $1; result = $$; }
+stmt_list: /* empty */
+         | stmt_list stmt { }
+         ;
+
+stmt: assign_stmt { $$ = $1; result = $$; }
+    ;
+
+
+lvalue: NAME_LIT { $$ = Expr_name_lit($1); }
+      ;
+
+assign_stmt: lvalue ASSIGN_TO expr { $$ = Stmt_assign_stmt($1, $3); }
+           ;
+
 
 expr: INTC               { $$ = Expr_int_const($1); }
     | REALC              { $$ = Expr_real_const($1); }
@@ -70,11 +87,12 @@ expr: INTC               { $$ = Expr_int_const($1); }
     | expr GE expr       { $$ = Expr_bin_op(GE_OP, $1, $3); }
     | expr NEQ expr      { $$ = Expr_bin_op(NEQ_OP, $1, $3); }
     | expr IMPLIES expr  { $$ = Expr_bin_op(IMPLIES_OP, $1, $3); }
+    ;
 %%
 
 
 int main(int argc, char **argv) {
     yyparse();
-    print_tree(result);
+    print_stmt(result);
     return 0;
 }

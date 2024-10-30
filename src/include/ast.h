@@ -33,6 +33,10 @@ typedef enum EXPR_TYPE {
     IMPLIES_OP,
 } EXPR_TYPE;
 
+enum STMT_TYPE {
+    STMT_ASSIGN,
+};
+
 static int current_id = 1;
 
 typedef struct Expr {
@@ -44,6 +48,19 @@ typedef struct Expr {
     double real_num;
     char *name;
 } Expr;
+
+typedef struct AssignStmt {
+    Expr *lvalue;
+    Expr *rvalue;
+} AssignStmt;
+
+typedef struct Stmt {
+    int id;
+    enum STMT_TYPE stmt_type;
+    union {
+        AssignStmt assign_stmt;
+    } stmt;
+} Stmt;
 
 Expr *Expr_int_const(int int_num) {
     Expr *expr = (Expr*) malloc(sizeof(Expr));
@@ -81,9 +98,19 @@ Expr *Expr_bin_op(EXPR_TYPE expr_type, Expr *l, Expr *r) {
 Expr *Expr_name_lit(char *name) {
     char *copy = strdup(name);
     Expr *expr = (Expr*) malloc(sizeof(Expr));
+    expr->id = current_id++;
     expr->expr_type = NAME;
     expr->name = copy;
     return expr;
+}
+
+Stmt* Stmt_assign_stmt(Expr *l, Expr *r) {
+    Stmt *stmt = (Stmt*) malloc(sizeof(Stmt));
+    stmt->id = current_id++;
+    stmt->stmt_type = STMT_ASSIGN;
+    stmt->stmt.assign_stmt.lvalue = l;
+    stmt->stmt.assign_stmt.rvalue = r;
+    return stmt;
 }
 
 static void print_tree_(Expr *expr);
@@ -99,6 +126,16 @@ static void print_bin(Expr *op1, const char *op, Expr *op2) {
 static void print_unary(const char *op, Expr *operand) {
     printf("%s", op);
     print_tree_(operand);
+}
+
+static void print_stmt(Stmt *stmt) {
+    switch (stmt->stmt_type) {
+        case STMT_ASSIGN:
+            print_tree_(stmt->stmt.assign_stmt.lvalue);
+            printf(" := ");
+            print_tree_(stmt->stmt.assign_stmt.rvalue);
+            break;
+    }
 }
 
 // Основная функция для вывода дерева выражений
