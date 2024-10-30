@@ -9,7 +9,7 @@
 typedef enum EXPR_TYPE {
     INT_CONST,
     REAL_CONST,
-    NAME,
+    IDENT,
     ADD_OP,
     SUB_OP,
     MUL_OP,
@@ -46,7 +46,7 @@ typedef struct Expr {
     struct Expr *op2;
     int int_num;
     double real_num;
-    char *name;
+    char *ident;
 } Expr;
 
 typedef struct AssignStmt {
@@ -95,12 +95,12 @@ Expr *Expr_bin_op(EXPR_TYPE expr_type, Expr *l, Expr *r) {
     return expr;
 }
 
-Expr *Expr_name_lit(char *name) {
-    char *copy = strdup(name);
+Expr *Expr_ident(char *ident) {
+    char *copy = strdup(ident);
     Expr *expr = (Expr*) malloc(sizeof(Expr));
     expr->id = current_id++;
-    expr->expr_type = NAME;
-    expr->name = copy;
+    expr->expr_type = IDENT;
+    expr->ident = copy;
     return expr;
 }
 
@@ -150,8 +150,8 @@ static void print_tree_(Expr *expr) {
         case REAL_CONST:
             printf("%f", expr->real_num);
             break;
-        case NAME:
-            printf("%s", expr->name);
+        case IDENT:
+            printf("%s", expr->ident);
             break;
 
         // Арифметические операторы

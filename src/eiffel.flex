@@ -131,7 +131,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 "as"                    { LOG_LEXEM("keyword", "AS"); }
 "assign"                { LOG_LEXEM("keyword", "ASSIGN"); }
 "attribute"             { LOG_LEXEM("keyword", "ATTRIBUTE"); }
-"class" 				{ LOG_LEXEM("keyword", "CLASS"); }
+"class" 				{ LOG_LEXEM("keyword", "CLASS"); return CLASS; }
 "check"                 { LOG_LEXEM("keyword", "CHECK"); }
 "convert"               { LOG_LEXEM("keyword", "CONVERT"); }
 "create" 				{ LOG_LEXEM("keyword", "CREATE"); }
@@ -309,7 +309,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
     StringBuffer_append(buf, yytext);
     LOG_LEXEM("identifier", buf->buffer);
     yylval.name = buf->buffer;
-    return NAME_LIT;
+    return IDENT_LIT;
 }
 
 {INT_10} {
