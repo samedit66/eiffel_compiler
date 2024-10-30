@@ -139,23 +139,23 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 "do" 					{ LOG_LEXEM("keyword", "DO"); }
 "debug"                 { LOG_LEXEM("keyword", "DEBUG"); }
 "deferred"              { LOG_LEXEM("keyword", "DEFERRED"); }
-"else" 					{ LOG_LEXEM("keyword", "ELSE"); }
-"elseif" 				{ LOG_LEXEM("keyword", "ELSEIF"); }
+"else" 					{ LOG_LEXEM("keyword", "ELSE"); return ELSE; }
+"elseif" 				{ LOG_LEXEM("keyword", "ELSEIF"); return ELSEIF; }
 "end" 					{ LOG_LEXEM("keyword", "END"); }
 "ensure"                { LOG_LEXEM("keyword", "ENSURE"); }
 "expanded"              { LOG_LEXEM("keyword", "EXPANDED"); }
 "export"                { LOG_LEXEM("keyword", "EXPORT"); }
 "external"              { LOG_LEXEM("keyword", "EXTERNAL"); }
 "feature" 				{ LOG_LEXEM("keyword", "FEATURE"); }
-"from" 					{ LOG_LEXEM("keyword", "FROM"); }
+"from" 					{ LOG_LEXEM("keyword", "FROM"); return FROM; }
 "False"                 { LOG_LEXEM("keyword", "FALSE"); }
 "frozen"                { LOG_LEXEM("keyword", "FROZEN"); }
-"if" 					{ LOG_LEXEM("keyword", "IF"); }
+"if" 					{ LOG_LEXEM("keyword", "IF"); return IF; }
 "inherit" 				{ LOG_LEXEM("keyword", "INHERIT"); }
 "inspect"               { LOG_LEXEM("keyword", "INSPECT"); }
 "invariant"             { LOG_LEXEM("keyword", "INVARIANT"); }
 "local" 				{ LOG_LEXEM("keyword", "LOCAL"); }
-"loop" 					{ LOG_LEXEM("keyword", "LOOP"); }
+"loop" 					{ LOG_LEXEM("keyword", "LOOP"); return LOOP;}
 "like"                  { LOG_LEXEM("keyword", "LIKE"); }
 "note" 					{ LOG_LEXEM("keyword", "NOTE"); }
 "obsolete"              { LOG_LEXEM("keyword", "OBSOLETE"); }
@@ -171,7 +171,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 "retry"                 { LOG_LEXEM("keyword", "RETRY"); }
 "separate"              { LOG_LEXEM("keyword", "SEPARATE"); }
 "select" 				{ LOG_LEXEM("keyword", "SELECT"); }
-"then" 					{ LOG_LEXEM("keyword", "THEN"); }
+"then" 					{ LOG_LEXEM("keyword", "THEN"); return THEN; }
 "True"                  { LOG_LEXEM("keyword", "TRUE"); }
 "undefine" 				{ LOG_LEXEM("keyword", "UNDEFINE"); }
 "until" 				{ LOG_LEXEM("keyword", "UNTIL"); }

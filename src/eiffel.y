@@ -31,6 +31,9 @@
 %token AND OR NOT AND_THEN OR_ELSE
 %token NEQ LE GE
 %token ASSIGN_TO
+%token END
+%token IF THEN ELSEIF ELSE
+%token FROM UNTIL LOOP
 
 %type <stmt> stmt assign_stmt
 %type <expr> expr
@@ -47,12 +50,48 @@
 
 %%
 
-stmt_list: /* empty */
-         | stmt_list stmt { }
+program: stmt_list_opt
+       ;
+
+stmt_list_opt: /* empty */
+             | stmt_list
+
+stmt_list: stmt
+         | stmt_list stmt
          ;
 
-stmt: assign_stmt { $$ = $1; result = $$; }
+stmt: assign_stmt
+    | if_stmt
+    | loop_stmt
     ;
+
+
+loop_init: FROM stmt_list 
+         ;
+
+loop_cond: UNTIL expr
+         ;
+
+loop_prefix: loop_init
+           | loop_cond
+           | loop_init loop_cond
+           ;
+
+loop_stmt: loop_prefix LOOP stmt_list_opt END
+         ;
+
+
+if_stmt: IF expr THEN stmt_list_opt END
+       | IF expr THEN stmt_list_opt else_clause END
+       ;
+
+else_clause: ELSE stmt_list_opt
+           | elseif_clauses
+           ;
+
+elseif_clauses: ELSEIF expr THEN stmt_list_opt
+              | ELSEIF expr THEN stmt_list_opt else_clause
+              ;
 
 
 lvalue: NAME_LIT { $$ = Expr_name_lit($1); }
@@ -93,6 +132,6 @@ expr: INTC               { $$ = Expr_int_const($1); }
 
 int main(int argc, char **argv) {
     yyparse();
-    print_stmt(result);
+    //print_stmt(result);
     return 0;
 }
