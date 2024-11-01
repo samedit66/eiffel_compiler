@@ -1,2 +1,7 @@
 .vscode/
 build/
+*.o
+*.yy.c
+*.tab.c
+*.tab.h
+*.exe
