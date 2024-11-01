@@ -121,8 +121,9 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 "[" 					{ LOG_LEXEM("symbol", "["); }
 "]" 					{ LOG_LEXEM("symbol", "]"); }
 ":" 					{ LOG_LEXEM("symbol", ":"); }
+".."                    { LOG_LEXEM("symbol", ".."); return TWO_DOTS; }
 "." 					{ LOG_LEXEM("symbol", "."); }
-"," 					{ LOG_LEXEM("symbol", ","); }
+"," 					{ LOG_LEXEM("symbol", ","); return COMMA; }
 
 "all" 					{ LOG_LEXEM("keyword", "ALL"); }
 "across"                { LOG_LEXEM("keyword", "ACROSS"); }
@@ -152,7 +153,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 "frozen"                { LOG_LEXEM("keyword", "FROZEN"); }
 "if" 					{ LOG_LEXEM("keyword", "IF"); return IF; }
 "inherit" 				{ LOG_LEXEM("keyword", "INHERIT"); }
-"inspect"               { LOG_LEXEM("keyword", "INSPECT"); }
+"inspect"               { LOG_LEXEM("keyword", "INSPECT"); return INSPECT; }
 "invariant"             { LOG_LEXEM("keyword", "INVARIANT"); }
 "local" 				{ LOG_LEXEM("keyword", "LOCAL"); }
 "loop" 					{ LOG_LEXEM("keyword", "LOOP"); return LOOP;}
@@ -177,7 +178,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 "until" 				{ LOG_LEXEM("keyword", "UNTIL"); }
 "variant"               { LOG_LEXEM("keyword", "VARIANT"); }
 "Void"                  { LOG_LEXEM("keyword", "VOID"); }
-"when"                  { LOG_LEXEM("keyword", "WHEN"); }
+"when"                  { LOG_LEXEM("keyword", "WHEN"); return WHEN; }
 
 "ARRAY" 				{ LOG_LEXEM("keyword", "ARRAY"); }
 "INTEGER" 				{ LOG_LEXEM("keyword", "INTEGER"); }

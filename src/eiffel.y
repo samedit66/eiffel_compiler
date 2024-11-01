@@ -38,10 +38,12 @@
 %token END
 %token IF THEN ELSEIF ELSE
 %token FROM UNTIL LOOP
+%token WHEN INSPECT TWO_DOTS
+%token COMMA
 %token CLASS
 
-%type <stmt> stmt assign_stmt
-%type <expr> expr
+%type <stmt> stmt assign_stmt if_stmt loop_stmt
+%type <expr> expr literal
 
 %nonassoc LOWER_THAN_EXPR
 %right IMPLIES
@@ -75,6 +77,7 @@ stmt_list: stmt
 stmt: assign_stmt
     | if_stmt
     | loop_stmt
+    | inspect_stmt
     ;
 
 
@@ -84,6 +87,30 @@ assign_stmt: expr ASSIGN_TO expr %prec LOWER_THAN_EXPR
 
 loop_stmt: FROM stmt_list_opt UNTIL expr LOOP stmt_list_opt END
          ;
+
+
+inspect_stmt: INSPECT expr inspect_clauses_opt END
+
+choices: expr
+       | expr TWO_DOTS expr
+       | choices ',' expr
+       ;
+
+when_clause: WHEN choices THEN stmt_list_opt
+           | WHEN THEN stmt_list_opt
+           ;
+
+inspect_clauses_opt: /* empty */
+                   | inspect_clauses
+                   ;
+
+when_clauses: when_clause
+            | when_clauses when_clause
+            ;
+
+inspect_clauses: when_clauses
+               | when_clauses ELSE stmt_list_opt
+               ;
 
 
 if_stmt: IF expr THEN stmt_list_opt END
@@ -99,9 +126,11 @@ elseif_clauses: ELSEIF expr THEN stmt_list_opt
               ;
 
 
-expr: INTC                  { $$ = Expr_int_const($1); }
-    | REALC                 { $$ = Expr_real_const($1); }
-    | IDENT_LIT             { $$ = Expr_ident($1); }
+literal: INTC      { $$ = Expr_int_const($1); }
+       | REALC     { $$ = Expr_real_const($1); }
+       | IDENT_LIT { $$ = Expr_ident($1); }
+
+expr: literal               { $$ = $1; }
     | expr '+' expr         { $$ = Expr_bin_op(ADD_OP, $1, $3); }
     | expr '-' expr         { $$ = Expr_bin_op(SUB_OP, $1, $3); }
     | expr '*' expr         { $$ = Expr_bin_op(MUL_OP, $1, $3); }
