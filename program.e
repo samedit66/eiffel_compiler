@@ -1,1 +1,1 @@
-class SIMPLE end
+inspect a when then else end

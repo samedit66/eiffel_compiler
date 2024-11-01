@@ -60,11 +60,11 @@
 
 %%
 
-program: class
+program: stmt_list { LOG_NODE("program"); }
        ;
 
 
-class: CLASS IDENT_LIT END
+class: CLASS IDENT_LIT END { LOG_NODE("class"); }
      ;
 
 
@@ -116,7 +116,7 @@ inspect_clauses: when_clauses
 
 
 if_stmt: IF expr THEN stmt_list_opt END { LOG_NODE("if"); }
-       | IF expr THEN stmt_list_opt else_clause END
+       | IF expr THEN stmt_list_opt else_clause END { LOG_NODE("if-else"); }
        ;
 
 else_clause: ELSE stmt_list_opt
