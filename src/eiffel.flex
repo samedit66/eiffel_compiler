@@ -11,6 +11,8 @@
     #include "./include/strlist.h"
     #include "eiffel.tab.h"
 
+    #define yyterminate() return EOI
+
     #ifdef DEBUG_LEXER
         #define LOG_F(lineno, msg, ...) {\
             printf("Line %d: ", lineno);\
@@ -142,7 +144,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 "deferred"              { LOG_LEXEM("keyword", "DEFERRED"); }
 "else" 					{ LOG_LEXEM("keyword", "ELSE"); return ELSE; }
 "elseif" 				{ LOG_LEXEM("keyword", "ELSEIF"); return ELSEIF; }
-"end" 					{ LOG_LEXEM("keyword", "END"); }
+"end" 					{ LOG_LEXEM("keyword", "END"); return END; }
 "ensure"                { LOG_LEXEM("keyword", "ENSURE"); }
 "expanded"              { LOG_LEXEM("keyword", "EXPANDED"); }
 "export"                { LOG_LEXEM("keyword", "EXPORT"); }

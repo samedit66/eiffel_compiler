@@ -10,7 +10,7 @@
         fprintf(stderr, "error: %s\n", str);
     }
 
-    #define LOG_NODE(msg) printf("%s\n", msg)
+    #define LOG_NODE(msg) printf("Found node: %s\n", msg)
 
     Stmt *result = NULL;
 %}
@@ -26,6 +26,8 @@
 }
 
 %start program
+
+%token EOI 0 "end of file"
 
 %token <int_num> INTC
 %token <real_num> REALC
@@ -58,7 +60,7 @@
 
 %%
 
-program: stmt_list
+program: class
        ;
 
 
@@ -67,7 +69,7 @@ class: CLASS IDENT_LIT END
 
 
 stmt_list_opt: /* empty */
-             | stmt_list
+             | stmt_list { LOG_NODE("stmt_list_opt"); }
              ;
 
 stmt_list: stmt
@@ -81,7 +83,7 @@ stmt: assign_stmt
     ;
 
 
-assign_stmt: expr ASSIGN_TO expr %prec LOWER_THAN_EXPR
+assign_stmt: expr ASSIGN_TO expr %prec LOWER_THAN_EXPR { LOG_NODE("assign_stmt"); }
            ;
 
 
@@ -113,7 +115,7 @@ inspect_clauses: when_clauses
                ;
 
 
-if_stmt: IF expr THEN stmt_list_opt END
+if_stmt: IF expr THEN stmt_list_opt END { LOG_NODE("if"); }
        | IF expr THEN stmt_list_opt else_clause END
        ;
 
@@ -147,7 +149,7 @@ expr: literal               { $$ = $1; }
     | expr AND_THEN expr    { $$ = Expr_bin_op(AND_THEN_OP, $1, $3); }
     | expr OR_ELSE expr     { $$ = Expr_bin_op(OR_ELSE_OP, $1, $3); }
     | expr XOR expr         { $$ = Expr_bin_op(XOR_OP, $1, $3); }
-    | expr '<' expr         { $$ = Expr_bin_op(LT_OP, $1, $3); }
+    | expr '<' expr         { $$ = Expr_bin_op(LT_OP, $1, $3); LOG_NODE("less"); }
     | expr '>' expr         { $$ = Expr_bin_op(GT_OP, $1, $3); }
     | expr '=' expr         { $$ = Expr_bin_op(EQ_OP, $1, $3); }
     | expr LE expr          { $$ = Expr_bin_op(LE_OP, $1, $3); }
@@ -157,9 +159,7 @@ expr: literal               { $$ = $1; }
     ;
 %%
 
-
 int main(int argc, char **argv) {
     yyparse();
-    //print_stmt(result);
     return 0;
 }

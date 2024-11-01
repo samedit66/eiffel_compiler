@@ -1,1 +1,1 @@
-a := 10 b := 20
+class SIMPLE end
