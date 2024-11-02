@@ -419,6 +419,11 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
     int line_start = yylineno;
 
     char nc = input();
+    if (yytext[strlen(yytext) - 1] == '.' && nc == '.') {
+        unput(nc);
+        REJECT;
+    }
+
     if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || nc == '_') && !is_delim(nc)) {
         StringBuffer_clear(buf);
         StringBuffer_append(buf, yytext);
