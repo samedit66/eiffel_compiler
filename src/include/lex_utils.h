@@ -37,7 +37,6 @@ parse_int(char *str_num, int64_t *int_num, int base);
 void
 parse_real(char *str_num, double *real_num);
 
-
 /**
  * Конвертирует символ, записанный в десятичном коде, в символьный тип.
  * Закодированный символ имеет вид "%/abc/", где a, b, c - десятичные цифры,

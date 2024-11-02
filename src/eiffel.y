@@ -11,7 +11,7 @@
     #define LOG_NODE(msg) printf("Found node: %s\n", msg)
 %}
 
-%error-verbose
+%define parse.error verbose
 
 %union {
     int int_num;
@@ -92,10 +92,11 @@ loop_stmt: FROM stmt_list_opt UNTIL expr LOOP stmt_list_opt END
 
 inspect_stmt: INSPECT expr inspect_clauses_opt END { LOG_NODE("inspect_stmt"); }
 
-choices: expr
-       | expr TWO_DOTS expr
-       | choices ',' expr
-       ;
+choice: expr
+      | expr TWO_DOTS expr
+
+choices: choice
+       | choices ',' choice
 
 when_clause: WHEN choices THEN stmt_list_opt
            | WHEN THEN stmt_list_opt
