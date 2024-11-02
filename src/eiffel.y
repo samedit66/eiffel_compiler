@@ -78,6 +78,7 @@ stmt: assign_stmt
     | if_stmt
     | loop_stmt
     | inspect_stmt
+    | ';'
     ;
 
 
