@@ -18,8 +18,6 @@
     double real_num;
     char *name;
     char *str;
-    struct Expr *expr;
-    struct Stmt *stmt;
 }
 
 %start program
