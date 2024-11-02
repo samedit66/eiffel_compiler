@@ -125,7 +125,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 ":" 					{ LOG_LEXEM("symbol", ":"); }
 ".."                    { LOG_LEXEM("symbol", ".."); return TWO_DOTS; }
 "." 					{ LOG_LEXEM("symbol", "."); }
-"," 					{ LOG_LEXEM("symbol", ","); return COMMA; }
+"," 					{ LOG_LEXEM("symbol", ","); return ','; }
 
 "all" 					{ LOG_LEXEM("keyword", "ALL"); }
 "across"                { LOG_LEXEM("keyword", "ACROSS"); }
@@ -251,6 +251,9 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
         LOG_LEXEM("character", buf->buffer);
     }
     BEGIN(INITIAL);
+    
+    yylval.int_num = buf->buffer[0];
+    return CHAR_CONST;
 }
 
 <STRING>[^\"\n%]*   { StringBuffer_append(buf, yytext); }
@@ -336,7 +339,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
         LOG_LEXEM("decimal integer literal", yytext);
         
         yylval.int_num = int_number;
-        return INTC;
+        return INT_CONST;
     }
 }
 
@@ -360,7 +363,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
         LOG_LEXEM("hexadecimal integer literal", yytext);
         
         yylval.int_num = int_number;
-        return INTC;
+        return INT_CONST;
     }
 }
 
@@ -384,7 +387,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
         LOG_LEXEM("octal integer literal", yytext);
 
         yylval.int_num = int_number;
-        return INTC;
+        return INT_CONST;
     }
 }
 
@@ -408,7 +411,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
         LOG_LEXEM("binary integer literal", yytext);
 
         yylval.int_num = int_number;
-        return INTC;
+        return INT_CONST;
     }
 }
 
@@ -432,7 +435,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
         LOG_LEXEM("real number literal", yytext);
 
         yylval.real_num = real_number;
-        return REALC;
+        return REAL_CONST;
     }
 }
 
@@ -456,7 +459,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
         LOG_LEXEM("real exponent number literal", yytext);
 
         yylval.real_num = real_number;
-        return REALC;
+        return REAL_CONST;
     }
 }
 

@@ -2,8 +2,6 @@
     #include <stdio.h>
     #include <stdlib.h>
 
-    #include "./include/ast.h"
-
     extern int yylex(void);
 
     void yyerror(const char *str) {
@@ -11,10 +9,9 @@
     }
 
     #define LOG_NODE(msg) printf("Found node: %s\n", msg)
-
-    Stmt *result = NULL;
 %}
 
+%error-verbose
 
 %union {
     int int_num;
@@ -29,9 +26,10 @@
 
 %token EOI 0 "end of file"
 
-%token <int_num> INTC
-%token <real_num> REALC
-%token <name> IDENT_LIT 
+%token <int_num>  INT_CONST
+%token <real_num> REAL_CONST
+%token <name>     IDENT_LIT 
+%token <int_num>  CHAR_CONST
 
 %token INT_DIV MOD
 %token AND OR NOT AND_THEN OR_ELSE
@@ -91,7 +89,7 @@ loop_stmt: FROM stmt_list_opt UNTIL expr LOOP stmt_list_opt END
          ;
 
 
-inspect_stmt: INSPECT expr inspect_clauses_opt END
+inspect_stmt: INSPECT expr inspect_clauses_opt END { LOG_NODE("inspect_stmt"); }
 
 choices: expr
        | expr TWO_DOTS expr
@@ -128,34 +126,35 @@ elseif_clauses: ELSEIF expr THEN stmt_list_opt
               ;
 
 
-literal: INTC      { $$ = Expr_int_const($1); }
-       | REALC     { $$ = Expr_real_const($1); }
-       | IDENT_LIT { $$ = Expr_ident($1); }
+literal: INT_CONST  
+       | REAL_CONST 
+       | IDENT_LIT  
+       | CHAR_CONST
 
-expr: literal               { $$ = $1; }
-    | expr '+' expr         { $$ = Expr_bin_op(ADD_OP, $1, $3); }
-    | expr '-' expr         { $$ = Expr_bin_op(SUB_OP, $1, $3); }
-    | expr '*' expr         { $$ = Expr_bin_op(MUL_OP, $1, $3); }
-    | expr '/' expr         { $$ = Expr_bin_op(DIV_OP, $1, $3); }
-    | '(' expr ')'          { $$ = $2; }
-    | '+' expr %prec UPLUS  { $$ = $2; }
-    | '-' expr %prec UMINUS { $$ = Expr_unary_op(NEG_OP, $2); }
-    | expr INT_DIV expr     { $$ = Expr_bin_op(INT_DIV_OP, $1, $3); }
-    | expr MOD expr         { $$ = Expr_bin_op(MOD_OP, $1, $3); }
-    | expr '^' expr         { $$ = Expr_bin_op(POW_OP, $1, $3); }
-    | expr AND expr         { $$ = Expr_bin_op(AND_OP, $1, $3); }
-    | expr OR expr          { $$ = Expr_bin_op(OR_OP, $1, $3); }
-    | NOT expr              { $$ = Expr_unary_op(NOT_OP, $2); }
-    | expr AND_THEN expr    { $$ = Expr_bin_op(AND_THEN_OP, $1, $3); }
-    | expr OR_ELSE expr     { $$ = Expr_bin_op(OR_ELSE_OP, $1, $3); }
-    | expr XOR expr         { $$ = Expr_bin_op(XOR_OP, $1, $3); }
-    | expr '<' expr         { $$ = Expr_bin_op(LT_OP, $1, $3); LOG_NODE("less"); }
-    | expr '>' expr         { $$ = Expr_bin_op(GT_OP, $1, $3); }
-    | expr '=' expr         { $$ = Expr_bin_op(EQ_OP, $1, $3); }
-    | expr LE expr          { $$ = Expr_bin_op(LE_OP, $1, $3); }
-    | expr GE expr          { $$ = Expr_bin_op(GE_OP, $1, $3); }
-    | expr NEQ expr         { $$ = Expr_bin_op(NEQ_OP, $1, $3); }
-    | expr IMPLIES expr     { $$ = Expr_bin_op(IMPLIES_OP, $1, $3); }
+expr: literal              
+    | expr '+' expr        
+    | expr '-' expr        
+    | expr '*' expr        
+    | expr '/' expr        
+    | '(' expr ')'         
+    | '+' expr %prec UPLUS 
+    | '-' expr %prec UMINUS
+    | expr INT_DIV expr    
+    | expr MOD expr        
+    | expr '^' expr        
+    | expr AND expr        
+    | expr OR expr         
+    | NOT expr             
+    | expr AND_THEN expr   
+    | expr OR_ELSE expr    
+    | expr XOR expr        
+    | expr '<' expr        
+    | expr '>' expr        
+    | expr '=' expr        
+    | expr LE expr         
+    | expr GE expr         
+    | expr NEQ expr        
+    | expr IMPLIES expr    
     ;
 %%
 
