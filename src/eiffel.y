@@ -39,6 +39,9 @@
 %token WHEN INSPECT TWO_DOTS
 %token COMMA
 %token CLASS
+%token LIKE
+%token DO
+%token INTEGER REAL STRING CHARACTER BOOLEAN
 
 %type <stmt> stmt assign_stmt if_stmt loop_stmt
 %type <expr> expr constant
@@ -59,12 +62,54 @@
 
 %%
 
-program: stmt_list { LOG_NODE("program"); }
+program: routine { LOG_NODE("program"); }
        ;
 
 
 class: CLASS IDENT_LIT END { LOG_NODE("class"); }
      ;
+
+
+simple_type: INTEGER
+           | REAL
+           | STRING
+           | CHARACTER
+           | BOOLEAN
+           ;
+
+type: simple_type
+    ;
+
+ident_list: IDENT_LIT
+          | ident_list ',' IDENT_LIT
+
+decl: ident_list ':' type
+    | ident_list ':' LIKE type
+    ;
+
+
+attribute: decl
+         ;
+
+
+args_list_opt: /* empty */
+             | args_list
+
+args_list: decl
+         | args_list ';' decl
+
+routine_body: DO stmt_list_opt END
+            ;
+
+return_type_opt: /* empty */
+               | ':' type
+               ;
+
+require_opt: /* empty */
+           | 
+
+routine: IDENT_LIT args_list_opt return_type_opt routine_body
+       ;
 
 
 stmt_list_opt: /* empty */
@@ -82,6 +127,7 @@ stmt: assign_stmt
     | expr %prec LOWER_THAN_EXPR
     | ';'
     ;
+
 
 assign_stmt: expr ASSIGN_TO expr %prec LOWER_THAN_EXPR { LOG_NODE("assign_stmt"); }
            ;
