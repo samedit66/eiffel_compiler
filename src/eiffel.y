@@ -42,6 +42,7 @@
 %token LIKE
 %token DO
 %token INTEGER REAL STRING CHARACTER BOOLEAN
+%token FEATURE CREATE
 
 %type <stmt> stmt assign_stmt if_stmt loop_stmt
 %type <expr> expr constant
@@ -62,12 +63,30 @@
 
 %%
 
-program: routine { LOG_NODE("program"); }
+program: class { LOG_NODE("program"); }
        ;
 
 
-class: CLASS IDENT_LIT END { LOG_NODE("class"); }
+class: CLASS IDENT_LIT class_features_opt END { LOG_NODE("class"); }
      ;
+
+
+feature: attribute
+       | routine
+       ;
+
+feature_list: feature
+            | feature_list feature
+            ;
+
+feature_section: FEATURE feature_list
+               ;
+
+class_features: feature_section
+              | class_features feature_section
+
+class_features_opt: /* empty */
+                  | class_features
 
 
 simple_type: INTEGER
@@ -104,9 +123,6 @@ routine_body: DO stmt_list_opt END
 return_type_opt: /* empty */
                | ':' type
                ;
-
-require_opt: /* empty */
-           | 
 
 routine: IDENT_LIT args_list_opt return_type_opt routine_body
        ;
