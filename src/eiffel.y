@@ -41,7 +41,7 @@
 %token CLASS
 
 %type <stmt> stmt assign_stmt if_stmt loop_stmt
-%type <expr> expr literal
+%type <expr> expr constant
 
 %nonassoc LOWER_THAN_EXPR
 %nonassoc LOWER_THAN_PARENS
@@ -79,9 +79,9 @@ stmt: assign_stmt
     | if_stmt
     | loop_stmt
     | inspect_stmt
+    | expr %prec LOWER_THAN_EXPR
     | ';'
     ;
-
 
 assign_stmt: expr ASSIGN_TO expr %prec LOWER_THAN_EXPR { LOG_NODE("assign_stmt"); }
            ;
@@ -128,14 +128,6 @@ elseif_clauses: ELSEIF expr THEN stmt_list_opt
               | ELSEIF expr THEN stmt_list_opt else_clause
               ;
 
-
-literal: INT_CONST  
-       | REAL_CONST 
-       | IDENT_LIT  
-       | CHAR_CONST
-       ;
-
-
 params_list_opt: /* empty */
                | params_list
 
@@ -143,12 +135,20 @@ params_list: expr
            | params_list ',' expr
            ;
 
-feature_access: expr '.' IDENT_LIT %prec LOWER_THAN_PARENS
-              | expr '.' IDENT_LIT '(' params_list_opt ')'
-              ;
+feature_call: expr '.' IDENT_LIT %prec LOWER_THAN_PARENS { LOG_NODE("feature with no params"); }
+            | expr '.' IDENT_LIT '(' params_list_opt ')' { LOG_NODE("feature with params"); }
+            ;
+
+func_call: IDENT_LIT %prec LOWER_THAN_PARENS { LOG_NODE("func with no params"); }
+         | IDENT_LIT '(' params_list_opt ')' { LOG_NODE("func with params"); }
 
 
-expr: literal              
+constant: INT_CONST  
+        | REAL_CONST
+        | CHAR_CONST
+        ;
+
+expr: constant      
     | expr '+' expr        
     | expr '-' expr        
     | expr '*' expr        
@@ -172,7 +172,8 @@ expr: literal
     | expr GE expr         
     | expr NEQ expr        
     | expr IMPLIES expr 
-    | feature_access
+    | feature_call
+    | func_call
     ;
 %%
 
