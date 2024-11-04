@@ -124,7 +124,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 "]" 					{ LOG_LEXEM("symbol", "]"); }
 ":" 					{ LOG_LEXEM("symbol", ":"); }
 ".."                    { LOG_LEXEM("symbol", ".."); return TWO_DOTS; }
-"." 					{ LOG_LEXEM("symbol", "."); }
+"." 					{ LOG_LEXEM("symbol", "."); return '.'; }
 "," 					{ LOG_LEXEM("symbol", ","); return ','; }
 
 "all" 					{ LOG_LEXEM("keyword", "ALL"); }

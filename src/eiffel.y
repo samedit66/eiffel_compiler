@@ -44,6 +44,8 @@
 %type <expr> expr literal
 
 %nonassoc LOWER_THAN_EXPR
+%nonassoc LOWER_THAN_PARENS
+%nonassoc '(' ')'
 %right IMPLIES
 %left OR OR_ELSE XOR
 %left AND AND_THEN
@@ -53,6 +55,7 @@
 %left '*' '/' INT_DIV MOD
 %right '^'
 %nonassoc UMINUS UPLUS
+%nonassoc '.'
 
 %%
 
@@ -130,13 +133,27 @@ literal: INT_CONST
        | REAL_CONST 
        | IDENT_LIT  
        | CHAR_CONST
+       ;
+
+
+params_list_opt: /* empty */
+               | params_list
+
+params_list: expr
+           | params_list ',' expr
+           ;
+
+feature_access: expr '.' IDENT_LIT %prec LOWER_THAN_PARENS
+              | expr '.' IDENT_LIT '(' params_list_opt ')'
+              ;
+
 
 expr: literal              
     | expr '+' expr        
     | expr '-' expr        
     | expr '*' expr        
     | expr '/' expr        
-    | '(' expr ')'         
+    | '(' expr ')'
     | '+' expr %prec UPLUS 
     | '-' expr %prec UMINUS
     | expr INT_DIV expr    
@@ -154,7 +171,8 @@ expr: literal
     | expr LE expr         
     | expr GE expr         
     | expr NEQ expr        
-    | expr IMPLIES expr    
+    | expr IMPLIES expr 
+    | feature_access
     ;
 %%
 
