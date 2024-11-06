@@ -44,6 +44,7 @@
 %token INTEGER REAL STRING_KW CHARACTER BOOLEAN ARRAY TUPLE
 %token FEATURE CREATE
 %token LOCAL
+%token REQUIRE ENSURE
 
 %type <stmt> stmt assign_stmt if_stmt loop_stmt
 %type <expr> expr constant
@@ -118,10 +119,32 @@ local_part: LOCAL var_decl_list_opt
 local_part_opt: /* empty */
               | local_part
 
+condition: expr               %prec LOWER_THAN_EXPR
+         | IDENT_LIT ':' expr %prec LOWER_THAN_EXPR
+         ;
+
+condition_list: condition
+              | condition_list condition
+              ;
+
+require_part: REQUIRE condition_list
+            ;
+
+require_part_opt: /* empty */
+                | require_part
+                ;
+
+ensure_part: ENSURE condition_list
+           ;
+
+ensure_part_opt: /* empty */
+               | ensure_part
+               ;
+
 do_part: DO stmt_list_opt
        ;
 
-routine_body: local_part_opt do_part END
+routine_body: local_part_opt require_part_opt do_part ensure_part_opt END
             ;
 
 feature: name_and_type  { LOG_NODE("attribute"); }

@@ -145,11 +145,11 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 "else" 					{ LOG_LEXEM("keyword", "ELSE"); return ELSE; }
 "elseif" 				{ LOG_LEXEM("keyword", "ELSEIF"); return ELSEIF; }
 "end" 					{ LOG_LEXEM("keyword", "END"); return END; }
-"ensure"                { LOG_LEXEM("keyword", "ENSURE"); }
+"ensure"                { LOG_LEXEM("keyword", "ENSURE"); return ENSURE; }
 "expanded"              { LOG_LEXEM("keyword", "EXPANDED"); }
 "export"                { LOG_LEXEM("keyword", "EXPORT"); }
 "external"              { LOG_LEXEM("keyword", "EXTERNAL"); }
-"feature" 				{ LOG_LEXEM("keyword", "FEATURE"); }
+"feature" 				{ LOG_LEXEM("keyword", "FEATURE"); return FEATURE; }
 "from" 					{ LOG_LEXEM("keyword", "FROM"); return FROM; }
 "False"                 { LOG_LEXEM("keyword", "FALSE"); }
 "frozen"                { LOG_LEXEM("keyword", "FROZEN"); }
@@ -169,7 +169,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 "redefine" 				{ LOG_LEXEM("keyword", "REDEFINE"); }
 "rename" 				{ LOG_LEXEM("keyword", "RENAME"); }
 "Result" 				{ LOG_LEXEM("keyword", "RESULT"); }
-"require"               { LOG_LEXEM("keyword", "REQUIRE"); }
+"require"               { LOG_LEXEM("keyword", "REQUIRE"); return REQUIRE; }
 "rescue"                { LOG_LEXEM("keyword", "RESCUE"); }
 "retry"                 { LOG_LEXEM("keyword", "RETRY"); }
 "separate"              { LOG_LEXEM("keyword", "SEPARATE"); }
