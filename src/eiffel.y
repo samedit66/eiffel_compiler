@@ -65,10 +65,14 @@
 
 %%
 
+/* ********************************************************************/
+/* Описание программы */
 program: feature_list { LOG_NODE("program"); }
        ;
 
 
+/* ********************************************************************/
+/* Описание типов */
 builtin_type: INTEGER
             | REAL
             | STRING_KW
@@ -93,6 +97,8 @@ type: IDENT_LIT
     ;
 
 
+/* ********************************************************************/
+/* Описания для полей и методов класса */
 ident_list: IDENT_LIT
           | ident_list ',' IDENT_LIT
 
@@ -159,6 +165,8 @@ feature_list: feature
             ;
 
 
+/* ********************************************************************/
+/* Описание инструкций */
 stmt_list_opt: /* empty */
              | stmt_list { LOG_NODE("stmt_list_opt"); }
              ;
@@ -176,14 +184,20 @@ stmt: assign_stmt
     ;
 
 
+/* ********************************************************************/
+/* Описание оператора присваивания */
 assign_stmt: expr ASSIGN_TO expr %prec LOWER_THAN_EXPR { LOG_NODE("assign_stmt"); }
            ;
 
 
+/* ********************************************************************/
+/* Описание оператора цикла */
 loop_stmt: FROM stmt_list_opt UNTIL expr LOOP stmt_list_opt END
          ;
 
 
+/* ********************************************************************/
+/* Описание оператора выбора */
 inspect_stmt: INSPECT expr inspect_clauses_opt END { LOG_NODE("inspect_stmt"); }
 
 choice: expr
@@ -209,6 +223,8 @@ inspect_clauses: when_clauses
                ;
 
 
+/* ********************************************************************/
+/* Описание оператора ветвления */
 if_stmt: IF expr THEN stmt_list_opt END { LOG_NODE("if"); }
        | IF expr THEN stmt_list_opt else_clause END { LOG_NODE("if-else"); }
        ;
@@ -221,6 +237,9 @@ elseif_clauses: ELSEIF expr THEN stmt_list_opt
               | ELSEIF expr THEN stmt_list_opt else_clause
               ;
 
+
+/* ********************************************************************/
+/* Описание вызова метода */
 params_list_opt: /* empty */
                | params_list
 
@@ -236,6 +255,8 @@ func_call: IDENT_LIT %prec LOWER_THAN_PARENS { LOG_NODE("func with no params"); 
          | IDENT_LIT '(' params_list_opt ')' { LOG_NODE("func with params"); }
 
 
+/* ********************************************************************/
+/* Описание выражений */
 constant: INT_CONST  
         | REAL_CONST
         | CHAR_CONST
