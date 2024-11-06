@@ -69,6 +69,15 @@ int StringList_size(const StringList *strlist);
 char *StringList_get(const StringList *strlist, int index);
 
 /**
+ * Соединяет строки в списке через заданный разделитель
+ * 
+ * @param delim разделитель
+ * @return соединенные строки через заданный разделитель, либо NULL,
+ * если не получилось выделить память под новую строку-результат
+ */
+char *StringList_join(const StringList *strlist, const char *delim);
+
+/**
  * Очищает список строк
  * 
  * @param strlist список строк

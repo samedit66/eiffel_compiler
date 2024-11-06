@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "./include/strlist.h"
+#include "./include/strbuf.h"
 
 static Node *Node_new(char *value) {
     Node *new_node = (Node*) malloc(sizeof(Node));
@@ -70,6 +71,31 @@ char *StringList_get(const StringList *strlist, int index) {
     }
 
     return needed->value;
+}
+
+char *StringList_join(const StringList *strlist, const char *delim) {
+    StringBuffer *strbuf = StringBuffer_empty();
+    if (strbuf == NULL)
+        return NULL;
+
+    int list_size = StringList_size(strlist);
+    for (int i = 0; i < list_size; i++) {
+        void *result = StringBuffer_append(strbuf, StringList_get(strlist, i));
+        if (result == NULL) {
+            StringBuffer_delete(strbuf);
+            return NULL;
+        }
+        
+        if (i != list_size - 1) 
+            StringBuffer_append(strbuf, delim);
+    }
+
+    char *raw_buffer = strdup(strbuf->buffer);
+    if (raw_buffer == NULL)
+        return NULL;
+
+    StringBuffer_delete(strbuf);
+    return raw_buffer;
 }
 
 void StringList_clear(StringList *strlist) {
