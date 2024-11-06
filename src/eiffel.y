@@ -148,6 +148,7 @@ routine_body: local_part_opt require_part_opt do_part ensure_part_opt END
             ;
 
 feature: name_and_type  { LOG_NODE("attribute"); }
+       | ident_list routine_body
        | name_and_type routine_body { LOG_NODE("routine with no parans"); }
        | ident_list '(' args_list_opt ')' routine_body { LOG_NODE("routine with parans"); }
        | ident_list '(' args_list_opt ')' type_spec routine_body { LOG_NODE("full routine"); }
