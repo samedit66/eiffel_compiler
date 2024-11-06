@@ -41,8 +41,9 @@
 %token CLASS
 %token LIKE
 %token DO
-%token INTEGER REAL STRING CHARACTER BOOLEAN
+%token INTEGER REAL STRING_KW CHARACTER BOOLEAN ARRAY TUPLE
 %token FEATURE CREATE
+%token LOCAL
 
 %type <stmt> stmt assign_stmt if_stmt loop_stmt
 %type <expr> expr constant
@@ -63,69 +64,75 @@
 
 %%
 
-program: class { LOG_NODE("program"); }
+program: feature_list { LOG_NODE("program"); }
        ;
 
 
-class: CLASS IDENT_LIT class_features_opt END { LOG_NODE("class"); }
-     ;
+builtin_type: INTEGER
+            | REAL
+            | STRING_KW
+            | CHARACTER
+            | BOOLEAN
+            ;
+
+generic_type: '[' builtin_type ']'
+            | '[' IDENT_LIT ']'
+            ;
+
+array_type: ARRAY generic_type
+          ;
+
+like_type: LIKE IDENT_LIT
+         ;
+
+type: IDENT_LIT
+    | builtin_type
+    | array_type
+    | like_type
+    ;
 
 
-feature: attribute
-       | routine
+ident_list: IDENT_LIT
+          | ident_list ',' IDENT_LIT
+
+type_spec: ':' type
+         ;
+
+name_and_type: ident_list type_spec
+             ;
+
+args_list_opt: /* empty */
+             | args_list
+
+args_list: name_and_type
+         | args_list ';' name_and_type
+
+var_decl_list: name_and_type
+             | var_decl_list name_and_type
+
+var_decl_list_opt: /* empty */
+                 | var_decl_list
+
+local_part: LOCAL var_decl_list_opt
+
+local_part_opt: /* empty */
+              | local_part
+
+do_part: DO stmt_list_opt
+       ;
+
+routine_body: local_part_opt do_part END
+            ;
+
+feature: name_and_type  { LOG_NODE("attribute"); }
+       | name_and_type routine_body { LOG_NODE("routine with no parans"); }
+       | ident_list '(' args_list_opt ')' routine_body { LOG_NODE("routine with parans"); }
+       | ident_list '(' args_list_opt ')' type_spec routine_body { LOG_NODE("full routine"); }
        ;
 
 feature_list: feature
             | feature_list feature
             ;
-
-feature_section: FEATURE feature_list
-               ;
-
-class_features: feature_section
-              | class_features feature_section
-
-class_features_opt: /* empty */
-                  | class_features
-
-
-simple_type: INTEGER
-           | REAL
-           | STRING
-           | CHARACTER
-           | BOOLEAN
-           ;
-
-type: simple_type
-    ;
-
-ident_list: IDENT_LIT
-          | ident_list ',' IDENT_LIT
-
-decl: ident_list ':' type
-    | ident_list ':' LIKE type
-    ;
-
-
-attribute: decl
-         ;
-
-
-args_list_opt: /* empty */
-             | args_list
-
-args_list: decl
-         | args_list ';' decl
-
-routine_body: DO stmt_list_opt END
-            ;
-
-return_type_opt: /* empty */
-               | ':' type
-               ;
-
-routine: IDENT_LIT args_list_opt return_type_opt routine_body
-       ;
 
 
 stmt_list_opt: /* empty */

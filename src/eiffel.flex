@@ -120,9 +120,9 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 ")" 					{ LOG_LEXEM("symbol", ")"); return ')'; }
 "{" 					{ LOG_LEXEM("symbol", "{"); }
 "}" 					{ LOG_LEXEM("symbol", "}"); }
-"[" 					{ LOG_LEXEM("symbol", "["); }
-"]" 					{ LOG_LEXEM("symbol", "]"); }
-":" 					{ LOG_LEXEM("symbol", ":"); }
+"[" 					{ LOG_LEXEM("symbol", "["); return '['; }
+"]" 					{ LOG_LEXEM("symbol", "]"); return ']'; }
+":" 					{ LOG_LEXEM("symbol", ":"); return ':'; }
 ".."                    { LOG_LEXEM("symbol", ".."); return TWO_DOTS; }
 "." 					{ LOG_LEXEM("symbol", "."); return '.'; }
 "," 					{ LOG_LEXEM("symbol", ","); return ','; }
@@ -139,7 +139,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 "convert"               { LOG_LEXEM("keyword", "CONVERT"); }
 "create" 				{ LOG_LEXEM("keyword", "CREATE"); }
 "Current" 				{ LOG_LEXEM("keyword", "CURRENT"); }
-"do" 					{ LOG_LEXEM("keyword", "DO"); }
+"do" 					{ LOG_LEXEM("keyword", "DO"); return DO; }
 "debug"                 { LOG_LEXEM("keyword", "DEBUG"); }
 "deferred"              { LOG_LEXEM("keyword", "DEFERRED"); }
 "else" 					{ LOG_LEXEM("keyword", "ELSE"); return ELSE; }
@@ -157,9 +157,9 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 "inherit" 				{ LOG_LEXEM("keyword", "INHERIT"); }
 "inspect"               { LOG_LEXEM("keyword", "INSPECT"); return INSPECT; }
 "invariant"             { LOG_LEXEM("keyword", "INVARIANT"); }
-"local" 				{ LOG_LEXEM("keyword", "LOCAL"); }
+"local" 				{ LOG_LEXEM("keyword", "LOCAL"); return LOCAL; }
 "loop" 					{ LOG_LEXEM("keyword", "LOOP"); return LOOP;}
-"like"                  { LOG_LEXEM("keyword", "LIKE"); }
+"like"                  { LOG_LEXEM("keyword", "LIKE"); return LIKE; }
 "note" 					{ LOG_LEXEM("keyword", "NOTE"); }
 "obsolete"              { LOG_LEXEM("keyword", "OBSOLETE"); }
 "old"                   { LOG_LEXEM("keyword", "OLD"); }
@@ -182,13 +182,13 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 "Void"                  { LOG_LEXEM("keyword", "VOID"); }
 "when"                  { LOG_LEXEM("keyword", "WHEN"); return WHEN; }
 
-"ARRAY" 				{ LOG_LEXEM("keyword", "ARRAY"); }
-"INTEGER" 				{ LOG_LEXEM("keyword", "INTEGER"); }
-"REAL" 					{ LOG_LEXEM("keyword", "REAL"); }
-"CHARACTER" 			{ LOG_LEXEM("keyword", "CHARACTER"); }
-"STRING" 				{ LOG_LEXEM("keyword", "STRING"); }
-"TUPLE"                 { LOG_LEXEM("keyword", "TUPLE"); }
-"BOOLEAN" 				{ LOG_LEXEM("keyword", "BOOLEAN"); }
+"ARRAY" 				{ LOG_LEXEM("keyword", "ARRAY"); return ARRAY; }
+"INTEGER" 				{ LOG_LEXEM("keyword", "INTEGER"); return INTEGER; }
+"REAL" 					{ LOG_LEXEM("keyword", "REAL"); return REAL; }
+"CHARACTER" 			{ LOG_LEXEM("keyword", "CHARACTER"); return CHARACTER; }
+"STRING" 				{ LOG_LEXEM("keyword", "STRING"); return STRING_KW; }
+"TUPLE"                 { LOG_LEXEM("keyword", "TUPLE"); return TUPLE; }
+"BOOLEAN" 				{ LOG_LEXEM("keyword", "BOOLEAN"); return BOOLEAN; }
 
 
 --                      { BEGIN(SINGLE_LINE_COMMENT); }
