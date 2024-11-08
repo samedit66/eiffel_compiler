@@ -45,10 +45,12 @@
 %token FEATURE CREATE
 %token LOCAL
 %token REQUIRE ENSURE
+%token CURRENT PRECURSOR RESULT
 
 %type <stmt> stmt assign_stmt if_stmt loop_stmt
 %type <expr> expr constant
 
+%nonassoc ASSIGN_TO
 %nonassoc LOWER_THAN_EXPR
 %nonassoc LOWER_THAN_PARENS
 %nonassoc '(' ')'
@@ -61,7 +63,7 @@
 %left '*' '/' INT_DIV MOD
 %right '^'
 %nonassoc UMINUS UPLUS
-%nonassoc '.'
+%right '.'
 
 %%
 
@@ -179,15 +181,19 @@ stmt: assign_stmt
     | if_stmt
     | loop_stmt
     | inspect_stmt
-    | expr %prec LOWER_THAN_EXPR
+    | call
     | ';'
     ;
 
 
 /* ********************************************************************/
 /* Описание оператора присваивания */
-assign_stmt: expr ASSIGN_TO expr %prec LOWER_THAN_EXPR { LOG_NODE("assign_stmt"); }
+assign_stmt: writable ASSIGN_TO expr { LOG_NODE("assign_stmt"); }
            ;
+
+writable: IDENT_LIT
+        | RESULT
+        ;
 
 
 /* ********************************************************************/
@@ -240,19 +246,25 @@ elseif_clauses: ELSEIF expr THEN stmt_list_opt
 
 /* ********************************************************************/
 /* Описание вызова метода */
+call: simple_call
+    | RESULT       '.' simple_call
+    | CURRENT      '.' simple_call
+    | PRECURSOR    '.' simple_call
+    | '(' expr ')' '.' simple_call
+    | call         '.' simple_call
+    ;
+
+simple_call: IDENT_LIT %prec LOWER_THAN_PARENS  { LOG_NODE("simple_call with no parens"); }
+           | IDENT_LIT '(' params_list_opt ')' { LOG_NODE("simple_call with parens"); }
+           ;
+
 params_list_opt: /* empty */
                | params_list
+               ;
 
 params_list: expr
            | params_list ',' expr
            ;
-
-feature_call: expr '.' IDENT_LIT %prec LOWER_THAN_PARENS { LOG_NODE("feature with no params"); }
-            | expr '.' IDENT_LIT '(' params_list_opt ')' { LOG_NODE("feature with params"); }
-            ;
-
-func_call: IDENT_LIT %prec LOWER_THAN_PARENS { LOG_NODE("func with no params"); }
-         | IDENT_LIT '(' params_list_opt ')' { LOG_NODE("func with params"); }
 
 
 /* ********************************************************************/
@@ -262,7 +274,7 @@ constant: INT_CONST
         | CHAR_CONST
         ;
 
-expr: constant      
+expr: constant
     | expr '+' expr        
     | expr '-' expr        
     | expr '*' expr        
@@ -286,8 +298,7 @@ expr: constant
     | expr GE expr         
     | expr NEQ expr        
     | expr IMPLIES expr 
-    | feature_call
-    | func_call
+    | call
     ;
 %%
 

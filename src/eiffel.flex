@@ -138,7 +138,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 "check"                 { LOG_LEXEM("keyword", "CHECK"); }
 "convert"               { LOG_LEXEM("keyword", "CONVERT"); }
 "create" 				{ LOG_LEXEM("keyword", "CREATE"); }
-"Current" 				{ LOG_LEXEM("keyword", "CURRENT"); }
+"Current" 				{ LOG_LEXEM("keyword", "CURRENT"); return CURRENT; }
 "do" 					{ LOG_LEXEM("keyword", "DO"); return DO; }
 "debug"                 { LOG_LEXEM("keyword", "DEBUG"); }
 "deferred"              { LOG_LEXEM("keyword", "DEFERRED"); }
@@ -165,10 +165,10 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 "old"                   { LOG_LEXEM("keyword", "OLD"); }
 "once"                  { LOG_LEXEM("keyword", "ONCE"); }
 "only"                  { LOG_LEXEM("keyword", "ONLY"); }
-"Precursor" 			{ LOG_LEXEM("keyword", "PRECURSOR"); }
+"Precursor" 			{ LOG_LEXEM("keyword", "PRECURSOR"); return PRECURSOR; }
 "redefine" 				{ LOG_LEXEM("keyword", "REDEFINE"); }
 "rename" 				{ LOG_LEXEM("keyword", "RENAME"); }
-"Result" 				{ LOG_LEXEM("keyword", "RESULT"); }
+"Result" 				{ LOG_LEXEM("keyword", "RESULT"); return RESULT; }
 "require"               { LOG_LEXEM("keyword", "REQUIRE"); return REQUIRE; }
 "rescue"                { LOG_LEXEM("keyword", "RESCUE"); }
 "retry"                 { LOG_LEXEM("keyword", "RETRY"); }
@@ -177,7 +177,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 "then" 					{ LOG_LEXEM("keyword", "THEN"); return THEN; }
 "True"                  { LOG_LEXEM("keyword", "TRUE"); }
 "undefine" 				{ LOG_LEXEM("keyword", "UNDEFINE"); }
-"until" 				{ LOG_LEXEM("keyword", "UNTIL"); }
+"until" 				{ LOG_LEXEM("keyword", "UNTIL"); return UNTIL; }
 "variant"               { LOG_LEXEM("keyword", "VARIANT"); }
 "Void"                  { LOG_LEXEM("keyword", "VOID"); }
 "when"                  { LOG_LEXEM("keyword", "WHEN"); return WHEN; }
