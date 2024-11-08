@@ -11,7 +11,7 @@ static inline int calculate_capacity(int size) {
 }
 
 StringBuffer*
-StringBuffer_new(char *cstr) {
+StringBuffer_new(const char *cstr) {
     int size, cap;
     char *buffer;
 
@@ -43,7 +43,7 @@ StringBuffer_empty() {
 }
 
 StringBuffer*
-StringBuffer_append(StringBuffer *strbuf, char *cstr) {
+StringBuffer_append(StringBuffer *strbuf, const char *cstr) {
     int cstr_len = strlen(cstr);
 
     if (strbuf->size + cstr_len >= strbuf->cap) {

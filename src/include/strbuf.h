@@ -30,7 +30,7 @@ typedef struct StringBuffer {
  * если не получилось выделить память для буффера
  */
 StringBuffer*
-StringBuffer_new(char *cstr);
+StringBuffer_new(const char *cstr);
 
 /** 
  * Конструктор создания пустого строкового буффера
@@ -49,7 +49,7 @@ StringBuffer_empty();
  * для добавления строки
  */
 StringBuffer*
-StringBuffer_append(StringBuffer *strbuf, char *cstr);
+StringBuffer_append(StringBuffer *strbuf, const char *cstr);
 
 /**
  * Добавляет символ в конец буффера
