@@ -272,6 +272,9 @@ params_list: expr
 constant: INT_CONST  
         | REAL_CONST
         | CHAR_CONST
+        | RESULT
+        | CURRENT
+        | PRECURSOR
         ;
 
 expr: constant

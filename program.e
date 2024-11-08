@@ -10,3 +10,18 @@ t (a, b: like shit; c: ARRAY[STRING]): like shit
         c, e, t, a: ARRAY[BOOLEAN] d: INTEGER
     do
     end
+
+factorial (n: INTEGER): like n
+    local
+        i: INTEGER
+    do
+        Result := 1
+        from
+            i := 2
+        until
+            i = n
+        loop
+            Result := Result * i
+            n := n - 1
+        end
+    end
