@@ -37,13 +37,13 @@
     #endif
     
     #define ERROR_F(lineno, msg, ...) {\
-        printf("Line %d: " RED_TEXT ": ", lineno, "error");\
-        printf(msg, __VA_ARGS__);\
-        printf("\n");\
+        fprintf(stderr"Line %d: " RED_TEXT ": ", lineno, "error");\
+        fprintf(stderrmsg, __VA_ARGS__);\
+        fprintf(stderr"\n");\
     }
 
     #define ERROR_AT_LINENO(lineno, msg)\
-        printf("Line %d: " RED_TEXT ": %s", lineno, "error", msg)
+        fprintf(stderr"Line %d: " RED_TEXT ": %s", lineno, "error", msg)
 
     #define ERROR(msg) ERROR_AT_LINENO(yylineno, msg)
 %}
