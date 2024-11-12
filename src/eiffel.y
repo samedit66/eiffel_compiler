@@ -72,7 +72,7 @@
 
 /* ********************************************************************/
 /* Описание программы */
-program: class_list { LOG_NODE("class_list"); }
+program: class_list
        ;
 
 /* ********************************************************************/
@@ -316,7 +316,7 @@ condition: expr %prec LOWER_THAN_EXPR
          ;
 
 /* Секция инструкций метода */
-do_part: DO stmt_list_opt { LOG_NODE("DO"); }
+do_part: DO stmt_list_opt
        ;
 
 /* Секция постусловий  */
@@ -416,7 +416,7 @@ else_clause_opt: /* empty */
 3) Через Result: Result.f(a, b)
 4) Вызов метода у объекта через Current: Current.f(a, b)
 5) У произвольного выражения в круглых скобках: (1 + 2).out
-6) Вызовы вроизвольной вложенности: Result.f.g(a, b, c)
+6) Вызовы произвольной вложенности: Result.f.g(a, b, c)
 */
 call: simple_call
     | precursor_call
