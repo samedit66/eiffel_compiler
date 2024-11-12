@@ -46,6 +46,9 @@
 %token LOCAL
 %token REQUIRE ENSURE
 %token CURRENT PRECURSOR RESULT
+%token RARROW
+%token AS REDEFINE RENAME UNDEFINE SELECT
+%token TRUE_KW FALSE_KW VOID
 
 %type <stmt> stmt assign_stmt if_stmt loop_stmt
 %type <expr> expr constant
@@ -69,102 +72,260 @@
 
 /* ********************************************************************/
 /* Описание программы */
-program: feature_list { LOG_NODE("program"); }
+program: class_list { LOG_NODE("class_list"); }
+       ;
+
+/* ********************************************************************/
+/* Описание класса */
+class_list: class_declaration
+          | class_list class_declaration
+          ;
+
+class_declaration: class_header inheritance_opt creators_opt class_feature_opt END
+                 ;
+
+/* Заголовок класса */
+class_header: CLASS IDENT_LIT formal_generics_opt
+            ;
+
+formal_generics_opt: /* empty */
+                   | '[' formal_generics ']'
+                   ;
+
+formal_generics: generic
+               | formal_generics ',' generic
+               ;
+
+generic: type
+       | type RARROW type
+       ;
+
+/* Секция конструкторов */
+creators_opt: /* empty */
+            | creators
+            ;
+
+creators: CREATE ident_list
+        ;
+
+
+/* ********************************************************************/
+/* Секция наследования */
+inheritance_opt: /* empty */
+               | inheritance
+               ;
+
+inheritance: inheritance_clause
+           | inheritance inheritance_clause
+           ;
+
+inheritance_clause: parent
+                  | parent rename_clause undefine_clause_opt redefine_clause_opt select_clause_opt END
+                  | parent undefine_clause redefine_clause_opt select_clause_opt END
+                  | parent redefine_clause select_clause_opt END
+                  | parent select_clause END
+                  ;
+
+parent: IDENT_LIT formal_generics_opt
+      ;
+
+/* Секция переименования */
+rename_clause_opt: /* empty */
+                 | rename_clause
+                 ;
+
+rename_clause: RENAME rename_list
+             ;
+
+rename_list: IDENT_LIT AS IDENT_LIT
+           | rename_list IDENT_LIT AS IDENT_LIT
+           ;
+
+
+/* Секция undefine */
+undefine_clause_opt: /* empty */
+                   | undefine_clause
+                   ;
+
+undefine_clause: UNDEFINE ident_list
+               ;
+
+
+/* Секция переопределения */
+redefine_clause_opt: /* empty */
+                   | redefine_clause
+                   ;
+
+redefine_clause: REDEFINE ident_list
+               ;
+
+
+/* Секция select */
+select_clause_opt: /* empty */
+                 | select_clause
+                 ;
+
+select_clause: SELECT ident_list
+             ;
+
+
+/* ********************************************************************/
+/* Описание feature класса */
+class_feature_opt: /* empty */
+                 | class_feature
+                 ;
+
+class_feature: FEATURE clients_opt feature_list
+             | class_feature FEATURE clients_opt feature_list
+             ;
+
+clients_opt: /* empty */
+           | clients
+           ;
+
+clients: '{' ident_list '}'
        ;
 
 
 /* ********************************************************************/
 /* Описание типов */
-builtin_type: INTEGER
-            | REAL
-            | STRING_KW
-            | CHARACTER
-            | BOOLEAN
-            ;
-
-generic_type: '[' builtin_type ']'
-            | '[' IDENT_LIT ']'
-            ;
-
-array_type: ARRAY generic_type
-          ;
-
-like_type: LIKE IDENT_LIT
-         ;
-
 type: IDENT_LIT
-    | builtin_type
-    | array_type
-    | like_type
+    | INTEGER
+    | REAL
+    | STRING_KW
+    | CHARACTER
+    | BOOLEAN
+    | LIKE CURRENT
+    | LIKE IDENT_LIT
+    | generic_type
     ;
+
+generic_type: IDENT_LIT '[' type_list ']'
+            | ARRAY '[' type_list ']'
+            | TUPLE '[' type_list ']'
+            ;
+
+type_list: type
+         | type_list ';' type
+         ;
 
 
 /* ********************************************************************/
 /* Описания для полей и методов класса */
+feature_list_opt: /* empty */
+                | feature_list
+                ;
+
+feature_list: feature
+            | feature_list feature
+            ;
+
+/*
+Поддерживаются:
+1) Объявление вида (атрибуты): a, b: INTEGER
+
+2) Методы, не принимающие параметров и ничего не возвращающие:
+    a, b, c do
+        ...
+    end
+
+3) Указание метода, ничего не принимающего, но возвращающего что-то:
+    f: REAL do
+        ...
+    end
+
+4) Указание аргументов:
+    f (a: INTEGER, b: REAL) do
+        ...
+    end
+
+    Пустые скобки также поддерживаются
+
+5) Все вместе:
+    f, g (a: INTEGER, b: REAL): STRING do
+        ...
+    end
+*/
+feature: name_and_type
+       | ident_list routine_body
+       | name_and_type routine_body 
+       | ident_list '(' args_list_opt ')' routine_body
+       | ident_list '(' args_list_opt ')' type_spec routine_body
+       ;
+
+/* Список имен с заданным типом */
+name_and_type: ident_list type_spec
+             ;
+
 ident_list: IDENT_LIT
           | ident_list ',' IDENT_LIT
 
 type_spec: ':' type
          ;
 
-name_and_type: ident_list type_spec
-             ;
-
+/* Список аргументов */
 args_list_opt: /* empty */
              | args_list
+             ;
 
 args_list: name_and_type
          | args_list ';' name_and_type
+         ;
 
-var_decl_list: name_and_type
-             | var_decl_list name_and_type
+/* Тело метода */
+routine_body: local_part_opt require_part_opt do_part ensure_part_opt END
+            ;
+
+/* Секция объявления локальных переменных */
+local_part_opt: /* empty */
+              | local_part
+              ;
+
+local_part: LOCAL var_decl_list
+          ;
 
 var_decl_list_opt: /* empty */
                  | var_decl_list
+                 ;
 
-local_part: LOCAL var_decl_list_opt
+var_decl_list: name_and_type
+             | var_decl_list name_and_type
+             ;
 
-local_part_opt: /* empty */
-              | local_part
-
-condition: expr               %prec LOWER_THAN_EXPR
-         | IDENT_LIT ':' expr %prec LOWER_THAN_EXPR
-         ;
-
-condition_list: condition
-              | condition_list condition
-              ;
-
-require_part: REQUIRE condition_list
-            ;
-
+/* Секция предусловий */
 require_part_opt: /* empty */
                 | require_part
                 ;
 
-ensure_part: ENSURE condition_list
-           ;
+require_part: REQUIRE condition_list
+            ;
 
+condition_list: condition
+              | condition_list condition
+              | condition_list ';' condition
+              ;
+
+/*
+Необходимо сделать приоритет данных правил ниже чем expr,
+т.к. возникают shift/reduce конфликты со следующим примером: require 3 + 4
+Либо это один condition, либо два (3 и +4). Несмотря на то, что эта конструкция
+некорректна (с точки зрения семантики), нужно убедится, что даже она распознает правильно
+*/
+condition: expr %prec LOWER_THAN_EXPR
+         | IDENT_LIT ':' expr %prec LOWER_THAN_EXPR
+         ;
+
+/* Секция инструкций метода */
+do_part: DO stmt_list_opt { LOG_NODE("DO"); }
+       ;
+
+/* Секция постусловий  */
 ensure_part_opt: /* empty */
                | ensure_part
                ;
 
-do_part: DO stmt_list_opt
-       ;
-
-routine_body: local_part_opt require_part_opt do_part ensure_part_opt END
-            ;
-
-feature: name_and_type  { LOG_NODE("attribute"); }
-       | ident_list routine_body
-       | name_and_type routine_body { LOG_NODE("routine with no parans"); }
-       | ident_list '(' args_list_opt ')' routine_body { LOG_NODE("routine with parans"); }
-       | ident_list '(' args_list_opt ')' type_spec routine_body { LOG_NODE("full routine"); }
-       ;
-
-feature_list: feature
-            | feature_list feature
-            ;
+ensure_part: ENSURE condition_list
+           ;
 
 
 /* ********************************************************************/
@@ -204,77 +365,96 @@ loop_stmt: FROM stmt_list_opt UNTIL expr LOOP stmt_list_opt END
 
 /* ********************************************************************/
 /* Описание оператора выбора */
-inspect_stmt: INSPECT expr inspect_clauses_opt END { LOG_NODE("inspect_stmt"); }
+inspect_stmt: INSPECT expr when_clauses_opt else_clause_opt END
+            ;
 
-choice: expr
-      | expr TWO_DOTS expr
+when_clauses_opt: /* empty */
+                | when_clauses
+                ;
+
+when_clauses: WHEN choices_opt THEN stmt_list_opt
+            | when_clauses WHEN choices_opt THEN stmt_list_opt
+            ;
+
+choices_opt: /* empty */
+           | choices
+           ;
 
 choices: choice
        | choices ',' choice
+       ;
 
-when_clause: WHEN choices THEN stmt_list_opt
-           | WHEN THEN stmt_list_opt
-           ;
-
-inspect_clauses_opt: /* empty */
-                   | inspect_clauses
-                   ;
-
-when_clauses: when_clause
-            | when_clauses when_clause
-            ;
-
-inspect_clauses: when_clauses
-               | when_clauses ELSE stmt_list_opt
-               ;
+choice: expr
+      | expr TWO_DOTS expr
+      ;
 
 
 /* ********************************************************************/
 /* Описание оператора ветвления */
-if_stmt: IF expr THEN stmt_list_opt END { LOG_NODE("if"); }
-       | IF expr THEN stmt_list_opt else_clause END { LOG_NODE("if-else"); }
+if_stmt: IF expr THEN stmt_list_opt elseif_clauses_opt else_clause_opt END
        ;
 
-else_clause: ELSE stmt_list_opt
-           | elseif_clauses
-           ;
+elseif_clauses_opt: /* empty */
+                  | elseif_clauses
+                  ;
 
 elseif_clauses: ELSEIF expr THEN stmt_list_opt
-              | ELSEIF expr THEN stmt_list_opt else_clause
-              ;
+              | elseif_clauses ELSEIF expr THEN stmt_list_opt
+
+else_clause_opt: /* empty */
+               | ELSE stmt_list_opt
+               ;
 
 
 /* ********************************************************************/
 /* Описание вызова метода */
+
+/*
+Поддерживаются:
+1) Обычный вызов со скобками и без: g(a, b, c); f(); fi
+2) Вызов метода родительского класса с тем же именем: Precursor(1, 2, 3)
+3) Через Result: Result.f(a, b)
+4) Вызов метода у объекта через Current: Current.f(a, b)
+5) У произвольного выражения в круглых скобках: (1 + 2).out
+6) Вызовы вроизвольной вложенности: Result.f.g(a, b, c)
+*/
 call: simple_call
+    | precursor_call
     | RESULT       '.' simple_call
     | CURRENT      '.' simple_call
-    | PRECURSOR    '.' simple_call
     | '(' expr ')' '.' simple_call
     | call         '.' simple_call
     ;
 
-simple_call: IDENT_LIT %prec LOWER_THAN_PARENS  { LOG_NODE("simple_call with no parens"); }
-           | IDENT_LIT '(' params_list_opt ')' { LOG_NODE("simple_call with parens"); }
+precursor_call: PRECURSOR %prec LOWER_THAN_EXPR
+              | PRECURSOR '(' params_list ')'
+              ;
+
+simple_call: IDENT_LIT %prec LOWER_THAN_PARENS
+           | IDENT_LIT '(' params_list ')'
            ;
 
-params_list_opt: /* empty */
-               | params_list
-               ;
-
-params_list: expr
-           | params_list ',' expr
+params_list: /* empty */
+           | comma_separated_exprs
            ;
+
+comma_separated_exprs: expr
+                     | comma_separated_exprs ',' expr
+                     ;
 
 
 /* ********************************************************************/
 /* Описание выражений */
+
+/* Константы */
 constant: INT_CONST  
         | REAL_CONST
         | CHAR_CONST
         | RESULT
         | CURRENT
-        | PRECURSOR
+        | TRUE_KW
+        | FALSE_KW
+        | VOID
         ;
 
 expr: constant
