@@ -197,7 +197,7 @@ type: IDENT_LIT
     | generic_type
     ;
 
-generic_type: IDENT_LIT '[' type ']'
+generic_type: IDENT_LIT '[' type_list ']'
             | ARRAY '[' type ']'
             | TUPLE '[' type_list ']'
             ;
