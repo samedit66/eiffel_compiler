@@ -28,6 +28,7 @@
 %token <real_num> REAL_CONST
 %token <name>     IDENT_LIT 
 %token <int_num>  CHAR_CONST
+%token <str>      STRING_CONST
 
 %token INT_DIV MOD
 %token AND OR NOT AND_THEN OR_ELSE
@@ -450,6 +451,7 @@ comma_separated_exprs: expr
 constant: INT_CONST  
         | REAL_CONST
         | CHAR_CONST
+        | STRING_CONST
         | RESULT
         | CURRENT
         | TRUE_KW

@@ -269,8 +269,8 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
         LOG_LEXEM("string content", escaped);
         free(escaped);
     #endif
-
     BEGIN(INITIAL);
+    return STRING_CONST;
 }
 
 \"\[\n {
