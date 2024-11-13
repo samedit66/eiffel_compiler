@@ -38,7 +38,6 @@
 %token IF THEN ELSEIF ELSE
 %token FROM UNTIL LOOP
 %token WHEN INSPECT TWO_DOTS
-%token COMMA
 %token CLASS
 %token LIKE
 %token DO
@@ -131,10 +130,6 @@ parent: IDENT_LIT formal_generics_opt
       ;
 
 /* Секция переименования */
-rename_clause_opt: /* empty */
-                 | rename_clause
-                 ;
-
 rename_clause: RENAME rename_list
              ;
 
@@ -213,10 +208,6 @@ type_list: type
 
 /* ********************************************************************/
 /* Описания для полей и методов класса */
-feature_list_opt: /* empty */
-                | feature_list
-                ;
-
 feature_list: feature
             | feature_list feature
             ;
@@ -284,10 +275,6 @@ local_part_opt: /* empty */
 
 local_part: LOCAL var_decl_list
           ;
-
-var_decl_list_opt: /* empty */
-                 | var_decl_list
-                 ;
 
 var_decl_list: name_and_type
              | var_decl_list name_and_type

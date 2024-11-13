@@ -5,3 +5,4 @@ build/
 *.tab.c
 *.tab.h
 *.exe
+*.output
