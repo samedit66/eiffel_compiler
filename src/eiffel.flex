@@ -191,15 +191,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 "BOOLEAN" 				{ LOG_LEXEM("keyword", "BOOLEAN"); return BOOLEAN; }
 
 
---                      { BEGIN(SINGLE_LINE_COMMENT); }
-
-<SINGLE_LINE_COMMENT>.* {
-    StringBuffer_clear(buf);
-    StringBuffer_append(buf, yytext);
-}
-
-<SINGLE_LINE_COMMENT>\n      { LOG_LEXEM_AT_LINENO(yylineno-1, "single line comment", buf->buffer); BEGIN(INITIAL); }
-<SINGLE_LINE_COMMENT><<EOF>> { LOG_LEXEM("single line comment", buf->buffer); BEGIN(INITIAL); }
+--.*\n? { LOG_LEXEM("single line comment", yytext); }
 
 <CHARACTER,STRING>%\/[0-9]{1,3}\/ {
     StringBuffer_append_char(buf, convert_decimal_encoded_char(yytext));
