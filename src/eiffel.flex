@@ -281,6 +281,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 
 <VERBATIM_ALIGNED_STRING>[ \t]*\]\"[ \t]*\n? {
     adjust_unaligned_verbatim_string(verbatim_str);
+    // TODO: Когда-нибудь переписать через StringList_join
     for (int i = 0; i < StringList_size(verbatim_str); i++) {
         StringBuffer_append(buf, StringList_get(verbatim_str, i));
     }
@@ -294,6 +295,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
     #endif
 
     BEGIN(INITIAL);
+    return STRING_CONST;
 }
 
 <VERBATIM_ALIGNED_STRING>.*\n { StringList_push(verbatim_str, yytext); }
