@@ -4,7 +4,8 @@
 #include "./include/strlist.h"
 #include "./include/strbuf.h"
 
-static Node *Node_new(char *value) {
+static Node*
+Node_new(char *value) {
     Node *new_node = (Node*) malloc(sizeof(Node));
     if (new_node == NULL)
         return NULL;
@@ -15,13 +16,15 @@ static Node *Node_new(char *value) {
     return new_node;
 }
 
-StringList *StringList_new() {
+StringList*
+StringList_new() {
     StringList *strlist = (StringList*) malloc(sizeof(StringList));
     strlist->first = strlist->last = NULL;
     return strlist;
 }
 
-StringList *StringList_push(StringList *strlist, const char *str) {
+StringList*
+StringList_push(StringList *strlist, const char *str) {
     char *str_copy = strdup(str);
     if (str_copy == NULL)
         return NULL;
@@ -46,7 +49,8 @@ StringList *StringList_push(StringList *strlist, const char *str) {
     return strlist;
 }
 
-int StringList_size(const StringList *strlist) {
+int
+StringList_size(const StringList *strlist) {
     int size = 0;
 
     Node *current = strlist->first;
@@ -58,7 +62,8 @@ int StringList_size(const StringList *strlist) {
     return size;
 }
 
-char *StringList_get(const StringList *strlist, int index) {
+char*
+StringList_get(const StringList *strlist, int index) {
     int elements_count = StringList_size(strlist);
     if (index >= elements_count)
         return NULL;
@@ -73,7 +78,8 @@ char *StringList_get(const StringList *strlist, int index) {
     return needed->value;
 }
 
-char *StringList_join(const StringList *strlist, const char *delim) {
+char*
+StringList_join(const StringList *strlist, const char *delim) {
     StringBuffer *strbuf = StringBuffer_empty();
     if (strbuf == NULL)
         return NULL;
@@ -98,7 +104,8 @@ char *StringList_join(const StringList *strlist, const char *delim) {
     return raw_buffer;
 }
 
-void StringList_clear(StringList *strlist) {
+void
+StringList_clear(StringList *strlist) {
     Node *current = strlist->first;
 
     while (current != NULL) {
@@ -111,7 +118,8 @@ void StringList_clear(StringList *strlist) {
     strlist->first = strlist->last = NULL;
 }
 
-void StringList_delete(StringList *strlist) {
+void
+StringList_delete(StringList *strlist) {
     StringList_clear(strlist);
     free(strlist);
 }

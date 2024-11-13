@@ -52,7 +52,7 @@ convert_decimal_encoded_char(char *encoded_ch) {
 
 bool
 is_delim(int ch) { 
-    static char* delims = " \n\t*/\\-+:;,.()[]{}^<>=";
+    static char *delims = " \n\t*/\\-+:;,.()[]{}^<>=";
     return strchr(delims, ch) != NULL;
 }
 
