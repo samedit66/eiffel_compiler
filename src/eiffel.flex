@@ -154,7 +154,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 "False"                 { LOG_LEXEM("keyword", "FALSE"); return FALSE_KW; }
 "frozen"                { LOG_LEXEM("keyword", "FROZEN"); }
 "if" 					{ LOG_LEXEM("keyword", "IF"); return IF; }
-"inherit" 				{ LOG_LEXEM("keyword", "INHERIT"); }
+"inherit" 				{ LOG_LEXEM("keyword", "INHERIT"); return INHERIT; }
 "inspect"               { LOG_LEXEM("keyword", "INSPECT"); return INSPECT; }
 "invariant"             { LOG_LEXEM("keyword", "INVARIANT"); }
 "local" 				{ LOG_LEXEM("keyword", "LOCAL"); return LOCAL; }

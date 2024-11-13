@@ -47,7 +47,7 @@
 %token REQUIRE ENSURE
 %token CURRENT PRECURSOR RESULT
 %token RARROW
-%token AS REDEFINE RENAME UNDEFINE SELECT
+%token AS INHERIT REDEFINE RENAME UNDEFINE SELECT
 %token TRUE_KW FALSE_KW VOID
 
 %type <stmt> stmt assign_stmt if_stmt loop_stmt
@@ -113,7 +113,7 @@ creators: CREATE ident_list
 /* ********************************************************************/
 /* Секция наследования */
 inheritance_opt: /* empty */
-               | inheritance
+               | INHERIT inheritance
                ;
 
 inheritance: inheritance_clause
