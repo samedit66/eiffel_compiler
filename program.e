@@ -1,7 +1,7 @@
 class SIMPLE
 
     feature
-    
+        -- Конструктор
         make
             local
                 jaja: STRING
@@ -9,3 +9,5 @@ class SIMPLE
                 jaja := "Hello, world!"
             end
 end
+--Конец
+--

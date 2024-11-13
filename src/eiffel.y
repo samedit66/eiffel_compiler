@@ -3,6 +3,7 @@
     #include <stdlib.h>
 
     extern int yylex(void);
+    extern void yyrestart(FILE *infile);
 
     void yyerror(const char *str) {
         fprintf(stderr, "error: %s\n", str);
@@ -483,6 +484,9 @@ expr: constant
 %%
 
 int main(int argc, char **argv) {
+    if (argc > 1) {
+        yyrestart(fopen(argv[1], "r"));
+    }
     yyparse();
     return 0;
 }

@@ -261,6 +261,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
         LOG_LEXEM("string content", escaped);
         free(escaped);
     #endif
+
     BEGIN(INITIAL);
     return STRING_CONST;
 }
@@ -274,6 +275,9 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 <VERBATIM_ALIGNED_STRING>[ \t]*\]\"[ \t]*\n? {
     adjust_unaligned_verbatim_string(verbatim_str);
     // TODO: Когда-нибудь переписать через StringList_join
+    // UPDATE: StringList_join использовать не получится, т.к.
+    // тогда нужно контроллировать утечки памяти и где-то освобождать указатель
+    // на строку, которую создает  StringList_join
     for (int i = 0; i < StringList_size(verbatim_str); i++) {
         StringBuffer_append(buf, StringList_get(verbatim_str, i));
     }
