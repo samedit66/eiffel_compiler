@@ -66,6 +66,7 @@
 %left '*' '/' INT_DIV MOD
 %right '^'
 %nonassoc UMINUS UPLUS
+%left '[' ']'
 %right '.'
 
 %%
@@ -342,6 +343,7 @@ assign_stmt: writable ASSIGN_TO expr { LOG_NODE("assign_stmt"); }
 
 writable: IDENT_LIT
         | RESULT
+        | bracket_access
         ;
 
 
@@ -434,6 +436,11 @@ comma_separated_exprs: expr
 /* ********************************************************************/
 /* Описание выражений */
 
+/* Взятие элемента через квадратный скобки */
+bracket_access: call '[' expr ']' 
+              | bracket_access '[' expr ']'
+              ;
+
 /* Константы */
 constant: INT_CONST  
         | REAL_CONST
@@ -471,6 +478,7 @@ expr: constant
     | expr NEQ expr        
     | expr IMPLIES expr 
     | call
+    | bracket_access
     ;
 %%
 
