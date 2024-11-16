@@ -11,11 +11,14 @@ def run_eiffel_parser(
     :param eiffel_text текст программы на Eiffel
     :param parser_name имя парсера
     """
-    output = subprocess.run(
-        [parser_name],
-        input=eiffel_text.encode(),
-        capture_output=True,
-        )
+    try:
+        output = subprocess.run(
+            [parser_name],
+            input=eiffel_text.encode(),
+            capture_output=True,
+            )
+    except FileNotFoundError:
+        raise RuntimeError(f'Couldn\'t find eiffel parser by name "{parser_name}"')
     return (output.stdout.decode(), output.stdout.decode())
 
 
@@ -50,19 +53,19 @@ def test_simple_inheritance_with_rename():
 def test_class_with_feature():
     input_data = """
     class
-      APPLICATION
+        APPLICATION
 
     create
-      make
+        make
 
     feature -- Initialization
 
-      make
-          -- Run application.
-        do
-          io.put_string ("Hello, world")
-          io.put_new_line
-        end
+        make
+            -- Run application.
+            do
+                io.put_string ("Hello, world")
+                io.put_new_line
+            end
 
     end -- class APPLICATION
     """
