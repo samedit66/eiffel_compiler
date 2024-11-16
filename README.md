@@ -1,10 +1,15 @@
 # eiffel_compiler
 Компилятор подмножества языка программирования Eiffel
 
-Для создания билда и тестирования работоспособности лексера:
+## Сборка из исходников
+Для создания билда (требуется gcc, flex, bison):
 ```bash
 make
+```
+Запуск последующих тестов требует наличия python:
+```bash
+python -m venv venv
+./venv/Scripts/activate
+python -m pip install -r requirements_dev.txt
 make test
 ```
-
-Чтобы проверить, как работает лексер, необходимо поменять содержимое файла `program.e`.
