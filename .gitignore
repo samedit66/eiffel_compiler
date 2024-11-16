@@ -7,3 +7,4 @@ venv
 *.tab.h
 *.exe
 *.output
+__pycache__

@@ -1,6 +1,5 @@
 SOURCES=src
 EXECUTABLE=eiffelc
-TEST_FILE=program.e
 
 .PHONY: build
 build:
@@ -14,4 +13,4 @@ clean:
 
 .PHONY: test
 test: $(EXECUTABLE)
-	cat $(TEST_FILE) | ./$(EXECUTABLE)
+	pytest -v
