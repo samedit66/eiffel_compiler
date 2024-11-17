@@ -8,8 +8,10 @@ def run_eiffel_parser(
     """
     Возвращает результат работы парсера Eiffel по заданному файлу
 
-    :param eiffel_text текст программы на Eiffel
-    :param parser_name имя парсера
+    :param eiffel_text: текст программы на Eiffel
+    :param parser_name: имя парсера
+
+    :return: кортеж из двух строк: stdout и stderr
     """
     try:
         output = subprocess.run(
