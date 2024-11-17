@@ -4,7 +4,7 @@ import re
 
 def run_eiffel_parser(
         eiffel_text: str,
-        parser_name: str = "eiffelc.exe",
+        parser_name: str = "eiffelc",
         ) -> tuple[str, str]:
     """Возвращает результат работы парсера Eiffel по заданному файлу
 
