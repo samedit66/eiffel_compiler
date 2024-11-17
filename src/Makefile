@@ -14,6 +14,7 @@ FLEX_OUTPUT=lex.yy.c
 BISON_FILE=eiffel.y
 BISON_OUTPUT_C=eiffel.tab.c
 BISON_OUTPUT_H=eiffel.tab.h
+BISON_OUTPUT=eiffel.output
 
 .PHONY: build
 build: clean bison flex $(SOURCES) $(EXECUTABLE)
@@ -36,4 +37,4 @@ $(EXECUTABLE): $(OBJECTS)
 
 .PHONY: clean
 clean:
-	rm -rf $(OBJECTS) $(EXECUTABLE) $(FLEX_OUTPUT) $(BISON_OUTPUT_H) $(BISON_OUTPUT_C)
+	rm -rf $(OBJECTS) $(EXECUTABLE) $(FLEX_OUTPUT) $(BISON_OUTPUT_H) $(BISON_OUTPUT_C) $(BISON_OUTPUT)
