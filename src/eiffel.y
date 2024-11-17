@@ -485,11 +485,10 @@ expr: constant
 
 int main(int argc, char **argv) {
     if (argc > 1) {
-
         for (int i = 1; i < argc; i++) {
             FILE *file = fopen(argv[i], "r");
             if (file == NULL) {
-                perror("Couldn't open eiffel file");
+                perror(argv[i]);
                 continue;
             }
 
