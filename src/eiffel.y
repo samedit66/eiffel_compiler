@@ -9,6 +9,8 @@
         fprintf(stderr, "error: %s\n", str);
     }
 
+    #define YYDEBUG 1
+
     #define LOG_NODE(msg) printf("Found node: %s\n", msg)
 %}
 
@@ -486,6 +488,8 @@ expr: constant
 %%
 
 int main(int argc, char **argv) {
+    yydebug = 1;
+
     if (argc > 1) {
         for (int i = 1; i < argc; i++) {
             FILE *file = fopen(argv[i], "r");
