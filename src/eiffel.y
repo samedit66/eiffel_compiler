@@ -485,8 +485,21 @@ expr: constant
 
 int main(int argc, char **argv) {
     if (argc > 1) {
-        yyrestart(fopen(argv[1], "r"));
+
+        for (int i = 1; i < argc; i++) {
+            FILE *file = fopen(argv[i], "r");
+            if (file == NULL) {
+                perror("Couldn't open eiffel file");
+                continue;
+            }
+
+            yyrestart(file);
+            yyparse();
+        }
+        
+        return 0;
     }
+
     yyparse();
     return 0;
 }
