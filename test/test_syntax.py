@@ -75,3 +75,104 @@ def test_class_with_feature():
     _, stderr = run_eiffel_parser(input_data)
 
     assert "syntax error" not in stderr
+
+
+def test_class_with_different_types_of_features():
+    input_data = """
+    class
+        FRACTION
+
+    create
+      make
+
+    feature
+        numerator, denominator: INTEGER
+
+        sum (other: like Current): FRACTION
+        do
+            -- Nothing goes here
+        end
+
+        difference (other: FRACTION): FRACTION
+        do
+            -- Nothing goes here
+        end
+
+        product (other: FRACTION): FRACTION
+        do
+            -- Nothing goes here
+        end
+
+        quotient (other: FRACTION ): FRACTION
+        do
+            -- Nothing goes here
+        end
+
+        inverse: FRACTION do
+            Result.make
+        end
+
+    feature {NONE}
+
+    make (n, d: INTEGER) do
+        numerator := n
+        denominator := d
+    end
+
+    reduce do
+        -- Nothing goes here
+    end
+
+    end -- class FRACTION
+    """
+
+    _, stderr = run_eiffel_parser(input_data)
+
+    assert "syntax error" not in stderr
+
+
+def test_different_feature_call():
+    input_data = """
+    class
+        TEST_DIFFERENT_FEATURE_CALL
+    
+    feature
+
+        test do
+            test Result.make
+            Precursor[10].call(1, 2, 3)
+            Current.numerator
+            (1 + 2).out
+            a.b()
+            array[1][2][3].call()
+            f(1, 2, 3)
+        end
+    end
+    """
+
+    _, stderr = run_eiffel_parser(input_data)
+
+    assert "syntax error" not in stderr
+
+
+def test_inspect_stmt():
+    input_data = """
+    class
+        TEST_INSPECT_STMT
+
+    feature
+
+        test do
+            inspect a
+                when 1, 2, 3 then print(1)
+                when 5, 6..10 then print(2)
+                when 11, 54..98, 99 then print(3)
+                else print(4)
+            end
+        end
+    end
+    """
+
+    _, stderr = run_eiffel_parser(input_data)
+
+    assert "syntax error" not in stderr

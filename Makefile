@@ -13,4 +13,4 @@ clean:
 
 .PHONY: test
 test: $(EXECUTABLE)
-	pytest -v
+	pytest -vv
