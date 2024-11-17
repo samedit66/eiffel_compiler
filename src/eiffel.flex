@@ -470,7 +470,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 
 . {
     if (yytext[0] != '\0') {
-        LOG_LEXEM("unknown symbol", yytext);
+        LOG_F(yylineno, "unknown symbol, code: %x\n", yytext[0]);
     }
 }
 

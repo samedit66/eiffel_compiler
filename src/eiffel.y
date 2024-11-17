@@ -491,6 +491,7 @@ int main(int argc, char **argv) {
     yydebug = 1;
 
     if (argc > 1) {
+        puts("Parsing files mode on");
         for (int i = 1; i < argc; i++) {
             FILE *file = fopen(argv[i], "r");
             if (file == NULL) {
@@ -505,6 +506,7 @@ int main(int argc, char **argv) {
         return 0;
     }
 
+    puts("Parsing from user input");
     yyparse();
     return 0;
 }
