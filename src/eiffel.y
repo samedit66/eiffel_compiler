@@ -407,14 +407,16 @@ else_clause_opt: /* empty */
 3) Через Result: Result.f(a, b)
 4) Вызов метода у объекта через Current: Current.f(a, b)
 5) У произвольного выражения в круглых скобках: (1 + 2).out
-6) Вызовы произвольной вложенности: Result.f.g(a, b, c)
+6) Вызов метода у элемента массива: numbers[1].to_natural_8
+7) Вызовы произвольной вложенности: Result.f.g(a, b, c)
 */
 call: simple_call
     | precursor_call
-    | RESULT       '.' simple_call
-    | CURRENT      '.' simple_call
-    | '(' expr ')' '.' simple_call
-    | call         '.' simple_call
+    | RESULT         '.' simple_call
+    | CURRENT        '.' simple_call
+    | '(' expr ')'   '.' simple_call
+    | bracket_access '.' simple_call
+    | call           '.' simple_call
     ;
 
 precursor_call: PRECURSOR %prec LOWER_THAN_EXPR
