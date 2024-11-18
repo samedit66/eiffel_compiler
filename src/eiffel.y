@@ -439,6 +439,17 @@ comma_separated_exprs: expr
 
 
 /* ********************************************************************/
+/* Тернарный оператор */
+if_expr: IF expr THEN expr elseif_expr_opt ELSE expr END
+
+elseif_expr_opt: /* empty */
+               | elseif_expr
+
+elseif_expr: ELSEIF expr THEN expr
+           | elseif_expr ELSEIF expr THEN expr
+
+
+/* ********************************************************************/
 /* Описание выражений */
 
 /* Взятие элемента через квадратный скобки */
@@ -484,6 +495,7 @@ expr: constant
     | expr IMPLIES expr 
     | call
     | bracket_access
+    | if_expr
     ;
 %%
 

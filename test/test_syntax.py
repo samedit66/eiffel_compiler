@@ -251,7 +251,7 @@ def test_require_clause():
     feature
 
         test
-        
+        require
             a /= 10;
             b < 10
             c > 20
@@ -260,7 +260,25 @@ def test_require_clause():
         do
             
         end
+    end
+    """
 
+    _, stderr = run_eiffel_parser(input_data)
+
+    assert "syntax error" not in stderr, make_error_message(stderr)
+
+
+def test_if_expr():
+    input_data = """
+    class
+        TEST_IF_EXPR
+    
+    feature
+
+        test do
+            a := if b < c then 10 else 20 end
+            b := if a > c then 20 elseif c = e then 30 else 40 end
+        end
     end
     """
 
