@@ -1,6 +1,7 @@
 %{
     #include <stdio.h>
     #include <stdlib.h>
+    #include <string.h>
 
     extern int yylex(void);
     extern void yyrestart(FILE *infile);
@@ -507,8 +508,28 @@ int main(int argc, char **argv) {
         yydebug = 1;
     #endif
 
+    char *output_file_name = "output.json";
+
     if (argc > 1) {
         for (int i = 1; i < argc; i++) {
+            if (!strcmp("-o", argv[i]) || !strcmp("--output", argv[i])) {
+                if (i + 1 == argc) {
+                    puts("Error: output file is not specified");
+                    return 1;
+                }
+                else {
+                    output_file_name = argv[i + 1];
+                    break;
+                }
+            }
+        }
+
+        for (int i = 1; i < argc; i++) {
+            if (!strcmp("-o", argv[i]) || !strcmp("--output", argv[i])) {
+                i += 1;
+                continue;
+            }
+
             FILE *file = fopen(argv[i], "r");
             if (file == NULL) {
                 perror(argv[i]);
@@ -532,6 +553,6 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    puts("Succsesfully parsed, generated output file: output.json");
+    printf("Succsesfully parsed, generated output file: %s\n", output_file_name);
     return 0;
 }
