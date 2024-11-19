@@ -224,12 +224,13 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
     
     if (buf->size > 1) {
         ERROR_F(yylineno, "expected only one character in singles quotes, but got: '%s'", buf->buffer);
-        return -1;
+        StringBuffer_clear(buf);
     }
 }
 
-<CHARACTER>\n       { ERROR_AT_LINENO(yylineno-1, "unclosed character literal"); return -1; }
-<CHARACTER><<EOF>>  { ERROR("unclosed character literal"); return -1; }
+<CHARACTER>\n       { ERROR_AT_LINENO(yylineno-1, "unclosed character literal"); }
+
+<CHARACTER><<EOF>>  { ERROR("unclosed character literal"); }
 
 <CHARACTER>\' {
     if (buf->size == 0) {
@@ -237,21 +238,21 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
     }
     else if (buf->size > 1) {
         ERROR_F(yylineno, "expected only one character in singles quotes, but got: '%s'", buf->buffer);
-        return -1;
+        StringBuffer_clear(buf);
     }
     else {
         LOG_LEXEM("character", buf->buffer);
+        BEGIN(INITIAL);
+        yylval.int_num = buf->buffer[0];
+        return CHAR_CONST;
     }
-    BEGIN(INITIAL);
-    
-    yylval.int_num = buf->buffer[0];
-    return CHAR_CONST;
 }
 
 <STRING>[^\"\n%]*   { StringBuffer_append(buf, yytext); }
 
-<STRING>\n          { ERROR("unclosed string"); return -1; }
-<STRING><<EOF>>     { ERROR("unclosed string"); return -1; }
+<STRING>\n          { ERROR("unclosed string"); }
+
+<STRING><<EOF>>     { ERROR("unclosed string"); }
 
 <STRING>\" {
     // Добавил проверку на режим дебага, чтобы не выделять память,
@@ -263,6 +264,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
     #endif
 
     BEGIN(INITIAL);
+    yylval.string = buf->buffer;
     return STRING_CONST;
 }
 
@@ -291,12 +293,13 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
     #endif
 
     BEGIN(INITIAL);
+    yylval.string = buf->buffer;
     return STRING_CONST;
 }
 
 <VERBATIM_ALIGNED_STRING>.*\n { StringList_push(verbatim_str, yytext); }
 
-<VERBATIM_ALIGNED_STRING><<EOF>> { ERROR("unclosed verbatim string"); return -1; }
+<VERBATIM_ALIGNED_STRING><<EOF>> { ERROR("unclosed verbatim string"); }
 
 \" {
     StringBuffer_clear(buf);
@@ -312,7 +315,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
     StringBuffer_clear(buf);
     StringBuffer_append(buf, yytext);
     LOG_LEXEM("identifier", buf->buffer);
-    yylval.name = buf->buffer;
+    yylval.ident = buf->buffer;
     return IDENT_LIT;
 }
 

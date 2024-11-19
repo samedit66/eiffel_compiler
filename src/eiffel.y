@@ -19,8 +19,8 @@
 %union {
     int int_num;
     double real_num;
-    char *name;
-    char *str;
+    char *ident;
+    char *string;
 }
 
 %start program
@@ -29,9 +29,9 @@
 
 %token <int_num>  INT_CONST
 %token <real_num> REAL_CONST
-%token <name>     IDENT_LIT 
+%token <ident>    IDENT_LIT 
 %token <int_num>  CHAR_CONST
-%token <str>      STRING_CONST
+%token <string>   STRING_CONST
 
 %token INT_DIV MOD
 %token AND OR NOT AND_THEN OR_ELSE
