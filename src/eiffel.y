@@ -5,8 +5,11 @@
     extern int yylex(void);
     extern void yyrestart(FILE *infile);
 
+    int error_count = 0;
+
     void yyerror(const char *str) {
-        fprintf(stderr, "error: %s\n", str);
+        error_count++;
+        fprintf(stderr, "Parser error: %s\n", str);
     }
 
     #define YYDEBUG 1
@@ -500,10 +503,11 @@ expr: constant
 %%
 
 int main(int argc, char **argv) {
-    yydebug = 1;
+    #ifdef DEBUG_PARSER
+        yydebug = 1;
+    #endif
 
     if (argc > 1) {
-        puts("Parsing files mode on");
         for (int i = 1; i < argc; i++) {
             FILE *file = fopen(argv[i], "r");
             if (file == NULL) {
@@ -514,11 +518,20 @@ int main(int argc, char **argv) {
             yyrestart(file);
             yyparse();
         }
-        
-        return 0;
+    }
+    else {
+        yyparse();
     }
 
-    puts("Parsing from user input");
-    yyparse();
+    if (error_count > 0) {
+        if (error_count == 1)
+            puts("Parsing went unsuccsesful, got 1 syntax error");
+        else
+            printf("Parsing went unsuccsesful, got %d syntax errors\n", error_count);
+
+        return 1;
+    }
+
+    puts("Succsesfully parsed, generated output file: output.json");
     return 0;
 }
