@@ -462,7 +462,7 @@ bracket_access: call '[' expr ']'
               ;
 
 /* Константы */
-constant: INT_CONST  
+constant: INT_CONST     { JSON *json = JSON_new(); JSON_add_string_to_object(json, "type", "constant"); }
         | REAL_CONST
         | CHAR_CONST
         | STRING_CONST
@@ -503,6 +503,20 @@ expr: constant
     ;
 %%
 
+int show_parsing_result(void) {
+    if (error_count > 0) {
+        if (error_count == 1)
+            puts("Parsing went unsuccsesful, got 1 syntax error");
+        else
+            printf("Parsing went unsuccsesful, got %d syntax errors\n", error_count);
+
+        return 1;
+    }
+
+    printf("Succsesfully parsed, generated output file: %s\n", output_file_name);
+    return 0;
+}
+
 int main(int argc, char **argv) {
     #ifdef DEBUG_PARSER
         yydebug = 1;
@@ -526,15 +540,5 @@ int main(int argc, char **argv) {
         yyparse();
     }
 
-    if (error_count > 0) {
-        if (error_count == 1)
-            puts("Parsing went unsuccsesful, got 1 syntax error");
-        else
-            printf("Parsing went unsuccsesful, got %d syntax errors\n", error_count);
-
-        return 1;
-    }
-
-    printf("Succsesfully parsed, generated output file: %s\n", output_file_name);
-    return 0;
+    return show_parsing_result();
 }
