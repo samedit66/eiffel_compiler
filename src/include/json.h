@@ -3,6 +3,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
+#include <stdio.h>
 
 #include "strbuf.h"
 
@@ -13,166 +15,225 @@ typedef enum JsonValueType {
     JSON_STRING,
     JSON_INT,
     JSON_DOUBLE,
-    JSON_OBJECT
+    JSON_BOOL,
+    JSON_NULL,
+    JSON_OBJECT,
+    JSON_ARRAY
 } JsonValueType;
 
 struct Json;
 
 /**
- * Поле объекта
+ * Поле объекта или элемент массива
  */
-typedef struct JsonNode {
+typedef struct Field {
     /**
-     * Тип значение поля
+     * Тип значения
      */
     JsonValueType value_type;
 
     /**
-     * Имя поля
+     * Имя поля. Может быть NULL, если это элемент массива
      */
     char *field_name;
 
     /**
-     * Значение поля
+     * Само значение
      */
     union {
         char *str_value;
         int int_value;
         double double_value;
-        struct Json *object;
+        bool bool_value;
+        struct Json *object_or_array;
     };
 
     /**
-     * Указатель на следующее поле
+     * Указатель на следующее поле или элемент массива
      */
-    struct JsonNode *next_field;
-} JsonNode;
+    struct Field *next_field;
+} Field;
 
 /**
- * Представление JSON
+ * JSON-объект или массив
  */
 typedef struct Json {
-    JsonNode *start;
-    JsonNode *last;
+    Field *first;
+    Field *last;
 } Json;
 
-Json *Json_add_string_to_object(Json *json, char *field_name, char *value) {
-    JsonNode *prev_field = json->last;
+/**
+ * Создает JSON-объекта или массива
+ * 
+ * @return JSON-объект или массив
+ */
+Json*
+Json_new();
 
-    JsonNode *new_field = (JsonNode *) malloc(sizeof(JsonNode));
-    new_field->value_type = JSON_STRING;
-    new_field->field_name = strdup(field_name);
-    new_field->str_value = strdup(value);
-    new_field->next_field = NULL;
+/**
+ * Добавляет поле-строку в JSON-объект
+ * 
+ * @param object     указатель на объект
+ * @param field_name имя поля
+ * @param value      значение для поля (строка)
+ * 
+ * @return указатель на тот же объект
+ */
+Json*
+Json_add_string_to_object(Json *object, char *field_name, char *value);
 
-    if (prev_field != NULL)
-        prev_field->next_field = new_field;
-    
-    json->last = new_field;
-    return json;
-}
+/**
+ * Добавляет поле-число с плавающей точкой в JSON-объект
+ * 
+ * @param object     объект
+ * @param field_name имя поля
+ * @param value      значение для поля (число с плавающей точкой)
+ * 
+ * @return указатель на тот же объект
+ */
+Json*
+Json_add_double_to_object(Json *object, char *field_name, double value);
 
-Json *Json_add_double_to_object(Json *json, char *field_name, double value) {
-    JsonNode *prev_field = json->last;
+/**
+ * Добавляет поле-целое число в JSON-объект
+ * 
+ * @param object     объект
+ * @param field_name имя поля
+ * @param value      значение для поля (целое число)
+ * 
+ * @return указатель на тот же объект
+ */
+Json*
+Json_add_int_to_object(Json *object, char *field_name, int value);
 
-    JsonNode *new_field = (JsonNode *) malloc(sizeof(JsonNode));
-    new_field->value_type = JSON_DOUBLE;
-    new_field->field_name = strdup(field_name);
-    new_field->double_value = value;
-    new_field->next_field = NULL;
+/**
+ * Добавляет поле-объект в JSON-объект
+ * 
+ * @param object       объект
+ * @param field_name   имя поля
+ * @param object_value значение для поля (указатель на JSON-объект)
+ * 
+ * @return указатель на тот же объект
+ */
+Json*
+Json_add_object_to_object(Json *object, char *field_name, Json *object_value);
 
-    if (prev_field != NULL)
-        prev_field->next_field = new_field;
-    
-    json->last = new_field;
-    return json;
-}
+/**
+ * Добавляет поле-массив в JSON-объект
+ * 
+ * @param object     объект
+ * @param field_name имя поля
+ * @param array      значение для поля (указатель на JSON-массив)
+ * 
+ * @return указатель на тот же объект
+ */
+Json*
+Json_add_array_to_object(Json *object, char *field_name, Json *array);
 
-Json *Json_add_int_to_object(Json *json, char *field_name, int value) {
-    JsonNode *prev_field = json->last;
+/**
+ * Добавляет булевское поле в JSON-объект
+ * 
+ * @param object     объект
+ * @param field_name имя поля
+ * @param array      значение для поля (булевское значение)
+ * 
+ * @return указатель на тот же объект
+ */
+Json*
+Json_add_bool_to_object(Json *object, char *field_name, bool value);
 
-    JsonNode *new_field = (JsonNode *) malloc(sizeof(JsonNode));
-    new_field->value_type = JSON_INT;
-    new_field->field_name = strdup(field_name);
-    new_field->int_value = value;
-    new_field->next_field = NULL;
+/**
+ * Добавляет нулевое поле в JSON-объект
+ * 
+ * @param object     объект
+ * @param field_name имя поля
+ * 
+ * @return указатель на тот же объект
+ */
+Json*
+Json_add_null_to_object(Json *object, char *field_name);
 
-    if (prev_field != NULL)
-        prev_field->next_field = new_field;
-    
-    json->last = new_field;
-    return json;
-}
+/**
+ * Добавляет строковый элемент в JSON-массив
+ * 
+ * @param array указатель на массив
+ * @param value строковое значение
+ * 
+ * @return указатель на тот же массив
+ */
+Json*
+Json_add_string_to_array(Json *array, char *value);
+/**
+ * Добавляет число с плавающей точкой в JSON-массив
+ * 
+ * @param array указатель на массив
+ * @param value число с плавающей точкой
+ * 
+ * @return указатель на тот же массив
+ */
+Json*
+Json_add_double_to_array(Json *array, double value);
+/**
+ * Добавляет целое число в JSON-массив
+ * 
+ * @param array указатель на массив
+ * @param value целое число
+ * 
+ * @return указатель на тот же массив
+ */
+Json*
+Json_add_int_to_array(Json *array, int value);
 
-Json *Json_add_object_to_object(Json *json, char *field_name, Json *object) {
-    JsonNode *prev_field = json->last;
+/**
+ * Добавляет объект в JSON-массив
+ * 
+ * @param array  указатель на массив
+ * @param object объект
+ * 
+ * @return указатель на тот же массив
+ */
+Json*
+Json_add_object_to_array(Json *array, Json *object);
 
-    JsonNode *new_field = (JsonNode *) malloc(sizeof(JsonNode));
-    new_field->value_type = JSON_OBJECT;
-    new_field->field_name = strdup(field_name);
-    new_field->object = object;
-    new_field->next_field = NULL;
+/**
+ * Добавляет массив в JSON-массив
+ * 
+ * @param array  указатель на массив
+ * @param array_value массив для добавления
+ * 
+ * @return указатель на массив, в который был добавлен элемент
+ */
+Json*
+Json_add_array_to_array(Json *array, Json *array_value);
 
-    if (prev_field != NULL)
-        prev_field->next_field = new_field;
-    
-    json->last = new_field;
-    return json;
-}
+/**
+ * Добавляет булевское значение в JSON-массив
+ * 
+ * @param array указатель на массив
+ * @param value значение
+ * 
+ * @return указатель на тот же массив
+ */
+Json*
+Json_add_bool_to_array(Json *array, bool value);
+/**
+ * Добавляет нулевое значение в JSON-массив
+ * 
+ * @param array указатель на массив
+ * 
+ * @return указатель на тот же массив
+ */
+Json*
+Json_add_null_to_array(Json *array);
 
-int Json_get_string(Json *json, char *field_name, char *out);
-
-int Json_get_int(Json *json, char *field_name, int *out);
-
-int Json_get_double(Json *json, char *field_name, double *out);
-
-void indent(StringBuffer *strbuf, char *indent_value, int indent_level) {
-    for (int i = 0; i < indent_level; i++) {
-        StringBuffer_append(strbuf, indent_value);
-    }
-}
-
-char *Json_as_string_helper(Json *json, int indent_level) {
-    static char *INDENT = "    ";
-
-    StringBuffer *strbuf = StringBuffer_empty();
-    
-    indent(strbuf, INDENT, indent_level);
-    StringBuffer_append(strbuf, "{\n");
-
-    indent_level++;
-
-    JsonNode *current_node = json->last;
-    while (current_node != NULL) {
-        indent(strbuf, INDENT, indent_level);
-
-        switch (current_node->value_type) {
-            case JSON_STRING:
-                StringBuffer_append(strbuf, current_node->field_name);
-                StringBuffer_append(strbuf, ": \"");
-                StringBuffer_append(strbuf, current_node->str_value);
-                StringBuffer_append(strbuf, "\"");
-                break;
-            case JSON_INT:
-                // ...
-                break;
-            case JSON_DOUBLE:
-                // ...
-                break;
-            case JSON_OBJECT:
-                // ...
-                break;
-        }
-    }
-
-    indent(strbuf, INDENT, indent_level);
-    StringBuffer_append(strbuf, "}");
-
-    char *raw_buffer = strbuf->buffer;
-    StringBuffer_delete(strbuf);
-    return raw_buffer;
-}
-
-char *Json_as_string(Json *json);
+/**
+ * Генерирует JSON-строку для заданного объекта
+ * 
+ * @param json JSON-объект
+ * 
+ * @return строка, представляющая данный объект
+ */
+char*
+Json_object_as_string(Json *json);
 
 #endif
