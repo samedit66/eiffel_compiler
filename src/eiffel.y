@@ -3,6 +3,8 @@
     #include <stdlib.h>
     #include <string.h>
 
+    #include "./include/json.h"
+
     extern int yylex(void);
     extern void yyrestart(FILE *infile);
 
@@ -21,21 +23,24 @@
 %define parse.error verbose
 
 %union {
-    int int_num;
-    double real_num;
+    int int_value;
+    double real_value;
+    char *string_value;
     char *ident;
-    char *string;
+    struct Json *tree;
 }
 
-%start program
+%start expr
 
 %token EOI 0 "end of file"
 
-%token <int_num>  INT_CONST
-%token <real_num> REAL_CONST
-%token <ident>    IDENT_LIT 
-%token <int_num>  CHAR_CONST
-%token <string>   STRING_CONST
+%token <tree> INT_CONST
+%token <tree> REAL_CONST
+%token <tree> IDENT_LIT 
+%token <tree> CHAR_CONST
+%token <tree> STRING_CONST
+
+%type <tree> constant
 
 %token INT_DIV MOD
 %token AND OR NOT AND_THEN OR_ELSE
@@ -56,9 +61,6 @@
 %token RARROW
 %token AS INHERIT REDEFINE RENAME UNDEFINE SELECT
 %token TRUE_KW FALSE_KW VOID
-
-%type <stmt> stmt assign_stmt if_stmt loop_stmt
-%type <expr> expr constant
 
 %nonassoc ASSIGN_TO
 %nonassoc LOWER_THAN_EXPR
@@ -462,7 +464,7 @@ bracket_access: call '[' expr ']'
               ;
 
 /* Константы */
-constant: INT_CONST     { JSON *json = JSON_new(); JSON_add_string_to_object(json, "type", "constant"); }
+constant: INT_CONST     { $$ = Json_new(); Json_add_string_to_object($$, "type", "int_const"); Json_add_int_to_object($$, "value", yylval.int_value); }
         | REAL_CONST
         | CHAR_CONST
         | STRING_CONST
@@ -473,7 +475,7 @@ constant: INT_CONST     { JSON *json = JSON_new(); JSON_add_string_to_object(jso
         | VOID
         ;
 
-expr: constant
+expr: constant { puts(Json_object_as_string($1)); }
     | expr '+' expr        
     | expr '-' expr        
     | expr '*' expr        
@@ -513,6 +515,7 @@ int show_parsing_result(void) {
         return 1;
     }
 
+    char *output_file_name = "tree.json";
     printf("Succsesfully parsed, generated output file: %s\n", output_file_name);
     return 0;
 }
@@ -521,8 +524,6 @@ int main(int argc, char **argv) {
     #ifdef DEBUG_PARSER
         yydebug = 1;
     #endif
-
-    char *output_file_name = "tree.json";
 
     if (argc > 1) {
         for (int i = 1; i < argc; i++) {

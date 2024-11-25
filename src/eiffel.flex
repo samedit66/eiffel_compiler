@@ -84,7 +84,7 @@ REAL_NUMBER_EXPONENT       ({REAL_NUMBER}|{REAL_NUMBER_PART})[eE][\-+]?{REAL_NUM
 %%
 
 %{
-    int64_t int_number;
+    int int_value;
     double real_number;
     StringBuffer *buf = StringBuffer_empty();
     StringList *verbatim_str = StringList_new();
@@ -243,7 +243,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
     else {
         LOG_LEXEM("character", buf->buffer);
         BEGIN(INITIAL);
-        yylval.int_num = buf->buffer[0];
+        yylval.int_value = buf->buffer[0];
         return CHAR_CONST;
     }
 }
@@ -264,7 +264,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
     #endif
 
     BEGIN(INITIAL);
-    yylval.string = buf->buffer;
+    yylval.string_value = buf->buffer;
     return STRING_CONST;
 }
 
@@ -293,7 +293,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
     #endif
 
     BEGIN(INITIAL);
-    yylval.string = buf->buffer;
+    yylval.string_value = buf->buffer;
     return STRING_CONST;
 }
 
@@ -336,10 +336,10 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
     }
     else {
         unput(nc);
-        parse_int(yytext, &int_number, 10);
+        parse_int(yytext, &int_value, 10);
         LOG_LEXEM("decimal integer literal", yytext);
         
-        yylval.int_num = int_number;
+        yylval.int_value = int_value;
         return INT_CONST;
     }
 }
@@ -360,10 +360,10 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
     }
     else {
         unput(nc);
-        parse_int(yytext, &int_number, 16);
+        parse_int(yytext, &int_value, 16);
         LOG_LEXEM("hexadecimal integer literal", yytext);
         
-        yylval.int_num = int_number;
+        yylval.int_value = int_value;
         return INT_CONST;
     }
 }
@@ -384,10 +384,10 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
     }
     else {
         unput(nc);
-        parse_int(yytext, &int_number, 8);
+        parse_int(yytext, &int_value, 8);
         LOG_LEXEM("octal integer literal", yytext);
 
-        yylval.int_num = int_number;
+        yylval.int_value = int_value;
         return INT_CONST;
     }
 }
@@ -408,10 +408,10 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
     }
     else {
         unput(nc);
-        parse_int(yytext, &int_number, 2);
+        parse_int(yytext, &int_value, 2);
         LOG_LEXEM("binary integer literal", yytext);
 
-        yylval.int_num = int_number;
+        yylval.int_value = int_value;
         return INT_CONST;
     }
 }
@@ -440,7 +440,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
         parse_real(yytext, &real_number);
         LOG_LEXEM("real number literal", yytext);
 
-        yylval.real_num = real_number;
+        yylval.real_value = real_number;
         return REAL_CONST;
     }
 }
@@ -464,7 +464,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
         parse_real(yytext, &real_number);
         LOG_LEXEM("real exponent number literal", yytext);
 
-        yylval.real_num = real_number;
+        yylval.real_value = real_number;
         return REAL_CONST;
     }
 }

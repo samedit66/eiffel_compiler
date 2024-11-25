@@ -1,7 +1,6 @@
 #ifndef __LEX_UTILS__
 #define __LEX_UTILS__
 
-#include <stdint.h>
 #include <stdbool.h>
 #include "strlist.h"
 
@@ -25,7 +24,7 @@ remove_underscores(char *str_num);
  * шестнадцатиричная (16))
  */
 void
-parse_int(char *str_num, int64_t *int_num, int base);
+parse_int(char *str_num, int *int_num, int base);
 
 /**
  * Конвертирует строку, в которой записан литерал действительного числа, в
