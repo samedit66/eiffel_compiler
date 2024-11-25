@@ -217,9 +217,7 @@ _Json_field_as_string(Field *field, int indent_level, char *indent_value) {
             break;
     }
 
-    char *raw_buffer = strdup(strbuf->buffer);
-    StringBuffer_delete(strbuf);
-    return raw_buffer;
+    return StringBuffer_extract_string(strbuf);
 }
 
 char*
