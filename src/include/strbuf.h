@@ -78,4 +78,14 @@ StringBuffer_clear(StringBuffer *strbuf);
 void
 StringBuffer_delete(StringBuffer *strbuf);
 
+/**
+ * Возвращает указатель на накопленную строку и удаляет объект буффера
+ * 
+ * @param strbuf строковый буффер
+ * 
+ * @return указатель на накопленную строку
+ */
+char*
+StringBuffer_extract_string(StringBuffer *strbuf);
+
 #endif

@@ -86,3 +86,10 @@ StringBuffer_delete(StringBuffer *strbuf) {
     free(strbuf->buffer);
     free(strbuf);
 }
+
+char*
+StringBuffer_extract_string(StringBuffer *strbuf) {
+    char *string = strdup(strbuf->buffer);
+    StringBuffer_delete(strbuf);
+    return string;
+}
