@@ -88,4 +88,12 @@ StringBuffer_delete(StringBuffer *strbuf);
 char*
 StringBuffer_extract_string(StringBuffer *strbuf);
 
+/**
+ * Удаляет заданное кол-во символов, начиная с определенного индекса
+ * 
+ * @param start_index начальный индекс
+ * @param count кол-во символов для удаления
+ */
+void StringBuffer_delete_chars(int start_index, int count);
+
 #endif

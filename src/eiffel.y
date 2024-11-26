@@ -9,6 +9,7 @@
     extern void yyrestart(FILE *infile);
 
     int error_count = 0;
+    Json *output_tree = NULL;
 
     void yyerror(const char *str) {
         error_count++;
@@ -18,6 +19,196 @@
     #define YYDEBUG 1
 
     #define LOG_NODE(msg) printf("Found node: %s\n", msg)
+
+    void
+    add_type_to_node(Json *node, char *type_name) {
+        Json_add_string_to_object(node, "type", type_name);
+    }
+
+    Json*
+    mk_int_const(int val) {
+        Json *node = Json_new();
+        add_type_to_node(node, "int_const");
+        Json_add_int_to_object(node, "value", val);
+        return node;
+    }
+
+    Json*
+    mk_char_const(int val) {
+        Json *node = Json_new();
+        add_type_to_node(node, "char_const");
+        Json_add_int_to_object(node, "value", val);
+        return node;
+    }
+
+    Json*
+    mk_real_const(double val) {
+        Json *node = Json_new();
+        add_type_to_node(node, "real_const");
+        Json_add_double_to_object(node, "value", val);
+        return node;
+    }
+
+    Json*
+    mk_string_const(char *val) {
+        Json *node = Json_new();
+        add_type_to_node(node, "string_const");
+        Json_add_string_to_object(node, "value", val);
+        return node;
+    }
+
+    Json*
+    mk_result_const() {
+        Json *node = Json_new();
+        add_type_to_node(node, "result_const");
+        return node;
+    }
+
+    Json*
+    mk_current_const() {
+        Json *node = Json_new();
+        add_type_to_node(node, "current_const");
+        return node;
+    }
+
+    Json*
+    mk_boolean_const(bool val) {
+        Json *node = Json_new();
+        add_type_to_node(node, "boolean_const");
+        return node;
+    }
+
+    Json*
+    mk_void_const() {
+        Json *node = Json_new();
+        add_type_to_node(node, "void_const");
+        return node;
+    }
+
+    Json*
+    mk_ident_lit(char *ident) {
+        Json *node = Json_new();
+        add_type_to_node(node, "ident_lit");
+        Json_add_string_to_object(node, "value", ident);
+        return node;
+    }
+
+    Json*
+    mk_bin_op(char *op_name, Json *left, Json *right) {
+        Json *node = Json_new();
+        add_type_to_node(node, op_name);
+        Json_add_object_to_object(node, "left", left);
+        Json_add_object_to_object(node, "right", right);
+        return node;
+    }
+
+    Json*
+    mk_unary_op(char *op_name, Json *arg) {
+        Json *node = Json_new();
+        add_type_to_node(node, op_name);
+        Json_add_object_to_object(node, "arg", arg);\
+        return node;
+    }
+
+    Json*
+    mk_args_list() {
+        return Json_new();
+    }
+
+    Json*
+    add_arg_to_list(Json *args_list, Json *arg) {
+        Json_add_object_to_array(args_list, arg);
+        return args_list;
+    }
+
+    Json*
+    mk_simple_call(char *feature_name, Json *args_list) {
+        Json *simple_call = Json_new();
+        Json_add_string_to_object(simple_call, "name", feature_name);
+        Json_add_array_to_object(simple_call, "args_list", args_list);
+        return simple_call;
+    }
+
+    Json*
+    mk_simple_call_no_args(char *feature_name) {
+        return mk_simple_call(feature_name, mk_args_list());
+    }
+
+    Json*
+    mk_precursor_args_call(Json *args_list) {
+        Json *node = Json_new();
+        add_type_to_node(node, "precursor_call");
+        Json_add_array_to_object(node, "args_list", args_list);
+        return node;
+    }
+
+    Json*
+    mk_precursor_no_args_call() {
+        return mk_precursor_args_call(mk_args_list());
+    }
+
+    Json*
+    mk_feature_with_owner_call(Json *owner, Json *feature) {
+        Json *node = Json_new();
+
+        add_type_to_node(node, "feature_call");
+        
+        if (owner != NULL)
+            Json_add_object_to_object(node, "owner", owner);
+        else
+            Json_add_null_to_object(node, "onwer");
+
+        Json_add_object_to_object(node, "feature", feature);
+        return node;
+    }
+
+    Json*
+    mk_feature_with_unknown_owner_call(Json *feature) {
+        return mk_feature_with_owner_call(NULL, feature);
+    }
+
+    Json*
+    mk_bracket_access(Json *source, Json *index) {
+        Json *node = Json_new();
+        add_type_to_node(node, "bracket_access");
+        Json_add_object_to_object(node, "source", source);
+        Json_add_object_to_object(node, "index", index);
+        return node;
+    }
+
+    Json*
+    mk_if_expr(Json *cond, Json *then_expr, Json *alt_exprs, Json *else_expr) {
+        Json *node = Json_new();
+        add_type_to_node(node, "if_expr");
+        Json_add_object_to_object(node, "cond", cond);
+        Json_add_object_to_object(node, "then_expr", then_expr);
+        Json_add_array_to_object(node, "alt_exprs", alt_exprs);
+        Json_add_object_to_object(node, "else_expr", else_expr);
+        return node;
+    }
+
+    Json*
+    mk_elseif_expr_list() {
+        return Json_new();
+    }
+
+    Json*
+    add_alt_expr(Json *alts, Json *cond, Json *expr) {
+        Json *alt = Json_new();
+        Json_add_object_to_object(alt, "cond", cond);
+        Json_add_object_to_object(alt, "expr", expr);
+        Json_add_object_to_array(alts, alt);
+        return alts;
+    }
+
+    Json*
+    mk_assign_stmt(Json *left, Json *right) {
+        Json *node = Json_new();
+        add_type_to_node(node, "assign_stmt");
+        Json_add_object_to_object(node, "left", left);
+        Json_add_object_to_object(node, "right", right);
+        return node;
+    }
 %}
 
 %define parse.error verbose
@@ -30,17 +221,24 @@
     struct Json *tree;
 }
 
-%start expr
+%start assign_stmt
 
 %token EOI 0 "end of file"
 
-%token <tree> INT_CONST
-%token <tree> REAL_CONST
-%token <tree> IDENT_LIT 
-%token <tree> CHAR_CONST
-%token <tree> STRING_CONST
+%token <int_value> INT_CONST
+%token <real_value> REAL_CONST
+%token <ident> IDENT_LIT 
+%token <int_value> CHAR_CONST
+%token <string_value> STRING_CONST
 
-%type <tree> constant
+%type <tree> constant expr
+
+%type <tree> assign_stmt writable
+
+%type <tree> simple_call precursor_call call
+%type <tree> params_list comma_separated_exprs
+%type <tree> bracket_access
+%type <tree> if_expr elseif_expr_opt elseif_expr
 
 %token INT_DIV MOD
 %token AND OR NOT AND_THEN OR_ELSE
@@ -347,12 +545,12 @@ stmt: assign_stmt
 
 /* ********************************************************************/
 /* Описание оператора присваивания */
-assign_stmt: writable ASSIGN_TO expr { LOG_NODE("assign_stmt"); }
+assign_stmt: writable ASSIGN_TO expr { $$ = mk_assign_stmt($1, $3); output_tree = $$; }
            ;
 
-writable: IDENT_LIT
-        | RESULT
-        | bracket_access
+writable: IDENT_LIT { $$ = mk_ident_lit($1); }
+        | RESULT { $$ = mk_result_const(); }
+        | bracket_access { $$ = $1; }
         ;
 
 
@@ -404,7 +602,6 @@ else_clause_opt: /* empty */
                | ELSE stmt_list_opt
                ;
 
-
 /* ********************************************************************/
 /* Описание вызова метода */
 
@@ -418,90 +615,90 @@ else_clause_opt: /* empty */
 6) Вызов метода у элемента массива: numbers[1].to_natural_8
 7) Вызовы произвольной вложенности: Result.f.g(a, b, c)
 */
-call: simple_call
-    | precursor_call
-    | RESULT         '.' simple_call
-    | CURRENT        '.' simple_call
-    | '(' expr ')'   '.' simple_call
-    | bracket_access '.' simple_call
-    | call           '.' simple_call
+call: simple_call { $$ = mk_feature_with_unknown_owner_call($1); }
+    | precursor_call { $$ = $1; }
+    | RESULT         '.' simple_call { $$ = mk_feature_with_owner_call(mk_result_const(), $3); }
+    | CURRENT        '.' simple_call { $$ = mk_feature_with_owner_call(mk_current_const(), $3); }
+    | '(' expr ')'   '.' simple_call { $$ = mk_feature_with_owner_call($2, $5); }
+    | bracket_access '.' simple_call { $$ = mk_feature_with_owner_call($1, $3); }
+    | call           '.' simple_call { $$ = mk_feature_with_owner_call($1, $3); }
     ;
 
-precursor_call: PRECURSOR %prec LOWER_THAN_EXPR
-              | PRECURSOR '(' params_list ')'
+precursor_call: PRECURSOR %prec LOWER_THAN_EXPR { $$ = mk_precursor_no_args_call(); }
+              | PRECURSOR '(' params_list ')' { $$ = mk_precursor_args_call($3); }
               ;
 
-simple_call: IDENT_LIT %prec LOWER_THAN_PARENS
-           | IDENT_LIT '(' params_list ')'
+simple_call: IDENT_LIT %prec LOWER_THAN_PARENS { $$ = mk_simple_call_no_args($1); }
+           | IDENT_LIT '(' params_list ')' { $$ = mk_simple_call($1, $3); }
            ;
 
-params_list: /* empty */
-           | comma_separated_exprs
+params_list: /* empty */ { $$ = mk_args_list(); }
+           | comma_separated_exprs { $$ = $1; }
            ;
 
-comma_separated_exprs: expr
-                     | comma_separated_exprs ',' expr
+comma_separated_exprs: expr { $$ = mk_args_list(); $$ = add_arg_to_list($$, $1); }
+                     | comma_separated_exprs ',' expr { $$ = add_arg_to_list($1, $3); }
                      ;
 
 
 /* ********************************************************************/
 /* Тернарный оператор */
-if_expr: IF expr THEN expr elseif_expr_opt ELSE expr END
+if_expr: IF expr THEN expr elseif_expr_opt ELSE expr END { $$ = mk_if_expr($2, $4, $5, $7); }
 
-elseif_expr_opt: /* empty */
-               | elseif_expr
+elseif_expr_opt: /* empty */ { $$ = mk_elseif_expr_list();  }
+               | elseif_expr { $$ = $1; }
 
-elseif_expr: ELSEIF expr THEN expr
-           | elseif_expr ELSEIF expr THEN expr
+elseif_expr: ELSEIF expr THEN expr { $$ = mk_elseif_expr_list(); $$ = add_alt_expr($$, $2, $4); }
+           | elseif_expr ELSEIF expr THEN expr { $$ = add_alt_expr($1, $3, $5); }
 
 
 /* ********************************************************************/
 /* Описание выражений */
 
 /* Взятие элемента через квадратный скобки */
-bracket_access: call '[' expr ']' 
-              | bracket_access '[' expr ']'
+bracket_access: call '[' expr ']' { $$ = mk_bracket_access($1, $3); }
+              | bracket_access '[' expr ']' { $$ = mk_bracket_access($1, $3); }
               ;
 
 /* Константы */
-constant: INT_CONST     { $$ = Json_new(); Json_add_string_to_object($$, "type", "int_const"); Json_add_int_to_object($$, "value", yylval.int_value); }
-        | REAL_CONST
-        | CHAR_CONST
-        | STRING_CONST
-        | RESULT
-        | CURRENT
-        | TRUE_KW
-        | FALSE_KW
-        | VOID
+constant: INT_CONST     { $$ = mk_int_const($1); }
+        | REAL_CONST    { $$ = mk_real_const($1); }
+        | CHAR_CONST    { $$ = mk_char_const($1); }
+        | STRING_CONST  { $$ = mk_string_const($1); }
+        | RESULT        { $$ = mk_result_const(); }
+        | CURRENT       { $$ = mk_current_const(); }
+        | TRUE_KW       { $$ = mk_boolean_const(true); } 
+        | FALSE_KW      { $$ = mk_boolean_const(false); } 
+        | VOID          { $$ = mk_void_const(); }
         ;
 
-expr: constant { puts(Json_object_as_string($1)); }
-    | expr '+' expr        
-    | expr '-' expr        
-    | expr '*' expr        
-    | expr '/' expr        
-    | '(' expr ')'
-    | '+' expr %prec UPLUS 
-    | '-' expr %prec UMINUS
-    | expr INT_DIV expr    
-    | expr MOD expr        
-    | expr '^' expr        
-    | expr AND expr        
-    | expr OR expr         
-    | NOT expr             
-    | expr AND_THEN expr   
-    | expr OR_ELSE expr    
-    | expr XOR expr        
-    | expr '<' expr        
-    | expr '>' expr        
-    | expr '=' expr        
-    | expr LE expr         
-    | expr GE expr         
-    | expr NEQ expr        
-    | expr IMPLIES expr 
-    | call
-    | bracket_access
-    | if_expr
+expr: constant { $$ = $1; }
+    | expr '+' expr { $$ = mk_bin_op("add_op", $1, $3); }
+    | expr '-' expr { $$ = mk_bin_op("sub_op", $1, $3); }       
+    | expr '*' expr { $$ = mk_bin_op("mul_op", $1, $3); }       
+    | expr '/' expr { $$ = mk_bin_op("div_op", $1, $3); }       
+    | '(' expr ')'  { $$ = $2; }
+    | '+' expr %prec UPLUS { $$ = mk_unary_op("unary_plus_op", $2); }
+    | '-' expr %prec UMINUS { $$ = mk_unary_op("unary_minus_op", $2); }
+    | expr INT_DIV expr { $$ = mk_bin_op("int_div_op", $1, $3); }
+    | expr MOD expr { $$ = mk_bin_op("mod_op", $1, $3); }       
+    | expr '^' expr { $$ = mk_bin_op("exp_op", $1, $3); }
+    | expr AND expr { $$ = mk_bin_op("and_op", $1, $3); }       
+    | expr OR expr { $$ = mk_bin_op("or_op", $1, $3); }         
+    | NOT expr { $$ = mk_unary_op("not_op", $2); }            
+    | expr AND_THEN expr { $$ = mk_bin_op("and_then_op", $1, $3); }
+    | expr OR_ELSE expr { $$ = mk_bin_op("or_else_op", $1, $3); }  
+    | expr XOR expr { $$ = mk_bin_op("xor_op", $1, $3); }       
+    | expr '<' expr { $$ = mk_bin_op("lt_op", $1, $3); }          
+    | expr '>' expr { $$ = mk_bin_op("gt_op", $1, $3); }       
+    | expr '=' expr { $$ = mk_bin_op("eq_op", $1, $3); }       
+    | expr LE expr  { $$ = mk_bin_op("le_op", $1, $3); }       
+    | expr GE expr  { $$ = mk_bin_op("ge_op", $1, $3); }       
+    | expr NEQ expr { $$ = mk_bin_op("neq_op", $1, $3); }       
+    | expr IMPLIES expr { $$ = mk_bin_op("implies_op", $1, $3); }
+    | call { $$ = $1; }
+    | bracket_access { $$ = $1; }
+    | if_expr { $$ = $1; } 
     ;
 %%
 
@@ -516,7 +713,8 @@ int show_parsing_result(void) {
     }
 
     char *output_file_name = "tree.json";
-    printf("Succsesfully parsed, generated output file: %s\n", output_file_name);
+    puts(Json_object_as_string(output_tree));
+    //printf("Succsesfully parsed, generated output file: %s\n", output_file_name);
     return 0;
 }
 

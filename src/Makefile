@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-c -Wall
+CFLAGS=-c -Wall -g
 LDFLAGS=
 
 DEBUG_SETTINGS=-DCOLORFUL -DDEBUG_LEXER -DDEBUG_PARSER
@@ -32,7 +32,7 @@ flex: $(FLEX_FILE)
 	$(CC) $(CFLAGS) $(SETTINGS) $(FLEX_OUTPUT) -o $(FLEX_OUTPUT:.c=.o)
 
 $(EXECUTABLE): $(OBJECTS) 
-	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
+	$(CC) -g $(LDFLAGS) $(OBJECTS) -o $@
 
 .c.o:
 	$(CC) $(CFLAGS) $(SETTINGS) $< -o $@

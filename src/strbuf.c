@@ -59,7 +59,7 @@ StringBuffer_append(StringBuffer *strbuf, const char *cstr) {
         strbuf->size = strlen(new_buffer);
         strbuf->cap = new_cap;
     }
-
+    
     strcpy(strbuf->buffer + strbuf->size, cstr);
     strbuf->size += cstr_len;
 

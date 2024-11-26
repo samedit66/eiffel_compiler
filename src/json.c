@@ -118,15 +118,25 @@ _indent(StringBuffer *strbuf, int indent_level, char *indent_value) {
 
 static inline void
 _append_int_to_buf(StringBuffer *strbuf, int value) {
-    char buffer[20];
+    const int BUFFER_SIZE = 20;
+    char buffer[BUFFER_SIZE];
     itoa(value, buffer, 10);
     StringBuffer_append(strbuf, buffer);
 }
 
 static inline void
 _append_double_to_buf(StringBuffer *strbuf, double value) {
-    char buffer[20];
+    const int BUFFER_SIZE = 20;
+    char buffer[BUFFER_SIZE];
     sprintf(buffer, "%f", value);
+    
+    // Убирает лишние нули, которые создает sprintf в конце числа
+    for (int i = strlen(buffer) - 2; i >= 0; i--)
+        if (buffer[i] != '0') {
+            buffer[i+1] = '\0';
+            break;
+        }
+
     StringBuffer_append(strbuf, buffer);
 }
 
@@ -177,8 +187,11 @@ _Json_field_as_string(Field *field, int indent_level, char *indent_value) {
             indent_level++;
             Field *current_field = object_or_array->first;
 
-            if (current_field != NULL)
+            bool has_some_elements = false;
+            if (current_field != NULL) {
+                has_some_elements = true;
                 StringBuffer_append(strbuf, "\n");
+            }
 
             while (current_field != NULL) {
                 _indent(strbuf, indent_level, indent_value);
@@ -208,7 +221,8 @@ _Json_field_as_string(Field *field, int indent_level, char *indent_value) {
             }
 
             indent_level--;
-            _indent(strbuf, indent_level, indent_value);
+            if (has_some_elements)
+                _indent(strbuf, indent_level, indent_value);
 
             if (field->value_type == JSON_ARRAY)
                 StringBuffer_append(strbuf, "]");
