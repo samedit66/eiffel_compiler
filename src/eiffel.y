@@ -214,7 +214,7 @@
     mk_program(Json *program) {
         Json *node = Json_new();
         add_type_to_node(node, "root");
-        Json_add_array_to_object(node, "program", program);
+        Json_add_object_to_object(node, "program", program);
         return node;
     }
 
@@ -330,6 +330,87 @@
         Json_add_object_to_object(node, "end", end);
         return node;
     }
+
+    Json*
+    mk_type_list() {
+        return Json_new();
+    }
+
+    Json*
+    add_type_to_type_list(Json *type_list, Json *type) {
+        Json_add_object_to_array(type_list, type);
+        return type_list;
+    }
+
+    Json*
+    mk_type(char *type_name) {
+        Json *user_type = Json_new();
+        add_type_to_node(user_type, "type_spec");
+        Json_add_string_to_object(user_type, "type_name", type_name);
+        return user_type;
+    }
+
+    Json*
+    mk_integer_type() {
+        return mk_type("INTEGER");
+    }
+
+    Json*
+    mk_real_type() {
+        return mk_type("REAL");
+    }
+
+    Json*
+    mk_string_type() {
+        return mk_type("STRING");
+    }
+
+    Json*
+    mk_character_type() {
+        return mk_type("CHARACTER");
+    }
+
+    Json*
+    mk_boolean_type() {
+        return mk_type("BOOLEAN");
+    }
+
+    Json*
+    mk_like_type(Json *like_what) {
+        Json *type_spec_like = Json_new();
+        add_type_to_node(type_spec_like, "type_spec_like");
+        Json_add_object_to_object(type_spec_like, "like_what", like_what);
+        return type_spec_like;
+    }
+
+    Json*
+    mk_like_current_type() {
+        return mk_like_type(mk_current_const());
+    }
+
+    Json*
+    mk_like_other_field_type(char *field_name) {
+        return mk_like_type(mk_ident_lit(field_name));
+    }
+
+    Json*
+    mk_generic_user_type(char *type_name, Json *type_list) {
+        Json *generic_type_spec = Json_new();
+        add_type_to_node(generic_type_spec, "generic_type_spec");
+        Json_add_string_to_object(generic_type_spec, "type_name", type_name);
+        Json_add_array_to_object(generic_type_spec, "type_list", type_list);
+        return generic_type_spec;
+    }
+
+    Json*
+    mk_generic_array_type(Json *type_list) {
+        return mk_generic_user_type("ARRAY", type_list);
+    }
+
+    Json*
+    mk_generic_tuple_type(Json *type_list) {
+        return mk_generic_user_type("TUPLE", type_list);
+    }
 %}
 
 %define parse.error verbose
@@ -367,7 +448,9 @@
 %type <tree> when_clauses_opt when_clauses choices_opt choices choice
 %type <tree> if_stmt elseif_clauses_opt elseif_clauses else_clause_opt
 
-%type <tree> feature_list
+%type <tree> feature_list feature
+
+%type <tree> type generic_type type_list
 
 %type <tree> program
 
@@ -411,7 +494,7 @@
 
 /* ********************************************************************/
 /* Описание программы */
-program: feature_list { $$ = mk_program($1); output_tree = $$; }
+program: type { $$ = mk_program($1); output_tree = $$; }
        ;
 
 /* ********************************************************************/
@@ -524,24 +607,24 @@ clients: '{' ident_list '}'
 
 /* ********************************************************************/
 /* Описание типов */
-type: IDENT_LIT
-    | INTEGER
-    | REAL
-    | STRING_KW
-    | CHARACTER
-    | BOOLEAN
-    | LIKE CURRENT
-    | LIKE IDENT_LIT
-    | generic_type
+type: IDENT_LIT { $$ = mk_type($1); }
+    | INTEGER { $$ = mk_integer_type(); }
+    | REAL { $$ = mk_real_type(); }
+    | STRING_KW { $$ = mk_string_type(); }
+    | CHARACTER { $$ = mk_character_type(); }
+    | BOOLEAN { $$ = mk_boolean_type(); puts("fuck"); }
+    | LIKE CURRENT { $$ = mk_like_current_type(); }
+    | LIKE IDENT_LIT { $$ = mk_like_other_field_type($2); }
+    | generic_type { $$ = $1; }
     ;
 
-generic_type: IDENT_LIT '[' type_list ']'
-            | ARRAY '[' type ']'
-            | TUPLE '[' type_list ']'
+generic_type: IDENT_LIT '[' type_list ']' { $$ = mk_generic_user_type($1, $3); }
+            | ARRAY '[' type ']' { $$ = mk_generic_array_type($3); }
+            | TUPLE '[' type_list ']' { $$ = mk_generic_tuple_type($3); }
             ;
 
-type_list: type
-         | type_list ';' type
+type_list: type { $$ = mk_type_list(); $$ = add_type_to_type_list($$, $1); }
+         | type_list ';' type { $$ = add_type_to_type_list($1, $3);  }
          ;
 
 

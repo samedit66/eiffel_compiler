@@ -214,6 +214,7 @@ Json_add_array_to_array(Json *array, Json *array_value);
  * 
  * @return указатель на тот же массив
  */
+
 Json*
 Json_add_bool_to_array(Json *array, bool value);
 /**
