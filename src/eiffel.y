@@ -298,15 +298,15 @@
     }
     
     Json*
-    mk_when_stmt_list() {
+    mk_when_clauses() {
         return Json_new();
     }
     
     Json*
-    add_alt_when_clause(Json *when_clauses, Json *choices, Json *stmt_list) {
+    add_alt_when_clause(Json *when_clauses, Json *choices, Json *body) {
         Json *when_stmt = Json_new();
         Json_add_array_to_object(when_stmt, "choices", choices);
-        Json_add_array_to_object(when_stmt, "stmt_list", stmt_list);
+        Json_add_object_to_object(when_stmt, "body", body);
         Json_add_object_to_array(when_clauses, when_stmt);
         return when_clauses;
     }
@@ -342,7 +342,7 @@
     struct Json *tree;
 }
 
-%start stmt
+%start program
 
 %token EOI 0 "end of file"
 
@@ -409,7 +409,7 @@
 
 /* ********************************************************************/
 /* Описание программы */
-program: stmt_list_opt { $$ = mk_program($1); output_tree = $$; }
+program: stmt_list { $$ = mk_program($1); output_tree = $$; }
        ;
 
 /* ********************************************************************/
@@ -663,12 +663,12 @@ stmt_list: stmt           { $$ = mk_compound_stmt(); $$ = add_stmt_to_compound($
          | stmt_list stmt { $$ = add_stmt_to_compound($1, $2); }
          ;
 
-stmt: assign_stmt  { $$ = $1; output_tree = $$; }
-    | if_stmt      { $$ = $1; output_tree = $$; }
-    | loop_stmt    { $$ = $1; output_tree = $$; }
-    | inspect_stmt { $$ = $1; output_tree = $$; }
-    | call         { $$ = $1; output_tree = $$; }
-    | ';'          { $$ = mk_empty(); output_tree = $$; }
+stmt: assign_stmt  { $$ = $1; }
+    | if_stmt      { $$ = $1; }
+    | loop_stmt    { $$ = $1; }
+    | inspect_stmt { $$ = $1;}
+    | call         { $$ = $1; }
+    | ';'          { $$ = mk_empty(); }
     ;
 
 
@@ -694,15 +694,15 @@ loop_stmt: FROM stmt_list_opt UNTIL expr LOOP stmt_list_opt END { $$ = mk_loop_s
 inspect_stmt: INSPECT expr when_clauses_opt else_clause_opt END { $$ = mk_inspect_stmt($2, $3, $4); }
             ;
 
-when_clauses_opt: /* empty */  { $$ = mk_empty(); }
+when_clauses_opt: /* empty */  { $$ = mk_when_clauses(); }
                 | when_clauses { $$ = $1; }
                 ;
 
-when_clauses: WHEN choices_opt THEN stmt_list_opt { $$ = mk_when_stmt_list(); $$ = add_alt_when_clause($$, $2, $4); }
+when_clauses: WHEN choices_opt THEN stmt_list_opt { $$ = mk_when_clauses(); $$ = add_alt_when_clause($$, $2, $4); }
             | when_clauses WHEN choices_opt THEN stmt_list_opt { $$ = add_alt_when_clause($1, $3, $5); }
             ;
 
-choices_opt: /* empty */ { $$ = mk_empty(); }
+choices_opt: /* empty */ { $$ = mk_choice_list(); }
            | choices { $$ = $1; }
            ;
 
