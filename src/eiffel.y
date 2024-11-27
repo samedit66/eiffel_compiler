@@ -690,7 +690,7 @@ args_list: name_and_type
          ;
 
 /* Тело метода */
-routine_body: local_part_opt require_part_opt do_part ensure_part_opt END
+routine_body: local_part_opt require_part_opt do_part_opt then_part_opt ensure_part_opt END
             ;
 
 /* Секция объявления локальных переменных */
@@ -729,8 +729,20 @@ condition: expr %prec LOWER_THAN_EXPR
          ;
 
 /* Секция инструкций метода */
+do_part_opt: /* empty */
+           | do_part
+           ;
+
 do_part: DO stmt_list_opt
        ;
+
+/* Секция then */
+then_part_opt: /* empty */
+             | then_part
+             ;
+
+then_part: THEN expr
+         ;
 
 /* Секция постусловий  */
 ensure_part_opt: /* empty */
