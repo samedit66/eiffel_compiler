@@ -657,6 +657,7 @@ elseif_expr: ELSEIF expr THEN expr { $$ = mk_elseif_expr_list(); $$ = add_alt_ex
 
 /* Взятие элемента через квадратный скобки */
 bracket_access: call '[' expr ']' { $$ = mk_bracket_access($1, $3); }
+              | constant '[' expr ']' { $$ = mk_bracket_access($1, $3); }
               | bracket_access '[' expr ']' { $$ = mk_bracket_access($1, $3); }
               ;
 
