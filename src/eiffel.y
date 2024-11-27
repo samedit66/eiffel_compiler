@@ -367,6 +367,8 @@
 %type <tree> when_clauses_opt when_clauses choices_opt choices choice
 %type <tree> if_stmt elseif_clauses_opt elseif_clauses else_clause_opt
 
+%type <tree> feature_list
+
 %type <tree> program
 
 %token INT_DIV MOD
@@ -409,7 +411,7 @@
 
 /* ********************************************************************/
 /* Описание программы */
-program: stmt_list { $$ = mk_program($1); output_tree = $$; }
+program: feature_list { $$ = mk_program($1); output_tree = $$; }
        ;
 
 /* ********************************************************************/
@@ -553,29 +555,32 @@ feature_list: feature
 Поддерживаются:
 1) Объявление вида (атрибуты): a, b: INTEGER
 
-2) Методы, не принимающие параметров и ничего не возвращающие:
+2) Указание константных атрибутов класса: pi: REAL = 3.14
+
+3) Методы, не принимающие параметров и ничего не возвращающие:
     a, b, c do
         ...
     end
 
-3) Указание метода, ничего не принимающего, но возвращающего что-то:
+4) Указание метода, ничего не принимающего, но возвращающего что-то:
     f: REAL do
         ...
     end
 
-4) Указание аргументов:
+5) Указание аргументов:
     f (a: INTEGER, b: REAL) do
         ...
     end
 
     Пустые скобки также поддерживаются
 
-5) Все вместе:
+6) Все вместе:
     f, g (a: INTEGER, b: REAL): STRING do
         ...
     end
 */
 feature: name_and_type
+       | name_and_type '=' constant
        | ident_list routine_body
        | name_and_type routine_body 
        | ident_list '(' args_list_opt ')' routine_body
