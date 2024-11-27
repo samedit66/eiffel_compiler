@@ -26,6 +26,13 @@
     }
 
     Json*
+    mk_empty() {
+        Json *node = Json_new();
+        add_type_to_node(node, "empty");
+        return node;
+    }
+
+    Json*
     mk_int_const(int val) {
         Json *node = Json_new();
         add_type_to_node(node, "int_const");
@@ -75,6 +82,7 @@
     mk_boolean_const(bool val) {
         Json *node = Json_new();
         add_type_to_node(node, "boolean_const");
+        Json_add_bool_to_object(node, "value", val);
         return node;
     }
 
@@ -156,7 +164,7 @@
         if (owner != NULL)
             Json_add_object_to_object(node, "owner", owner);
         else
-            Json_add_null_to_object(node, "owner");
+            Json_add_object_to_object(node, "owner", mk_empty());
 
         Json_add_object_to_object(node, "feature", feature);
         return node;
@@ -182,7 +190,7 @@
         add_type_to_node(node, "if_expr");
         Json_add_object_to_object(node, "cond", cond);
         Json_add_object_to_object(node, "then_expr", then_expr);
-        Json_add_array_to_object(node, "alt_exprs", alt_exprs);
+        Json_add_array_to_object(node, "elseif_exprs", alt_exprs);
         Json_add_object_to_object(node, "else_expr", else_expr);
         return node;
     }
@@ -193,10 +201,69 @@
     }
 
     Json*
-    add_alt_expr(Json *alts, Json *cond, Json *expr) {
+    add_elseif_expr(Json *alts, Json *cond, Json *expr) {
         Json *alt = Json_new();
+        add_type_to_node(alt, "elseif_expr");
         Json_add_object_to_object(alt, "cond", cond);
         Json_add_object_to_object(alt, "expr", expr);
+        Json_add_object_to_array(alts, alt);
+        return alts;
+    }
+
+    Json*
+    mk_program(Json *program) {
+        Json *node = Json_new();
+        add_type_to_node(node, "root");
+        Json_add_array_to_object(node, "program", program);
+        return node;
+    }
+
+    Json*
+    mk_compound_stmt() {
+        return Json_new();
+    }
+
+    Json*
+    add_stmt_to_compound(Json *compound, Json *stmt) {
+        Json_add_object_to_array(compound, stmt);
+        return compound;
+    }
+
+    Json*
+    mk_stmt_list(Json *compound) {
+        Json *stmt_list = Json_new();
+        add_type_to_node(stmt_list, "stmt_list");
+
+        if (compound == NULL)
+            Json_add_array_to_object(stmt_list, "stmts", Json_new());
+        else
+            Json_add_array_to_object(stmt_list, "stmts", compound);
+
+        return stmt_list;
+    }
+
+    Json*
+    mk_if_stmt(Json *cond, Json *then_stmt_list, Json *alt_stmts, Json *else_stmt_list) {
+        Json *node = Json_new();
+        add_type_to_node(node, "if_stmt");
+        Json_add_object_to_object(node, "cond", cond);
+        Json_add_object_to_object(node, "then_clause", then_stmt_list);
+        Json_add_array_to_object(node, "elseif_clauses", alt_stmts);
+        Json_add_object_to_object(node, "else_clause", else_stmt_list);
+        return node;
+    }
+
+    Json*
+    mk_elseif_stmt_list() {
+        return Json_new();
+    }
+
+    Json*
+    add_elseif_stmt(Json *alts, Json *cond, Json *stmt_list) {
+        Json *alt = Json_new();
+        add_type_to_node(alt, "elseif_clause");
+        Json_add_object_to_object(alt, "cond", cond);
+        Json_add_object_to_object(alt, "body", stmt_list);
         Json_add_object_to_array(alts, alt);
         return alts;
     }
@@ -207,6 +274,60 @@
         add_type_to_node(node, "assign_stmt");
         Json_add_object_to_object(node, "left", left);
         Json_add_object_to_object(node, "right", right);
+        return node;
+    }
+
+    Json*
+    mk_loop_stmt(Json *init_stmt_list, Json *cond, Json *body_stmt_list) {
+        Json *node = Json_new();
+        add_type_to_node(node, "loop_stmt");
+        Json_add_object_to_object(node, "init", init_stmt_list);
+        Json_add_object_to_object(node, "cond", cond);
+        Json_add_object_to_object(node, "body", body_stmt_list);
+        return node;
+    }
+    
+    Json*
+    mk_inspect_stmt(Json *expr, Json *when_clauses, Json *else_stmt_list) {
+        Json *node = Json_new();
+        add_type_to_node(node, "inspect_stmt");
+        Json_add_object_to_object(node, "expr", expr);
+        Json_add_array_to_object(node, "when_clauses", when_clauses);
+        Json_add_object_to_object(node, "else_clause", else_stmt_list);
+        return node;
+    }
+    
+    Json*
+    mk_when_stmt_list() {
+        return Json_new();
+    }
+    
+    Json*
+    add_alt_when_clause(Json *when_clauses, Json *choices, Json *stmt_list) {
+        Json *when_stmt = Json_new();
+        Json_add_array_to_object(when_stmt, "choices", choices);
+        Json_add_array_to_object(when_stmt, "stmt_list", stmt_list);
+        Json_add_object_to_array(when_clauses, when_stmt);
+        return when_clauses;
+    }
+    
+    Json*
+    mk_choice_list() {
+        return Json_new();
+    }
+    
+    Json*
+    add_choice(Json *list, Json *choice) {
+        Json_add_object_to_array(list, choice);
+        return list;
+    }
+    
+    Json*
+    mk_choice_interval(Json *start, Json *end) {
+        Json *node = Json_new();
+        add_type_to_node(node, "choice_interval");
+        Json_add_object_to_object(node, "start", start);
+        Json_add_object_to_object(node, "end", end);
         return node;
     }
 %}
@@ -221,7 +342,7 @@
     struct Json *tree;
 }
 
-%start assign_stmt
+%start stmt
 
 %token EOI 0 "end of file"
 
@@ -239,6 +360,14 @@
 %type <tree> params_list comma_separated_exprs
 %type <tree> bracket_access
 %type <tree> if_expr elseif_expr_opt elseif_expr
+
+%type <tree> stmt stmt_list stmt_list_opt
+%type <tree> loop_stmt
+%type <tree> inspect_stmt
+%type <tree> when_clauses_opt when_clauses choices_opt choices choice
+%type <tree> if_stmt elseif_clauses_opt elseif_clauses else_clause_opt
+
+%type <tree> program
 
 %token INT_DIV MOD
 %token AND OR NOT AND_THEN OR_ELSE
@@ -280,7 +409,7 @@
 
 /* ********************************************************************/
 /* Описание программы */
-program: class_list
+program: stmt_list_opt { $$ = mk_program($1); output_tree = $$; }
        ;
 
 /* ********************************************************************/
@@ -526,26 +655,26 @@ ensure_part: ENSURE condition_list
 
 /* ********************************************************************/
 /* Описание инструкций */
-stmt_list_opt: /* empty */
-             | stmt_list { LOG_NODE("stmt_list_opt"); }
+stmt_list_opt: /* empty */ { $$ = mk_stmt_list(mk_compound_stmt()); }
+             | stmt_list   { $$ = mk_stmt_list($1); }
              ;
 
-stmt_list: stmt
-         | stmt_list stmt
+stmt_list: stmt           { $$ = mk_compound_stmt(); $$ = add_stmt_to_compound($$, $1); }
+         | stmt_list stmt { $$ = add_stmt_to_compound($1, $2); }
          ;
 
-stmt: assign_stmt
-    | if_stmt
-    | loop_stmt
-    | inspect_stmt
-    | call
-    | ';'
+stmt: assign_stmt  { $$ = $1; output_tree = $$; }
+    | if_stmt      { $$ = $1; output_tree = $$; }
+    | loop_stmt    { $$ = $1; output_tree = $$; }
+    | inspect_stmt { $$ = $1; output_tree = $$; }
+    | call         { $$ = $1; output_tree = $$; }
+    | ';'          { $$ = mk_empty(); output_tree = $$; }
     ;
 
 
 /* ********************************************************************/
 /* Описание оператора присваивания */
-assign_stmt: writable ASSIGN_TO expr { $$ = mk_assign_stmt($1, $3); output_tree = $$; }
+assign_stmt: writable ASSIGN_TO expr { $$ = mk_assign_stmt($1, $3);  }
            ;
 
 writable: IDENT_LIT { $$ = mk_ident_lit($1); }
@@ -556,51 +685,52 @@ writable: IDENT_LIT { $$ = mk_ident_lit($1); }
 
 /* ********************************************************************/
 /* Описание оператора цикла */
-loop_stmt: FROM stmt_list_opt UNTIL expr LOOP stmt_list_opt END
+loop_stmt: FROM stmt_list_opt UNTIL expr LOOP stmt_list_opt END { $$ = mk_loop_stmt($2, $4, $6); }
          ;
 
 
 /* ********************************************************************/
 /* Описание оператора выбора */
-inspect_stmt: INSPECT expr when_clauses_opt else_clause_opt END
+inspect_stmt: INSPECT expr when_clauses_opt else_clause_opt END { $$ = mk_inspect_stmt($2, $3, $4); }
             ;
 
-when_clauses_opt: /* empty */
-                | when_clauses
+when_clauses_opt: /* empty */  { $$ = mk_empty(); }
+                | when_clauses { $$ = $1; }
                 ;
 
-when_clauses: WHEN choices_opt THEN stmt_list_opt
-            | when_clauses WHEN choices_opt THEN stmt_list_opt
+when_clauses: WHEN choices_opt THEN stmt_list_opt { $$ = mk_when_stmt_list(); $$ = add_alt_when_clause($$, $2, $4); }
+            | when_clauses WHEN choices_opt THEN stmt_list_opt { $$ = add_alt_when_clause($1, $3, $5); }
             ;
 
-choices_opt: /* empty */
-           | choices
+choices_opt: /* empty */ { $$ = mk_empty(); }
+           | choices { $$ = $1; }
            ;
 
-choices: choice
-       | choices ',' choice
+choices: choice { $$ = mk_choice_list(); $$ = add_choice($$, $1); }
+       | choices ',' choice { $$ = add_choice($1, $3);  }
        ;
 
-choice: expr
-      | expr TWO_DOTS expr
+choice: expr { $$ = $1; }
+      | expr TWO_DOTS expr { $$ = mk_choice_interval($1, $3); }
       ;
 
 
 /* ********************************************************************/
 /* Описание оператора ветвления */
-if_stmt: IF expr THEN stmt_list_opt elseif_clauses_opt else_clause_opt END
+if_stmt: IF expr THEN stmt_list_opt elseif_clauses_opt else_clause_opt END { $$ = mk_if_stmt($2, $4, $5, $6); }
        ;
 
-elseif_clauses_opt: /* empty */
-                  | elseif_clauses
+elseif_clauses_opt: /* empty */    { $$ = mk_elseif_stmt_list(); }
+                  | elseif_clauses { $$ = $1; }
                   ;
 
-elseif_clauses: ELSEIF expr THEN stmt_list_opt
-              | elseif_clauses ELSEIF expr THEN stmt_list_opt
+elseif_clauses: ELSEIF expr THEN stmt_list_opt { $$ = mk_elseif_stmt_list(); $$ = add_elseif_stmt($$, $2, $4); }
+              | elseif_clauses ELSEIF expr THEN stmt_list_opt { $$ = add_elseif_stmt($1, $3, $5); }
 
-else_clause_opt: /* empty */
-               | ELSE stmt_list_opt
+else_clause_opt: /* empty */        { $$ = mk_stmt_list(NULL); }
+               | ELSE stmt_list_opt { $$ = $2; }
                ;
+
 
 /* ********************************************************************/
 /* Описание вызова метода */
@@ -648,8 +778,8 @@ if_expr: IF expr THEN expr elseif_expr_opt ELSE expr END { $$ = mk_if_expr($2, $
 elseif_expr_opt: /* empty */ { $$ = mk_elseif_expr_list();  }
                | elseif_expr { $$ = $1; }
 
-elseif_expr: ELSEIF expr THEN expr { $$ = mk_elseif_expr_list(); $$ = add_alt_expr($$, $2, $4); }
-           | elseif_expr ELSEIF expr THEN expr { $$ = add_alt_expr($1, $3, $5); }
+elseif_expr: ELSEIF expr THEN expr { $$ = mk_elseif_expr_list(); $$ = add_elseif_expr($$, $2, $4); }
+           | elseif_expr ELSEIF expr THEN expr { $$ = add_elseif_expr($1, $3, $5); }
 
 
 /* ********************************************************************/
@@ -724,12 +854,10 @@ write_output_tree(char *file_name) {
 
 void
 show_parsing_result(int errors_count) {
-    if (errors_count > 0) {
-        if (errors_count == 1)
-            puts("Failed to parse, got 1 syntax error");
-        else
-            printf("Failed to parse, got %d syntax errors\n", errors_count);
-    }
+    if (errors_count == 1)
+        puts("Failed to parse, got 1 syntax error");
+    else if (errors_count > 1)
+        printf("Failed to parse, got %d syntax errors\n", errors_count);
 }
 
 void

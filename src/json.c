@@ -193,6 +193,7 @@ _Json_field_as_string(Field *field, int indent_level, char *indent_value) {
                 StringBuffer_append(strbuf, "\n");
             }
 
+            int iter_count = 0;
             while (current_field != NULL) {
                 _indent(strbuf, indent_level, indent_value);
 
@@ -213,6 +214,7 @@ _Json_field_as_string(Field *field, int indent_level, char *indent_value) {
                     StringBuffer_append(strbuf, "\n");
 
                 current_field = current_field->next_field;
+                iter_count += 1;
             }
 
             indent_level--;
