@@ -207,15 +207,10 @@ _Json_field_as_string(Field *field, int indent_level, char *indent_value) {
                     _Json_field_as_string(current_field, indent_level, indent_value)
                 );
 
-                if (field->value_type == JSON_ARRAY) {
-                    if (current_field->next_field != NULL)
-                        StringBuffer_append(strbuf, ",\n");
-                    else
-                        StringBuffer_append(strbuf, "\n");
-                }
-                else {
-                    StringBuffer_append(strbuf, ";\n");
-                }
+                if (current_field->next_field != NULL)
+                    StringBuffer_append(strbuf, ",\n");
+                else
+                    StringBuffer_append(strbuf, "\n");
 
                 current_field = current_field->next_field;
             }

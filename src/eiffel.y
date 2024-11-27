@@ -8,11 +8,11 @@
     extern int yylex(void);
     extern void yyrestart(FILE *infile);
 
-    int error_count = 0;
+    int errors_count = 0;
     Json *output_tree = NULL;
 
     void yyerror(const char *str) {
-        error_count++;
+        errors_count++;
         fprintf(stderr, "Parser error: %s\n", str);
     }
 
@@ -702,42 +702,68 @@ expr: constant { $$ = $1; }
     ;
 %%
 
-int show_parsing_result(void) {
-    if (error_count > 0) {
-        if (error_count == 1)
-            puts("Parsing went unsuccsesful, got 1 syntax error");
-        else
-            printf("Parsing went unsuccsesful, got %d syntax errors\n", error_count);
+bool
+write_output_tree(char *file_name) {
+    char *json = Json_object_as_string(output_tree);
 
+    if (file_name == NULL) {
+        printf(json);
         return 1;
     }
 
-    char *output_file_name = "tree.json";
-    puts(Json_object_as_string(output_tree));
-    //printf("Succsesfully parsed, generated output file: %s\n", output_file_name);
-    return 0;
+    FILE *output_file = fopen(file_name, "w");
+    if (output_file == NULL)
+        return 0;
+
+    fprintf(output_file, json);
+    fclose(output_file);
+
+    return 1;
 }
 
-int main(int argc, char **argv) {
+void
+show_parsing_result(int errors_count) {
+    if (errors_count > 0) {
+        if (errors_count == 1)
+            puts("Failed to parse, got 1 syntax error");
+        else
+            printf("Failed to parse, got %d syntax errors\n", errors_count);
+    }
+}
+
+void
+parse_files(int files_count, char **file_names) {
+    if (files_count == 0) {
+        yyparse();
+        return;
+    }
+
+    for (int i = 0; i < files_count; i++) {
+        FILE *eiffel_file = fopen(file_names[i], "r");
+        if (eiffel_file == NULL) {
+            perror(file_names[i]);
+            continue;
+        }
+
+        yyrestart(eiffel_file);
+        yyparse();
+    }
+}
+
+int
+main(int argc, char **argv) {
     #ifdef DEBUG_PARSER
         yydebug = 1;
     #endif
 
-    if (argc > 1) {
-        for (int i = 1; i < argc; i++) {
-            FILE *file = fopen(argv[i], "r");
-            if (file == NULL) {
-                perror(argv[i]);
-                continue;
-            }
+    parse_files(argc - 1, argv + 1);
 
-            yyrestart(file);
-            yyparse();
-        }
-    }
-    else {
-        yyparse();
+    show_parsing_result(errors_count);
+    
+    if (errors_count == 0) {
+        write_output_tree(NULL);
+        return EXIT_SUCCESS;
     }
 
-    return show_parsing_result();
+    return EXIT_FAILURE;
 }
