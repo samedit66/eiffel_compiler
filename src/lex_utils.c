@@ -100,9 +100,7 @@ escape(char *str) {
         }
     }
 
-    char* copy = strdup(strbuf->buffer);
-    StringBuffer_delete(strbuf);
-    return copy;
+    return StringBuffer_extract_string(strbuf);
 }
 
 static inline int
