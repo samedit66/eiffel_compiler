@@ -156,7 +156,7 @@
         if (owner != NULL)
             Json_add_object_to_object(node, "owner", owner);
         else
-            Json_add_null_to_object(node, "onwer");
+            Json_add_null_to_object(node, "owner");
 
         Json_add_object_to_object(node, "feature", feature);
         return node;
