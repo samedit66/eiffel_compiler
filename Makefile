@@ -1,5 +1,5 @@
 SOURCES=src
-EXECUTABLE=eiffelc
+EXECUTABLE=eiffelp
 
 .PHONY: build
 build:

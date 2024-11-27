@@ -8,7 +8,7 @@ SETTINGS=$(RELEASE_SETTINGS)
 
 SOURCES=$(wildcard *.c)
 OBJECTS=$(SOURCES:.c=.o)
-EXECUTABLE=eiffelc
+EXECUTABLE=eiffelp
 
 FLEX_FILE=eiffel.flex
 FLEX_OUTPUT=lex.yy.c
