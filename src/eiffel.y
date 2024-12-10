@@ -57,8 +57,19 @@
 %type <tree> if_stmt elseif_clauses_opt elseif_clauses else_clause_opt
 
 %type <tree> feature_list feature
+%type <tree> class_declaration class_header inheritance_opt creators_opt class_feature_opt
+%type <tree> formal_generics_opt formal_generics generic
+%type <tree> creators
+%type <tree> inheritance inheritance_clause parent rename_clause undefine_clause_opt redefine_clause_opt select_clause_opt
+%type <tree> rename_list
+%type <tree> undefine_clause
+%type <tree> redefine_clause
+%type <tree> select_clause
+%type <tree> class_feature clients_opt clients
 
 %type <tree> type generic_type type_list
+
+%type <tree> class_list
 
 %type <tree> program
 
@@ -82,6 +93,8 @@
 %token AS INHERIT REDEFINE RENAME UNDEFINE SELECT
 %token TRUE_KW FALSE_KW VOID
 
+%nonassoc FIELD
+%nonassoc ROUTINE
 %nonassoc ASSIGN_TO
 %nonassoc LOWER_THAN_EXPR
 %nonassoc LOWER_THAN_PARENS
@@ -102,36 +115,36 @@
 
 /* ********************************************************************/
 /* Описание программы */
-program: stmt_list { $$ = mk_program($1); output_tree = $$; }
+program: class_list { $$ = mk_program($1); output_tree = $$; }
        ;
 
 /* ********************************************************************/
 /* Описание класса */
-class_list: class_declaration
-          | class_list class_declaration
+class_list: class_declaration { $$ = mk_list(); $$ = add_to_list($$, $1); }
+          | class_list class_declaration { $$ = add_to_list($1, $2);  }
           ;
 
-class_declaration: class_header inheritance_opt creators_opt class_feature_opt END
+class_declaration: class_header inheritance_opt creators_opt class_feature_opt END { $$ = mk_class_decl($1, $2, $3, $4); }
                  ;
 
 /* Заголовок класса */
-class_header: CLASS IDENT_LIT formal_generics_opt
+class_header: CLASS IDENT_LIT formal_generics_opt { $$ = mk_class_header($2, $3); }
             ;
 
-formal_generics_opt: /* empty */
-                   | '[' formal_generics ']'
+formal_generics_opt: /* empty */ { $$ = mk_list(); }
+                   | '[' formal_generics ']' { $$ = $2; }
                    ;
 
-formal_generics: generic
-               | formal_generics ',' generic
+formal_generics: generic { $$ = mk_list(); $$ = add_to_list($$, $1); }
+               | formal_generics ',' generic { $$ = add_to_list($1, $3); }
                ;
 
-generic: type
-       | type RARROW type
+generic: type { $$ = $1; }
+       | type RARROW type { $$ = mk_constrained_generic($1, $3); }
        ;
 
 /* Секция конструкторов */
-creators_opt: /* empty */
+creators_opt: /* empty */ { $$ = mk_list(); }
             | creators
             ;
 
@@ -141,7 +154,7 @@ creators: CREATE ident_list
 
 /* ********************************************************************/
 /* Секция наследования */
-inheritance_opt: /* empty */
+inheritance_opt: /* empty */ { $$ = mk_list(); }
                | INHERIT inheritance
                ;
 
@@ -197,7 +210,7 @@ select_clause: SELECT ident_list
 
 /* ********************************************************************/
 /* Описание feature класса */
-class_feature_opt: /* empty */
+class_feature_opt: /* empty */ { $$ = mk_list(); }
                  | class_feature
                  ;
 
@@ -273,7 +286,7 @@ feature_list: feature
 feature: name_and_type
        | name_and_type '=' constant
        | ident_list routine_body
-       | name_and_type routine_body 
+       | name_and_type routine_body
        | ident_list '(' args_list_opt ')' routine_body
        | ident_list '(' args_list_opt ')' type_spec routine_body
        ;
@@ -298,7 +311,8 @@ args_list: name_and_type
          ;
 
 /* Тело метода */
-routine_body: local_part_opt require_part_opt do_part_opt then_part_opt ensure_part_opt END
+routine_body: local_part_opt require_part_opt do_part then_part_opt ensure_part_opt END
+            | local_part_opt require_part_opt then_part ensure_part_opt END
             ;
 
 /* Секция объявления локальных переменных */
@@ -337,10 +351,6 @@ condition: expr %prec LOWER_THAN_EXPR
          ;
 
 /* Секция инструкций метода */
-do_part_opt: /* empty */
-           | do_part
-           ;
-
 do_part: DO stmt_list_opt
        ;
 

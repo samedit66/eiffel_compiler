@@ -388,7 +388,7 @@ Json*
 mk_generic_user_type(char *type_name, Json *type_list);
 
 /**
- * Создает узел обобщенного типа "ARRAY".
+ * Создает узел обобщенного типа "ARRAY"
  * 
  * @param type_list Список типов
  * @return Узел типа "ARRAY"
@@ -397,10 +397,27 @@ Json*
 mk_generic_array_type(Json *type_list);
 
 /**
- * Создает узел обобщенного типа "TUPLE".
- * 
+ * Создает узел обобщенного типа "TUPLE"
+ *
  * @param type_list Список типов
  * @return Узел типа "TUPLE"
  */
 Json*
 mk_generic_tuple_type(Json *type_list);
+
+/**
+ * Создает узел объявления класса
+ * 
+ * @param header Заголовок класса
+ * @param inheritance Секция наследования
+ * @param creators Секция конструкторов
+ * @param features Секция методов и полей класса
+ */
+Json*
+mk_class_decl(Json *header, Json *inheritance, Json *creators, Json *features);
+
+Json*
+mk_class_header(char *class_name, Json *generics_list);
+
+Json*
+mk_constrained_generic(Json *generic_type, Json *parent);

@@ -328,3 +328,35 @@ Json*
 mk_generic_tuple_type(Json *type_list) {
     return mk_generic_user_type("TUPLE", type_list);
 }
+
+Json*
+mk_class_decl(Json *header, Json *inheritance, Json *creators, Json *features) {
+    Json *class_decl = Json_new();
+
+    Json_add_object_to_object(class_decl, "header", header);
+    Json_add_object_to_object(class_decl, "inheritance", inheritance);
+    Json_add_array_to_object(class_decl, "creators", creators);
+    Json_add_array_to_object(class_decl, "features", features);
+
+    return class_decl;
+}
+
+Json*
+mk_class_header(char *class_name, Json *generics_list) {
+    Json *class_header = Json_new();
+
+    Json_add_string_to_object(class_header, "name", class_name);
+    Json_add_array_to_object(class_header, "generics", generics_list);
+
+    return class_header;
+}
+
+Json*
+mk_constrained_generic(Json *generic_type, Json *parent) {
+    Json *constrained_generic = Json_new();
+
+    Json_add_object_to_object(constrained_generic, "generic_type", generic_type);
+    Json_add_object_to_object(constrained_generic, "parent", parent);
+
+    return constrained_generic;
+}
