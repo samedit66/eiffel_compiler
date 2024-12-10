@@ -438,3 +438,6 @@ mk_inherit_clause(Json *parent_header, Json *rename_clause, Json *undefine_claus
 
 Json*
 mk_alias(char *original_name, char *alias_name);
+
+Json*
+mk_feature_clause(Json *clients, Json *feature_list);

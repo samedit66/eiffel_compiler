@@ -57,7 +57,7 @@
 %type <tree> if_stmt elseif_clauses_opt elseif_clauses else_clause_opt
 
 %type <tree> feature_list feature
-%type <tree> class_declaration class_header inheritance_opt creators_opt class_feature_opt
+%type <tree> class_declaration class_header inheritance_opt creators_opt features_clause_opt
 %type <tree> formal_generics_opt formal_generics generic
 %type <tree> creators
 %type <tree> inheritance inheritance_clause parent rename_clause undefine_clause_opt redefine_clause_opt select_clause_opt
@@ -65,7 +65,7 @@
 %type <tree> undefine_clause
 %type <tree> redefine_clause
 %type <tree> select_clause
-%type <tree> class_feature clients_opt clients
+%type <tree> features_clause clients_opt clients
 
 %type <tree> ident_list
 
@@ -126,7 +126,7 @@ class_list: class_declaration { $$ = mk_list(); $$ = add_to_list($$, $1); }
           | class_list class_declaration { $$ = add_to_list($1, $2);  }
           ;
 
-class_declaration: class_header inheritance_opt creators_opt class_feature_opt END { $$ = mk_class_decl($1, $2, $3, $4); }
+class_declaration: class_header inheritance_opt creators_opt features_clause_opt END { $$ = mk_class_decl($1, $2, $3, $4); }
                  ;
 
 /* Заголовок класса */
@@ -212,19 +212,19 @@ select_clause: SELECT ident_list { $$ = $2; }
 
 /* ********************************************************************/
 /* Описание feature класса */
-class_feature_opt: /* empty */ { $$ = mk_list(); }
-                 | class_feature
-                 ;
+features_clause_opt: /* empty */ { $$ = mk_list(); }
+                   | features_clause { $$ = $1; }
+                   ;
 
-class_feature: FEATURE clients_opt feature_list
-             | class_feature FEATURE clients_opt feature_list
-             ;
+features_clause: FEATURE clients_opt feature_list { $$ = add_to_list(mk_list(), mk_feature_clause($2, $3)); }
+               | features_clause FEATURE clients_opt feature_list { $$ = add_to_list($1, mk_feature_clause($3, $4)); }
+               ;
 
-clients_opt: /* empty */
-           | clients
+clients_opt: /* empty */ { $$ = mk_list(); }
+           | clients { $$ = $1; }
            ;
 
-clients: '{' ident_list '}'
+clients: '{' ident_list '}' { $$ = $2; }
        ;
 
 
@@ -253,7 +253,7 @@ type_list: type { $$ = mk_list(); $$ = add_to_list($$, $1); }
 
 /* ********************************************************************/
 /* Описания для полей и методов класса */
-feature_list: feature
+feature_list: feature_list
             | feature_list feature
             ;
 

@@ -390,3 +390,13 @@ mk_alias(char *original_name, char *alias_name) {
 
     return alias;
 }
+
+Json*
+mk_feature_clause(Json *clients, Json *feature_list) {
+    Json *feature_clause = Json_new();
+
+    Json_add_array_to_object(feature_clause, "clients", clients);
+    Json_add_array_to_object(feature_clause, "feature_list", feature_list);
+
+    return feature_clause;
+}
