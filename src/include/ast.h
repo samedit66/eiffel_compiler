@@ -432,3 +432,9 @@ mk_class_header(char *class_name, Json *generics_list);
 
 Json*
 mk_constrained_generic(Json *generic_type, Json *parent);
+
+Json*
+mk_inherit_clause(Json *parent_header, Json *rename_clause, Json *undefine_clause, Json *redefine_clause, Json *select_clause);
+
+Json*
+mk_alias(char *original_name, char *alias_name);

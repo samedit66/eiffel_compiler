@@ -366,3 +366,27 @@ mk_constrained_generic(Json *generic_type, Json *parent) {
 
     return constrained_generic;
 }
+
+Json*
+mk_inherit_clause(Json *parent, Json *rename_clause, Json *undefine_clause, Json *redefine_clause, Json *select_clause) {
+    Json *inherit_clause = Json_new();
+
+    Json_add_object_to_object(inherit_clause, "parent", parent);
+
+    Json_add_array_to_object(inherit_clause, "rename_clause", rename_clause);
+    Json_add_array_to_object(inherit_clause, "undefine_clause", undefine_clause);
+    Json_add_array_to_object(inherit_clause, "redefine_clause", redefine_clause);
+    Json_add_array_to_object(inherit_clause, "select_clause", select_clause);
+
+    return inherit_clause;
+}
+
+Json*
+mk_alias(char *original_name, char *alias_name) {
+    Json *alias = Json_new();
+
+    Json_add_string_to_object(alias, "original_name", original_name);
+    Json_add_string_to_object(alias, "alias_name", alias_name);
+
+    return alias;
+}

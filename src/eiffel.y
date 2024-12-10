@@ -157,56 +157,56 @@ creators: CREATE ident_list { $$ = $2; }
 /* ********************************************************************/
 /* Секция наследования */
 inheritance_opt: /* empty */ { $$ = mk_list(); }
-               | INHERIT inheritance
+               | INHERIT inheritance { $$ = $2; }
                ;
 
-inheritance: inheritance_clause
-           | inheritance inheritance_clause
+inheritance: inheritance_clause { $$ = mk_list(); $$ = add_to_list($$, $1); }
+           | inheritance inheritance_clause { $$ = add_to_list($1, $2); }
            ;
 
-inheritance_clause: parent
-                  | parent rename_clause undefine_clause_opt redefine_clause_opt select_clause_opt END
-                  | parent undefine_clause redefine_clause_opt select_clause_opt END
-                  | parent redefine_clause select_clause_opt END
-                  | parent select_clause END
+inheritance_clause: parent { $$ = mk_inherit_clause($1, mk_list(), mk_list(), mk_list(), mk_list()); }
+                  | parent rename_clause undefine_clause_opt redefine_clause_opt select_clause_opt END { $$ = mk_inherit_clause($1, $2, $3, $4, $5); }
+                  | parent undefine_clause redefine_clause_opt select_clause_opt END { $$ = mk_inherit_clause($1, mk_list(), $2, $3, $4); }
+                  | parent redefine_clause select_clause_opt END { $$ = mk_inherit_clause($1, mk_list(), mk_list(), $2, $3); }
+                  | parent select_clause END { $$ = mk_inherit_clause($1, mk_list(), mk_list(), mk_list(), $2); }
                   ;
 
-parent: IDENT_LIT formal_generics_opt
+parent: IDENT_LIT formal_generics_opt { $$ = mk_class_header($1, $2); }
       ;
 
 /* Секция переименования */
-rename_clause: RENAME rename_list
+rename_clause: RENAME rename_list { $$ = $2; }
              ;
 
-rename_list: IDENT_LIT AS IDENT_LIT
-           | rename_list IDENT_LIT AS IDENT_LIT
+rename_list: IDENT_LIT AS IDENT_LIT { $$ = mk_list(); $$ = add_to_list($$, mk_alias($1, $3)); }
+           | rename_list IDENT_LIT AS IDENT_LIT { $$ = add_to_list($1, mk_alias($2, $4)); }
            ;
 
 
 /* Секция undefine */
-undefine_clause_opt: /* empty */
-                   | undefine_clause
+undefine_clause_opt: /* empty */ { $$ = mk_list(); }
+                   | undefine_clause { $$ = $1; }
                    ;
 
-undefine_clause: UNDEFINE ident_list
+undefine_clause: UNDEFINE ident_list { $$ = $2; }
                ;
 
 
 /* Секция переопределения */
-redefine_clause_opt: /* empty */
-                   | redefine_clause
+redefine_clause_opt: /* empty */ { $$ = mk_list(); }
+                   | redefine_clause { $$ = $1; }
                    ;
 
-redefine_clause: REDEFINE ident_list
+redefine_clause: REDEFINE ident_list { $$ = $2;  }
                ;
 
 
 /* Секция select */
-select_clause_opt: /* empty */
-                 | select_clause
+select_clause_opt: /* empty */ { $$ = mk_list(); }
+                 | select_clause { $$ = $1; }
                  ;
 
-select_clause: SELECT ident_list
+select_clause: SELECT ident_list { $$ = $2; }
              ;
 
 
@@ -612,7 +612,7 @@ main(int argc, char **argv) {
     parse_files(argc, argv);
 
     show_parsing_result(errors_count);
-    
+
     if (errors_count == 0) {
         write_output_tree(NULL);
         return EXIT_SUCCESS;
