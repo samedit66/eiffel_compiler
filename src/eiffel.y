@@ -556,6 +556,7 @@ write_output_tree(char *file_name) {
 
     fprintf(output_file, json);
     fclose(output_file);
+    free(json);
 
     return 1;
 }
