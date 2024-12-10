@@ -118,6 +118,12 @@ add_to_list(Json *list, Json *element) {
 }
 
 Json*
+add_ident_to_list(Json *list, char *ident) {
+    Json_add_string_to_array(list, ident);
+    return list;
+}
+
+Json*
 mk_simple_call_no_args(char *feature_name) {
     return mk_simple_call(feature_name, mk_list());
 }
@@ -334,7 +340,7 @@ mk_class_decl(Json *header, Json *inheritance, Json *creators, Json *features) {
     Json *class_decl = Json_new();
 
     Json_add_object_to_object(class_decl, "header", header);
-    Json_add_object_to_object(class_decl, "inheritance", inheritance);
+    Json_add_array_to_object(class_decl, "inheritance", inheritance);
     Json_add_array_to_object(class_decl, "creators", creators);
     Json_add_array_to_object(class_decl, "features", features);
 

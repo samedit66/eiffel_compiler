@@ -130,7 +130,7 @@ Json*
 mk_list();
 
 /**
- * Добавляет элемент в список.
+ * Добавляет элемент в список
  * 
  * @param list Список JSON
  * @param element Добавляемый элемент
@@ -138,6 +138,17 @@ mk_list();
  */
 Json*
 add_to_list(Json *list, Json *element);
+
+/**
+ * Добавляет идентификатор (строку) в список.
+ * Используется для создания ident_list узла
+ * 
+ * @param list Список JSON
+ * @param element Добавляемая строка
+ * @return Список JSON с добавленной строкой
+ */
+Json*
+add_ident_to_list(Json *list, char *ident);
 
 /**
  * Создает узел простого вызова без аргументов

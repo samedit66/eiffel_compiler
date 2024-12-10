@@ -67,6 +67,8 @@
 %type <tree> select_clause
 %type <tree> class_feature clients_opt clients
 
+%type <tree> ident_list
+
 %type <tree> type generic_type type_list
 
 %type <tree> class_list
@@ -145,10 +147,10 @@ generic: type { $$ = $1; }
 
 /* Секция конструкторов */
 creators_opt: /* empty */ { $$ = mk_list(); }
-            | creators
+            | creators { $$ = $1; }
             ;
 
-creators: CREATE ident_list
+creators: CREATE ident_list { $$ = $2; }
         ;
 
 
@@ -295,8 +297,8 @@ feature: name_and_type
 name_and_type: ident_list type_spec
              ;
 
-ident_list: IDENT_LIT
-          | ident_list ',' IDENT_LIT
+ident_list: IDENT_LIT { $$ = mk_list(); $$ = add_ident_to_list($$, $1); }
+          | ident_list ',' IDENT_LIT { $$ = add_ident_to_list($1, $3); }
 
 type_spec: ':' type
          ;
