@@ -593,7 +593,10 @@ main(int argc, char **argv) {
         yydebug = 1;
     #endif
 
-    parse_files(argc - 1, argv + 1);
+    // Пропускаем имя программы в качестве первого аргумента
+    argc--, argv++;
+
+    parse_files(argc, argv);
 
     show_parsing_result(errors_count);
     
