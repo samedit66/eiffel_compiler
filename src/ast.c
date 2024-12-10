@@ -196,9 +196,9 @@ mk_if_stmt(Json *cond, Json *then_stmt_list, Json *alt_stmts, Json *else_stmt_li
     Json *node = Json_new();
     add_type_to_node(node, "if_stmt");
     Json_add_object_to_object(node, "cond", cond);
-    Json_add_object_to_object(node, "then_clause", then_stmt_list);
+    Json_add_array_to_object(node, "then_clause", then_stmt_list);
     Json_add_array_to_object(node, "elseif_clauses", alt_stmts);
-    Json_add_object_to_object(node, "else_clause", else_stmt_list);
+    Json_add_array_to_object(node, "else_clause", else_stmt_list);
     return node;
 }
 
@@ -207,7 +207,7 @@ add_elseif_stmt(Json *alts, Json *cond, Json *stmt_list) {
     Json *alt = Json_new();
     add_type_to_node(alt, "elseif_clause");
     Json_add_object_to_object(alt, "cond", cond);
-    Json_add_object_to_object(alt, "body", stmt_list);
+    Json_add_array_to_object(alt, "body", stmt_list);
     Json_add_object_to_array(alts, alt);
     return alts;
 }
@@ -227,7 +227,7 @@ mk_loop_stmt(Json *init_stmt_list, Json *cond, Json *body_stmt_list) {
     add_type_to_node(node, "loop_stmt");
     Json_add_object_to_object(node, "init", init_stmt_list);
     Json_add_object_to_object(node, "cond", cond);
-    Json_add_object_to_object(node, "body", body_stmt_list);
+    Json_add_array_to_object(node, "body", body_stmt_list);
     return node;
 }
 
@@ -237,7 +237,7 @@ mk_inspect_stmt(Json *expr, Json *when_clauses, Json *else_stmt_list) {
     add_type_to_node(node, "inspect_stmt");
     Json_add_object_to_object(node, "expr", expr);
     Json_add_array_to_object(node, "when_clauses", when_clauses);
-    Json_add_object_to_object(node, "else_clause", else_stmt_list);
+    Json_add_array_to_object(node, "else_clause", else_stmt_list);
     return node;
 }
 
