@@ -119,17 +119,6 @@
     }
 
     Json*
-    mk_args_list() {
-        return Json_new();
-    }
-
-    Json*
-    add_arg_to_list(Json *args_list, Json *arg) {
-        Json_add_object_to_array(args_list, arg);
-        return args_list;
-    }
-
-    Json*
     mk_simple_call(char *feature_name, Json *args_list) {
         Json *simple_call = Json_new();
         Json_add_string_to_object(simple_call, "name", feature_name);
@@ -138,8 +127,19 @@
     }
 
     Json*
+    mk_list() {
+        return Json_new();
+    }
+
+    Json*
+    add_to_list(Json *list, Json *element) {
+        Json_add_object_to_array(list, element);
+        return list;
+    }
+
+    Json*
     mk_simple_call_no_args(char *feature_name) {
-        return mk_simple_call(feature_name, mk_args_list());
+        return mk_simple_call(feature_name, mk_list());
     }
 
     Json*
@@ -152,7 +152,7 @@
 
     Json*
     mk_precursor_no_args_call() {
-        return mk_precursor_args_call(mk_args_list());
+        return mk_precursor_args_call(mk_list());
     }
 
     Json*
@@ -196,11 +196,6 @@
     }
 
     Json*
-    mk_elseif_expr_list() {
-        return Json_new();
-    }
-
-    Json*
     add_elseif_expr(Json *alts, Json *cond, Json *expr) {
         Json *alt = Json_new();
         add_type_to_node(alt, "elseif_expr");
@@ -214,13 +209,8 @@
     mk_program(Json *program) {
         Json *node = Json_new();
         add_type_to_node(node, "root");
-        Json_add_object_to_object(node, "program", program);
+        Json_add_array_to_object(node, "program", program);
         return node;
-    }
-
-    Json*
-    mk_compound_stmt() {
-        return Json_new();
     }
 
     Json*
@@ -251,11 +241,6 @@
         Json_add_array_to_object(node, "elseif_clauses", alt_stmts);
         Json_add_object_to_object(node, "else_clause", else_stmt_list);
         return node;
-    }
-
-    Json*
-    mk_elseif_stmt_list() {
-        return Json_new();
     }
 
     Json*
@@ -298,28 +283,12 @@
     }
     
     Json*
-    mk_when_clauses() {
-        return Json_new();
-    }
-    
-    Json*
     add_alt_when_clause(Json *when_clauses, Json *choices, Json *body) {
         Json *when_stmt = Json_new();
         Json_add_array_to_object(when_stmt, "choices", choices);
         Json_add_object_to_object(when_stmt, "body", body);
         Json_add_object_to_array(when_clauses, when_stmt);
         return when_clauses;
-    }
-    
-    Json*
-    mk_choice_list() {
-        return Json_new();
-    }
-    
-    Json*
-    add_choice(Json *list, Json *choice) {
-        Json_add_object_to_array(list, choice);
-        return list;
     }
     
     Json*
@@ -494,7 +463,7 @@
 
 /* ********************************************************************/
 /* Описание программы */
-program: type { $$ = mk_program($1); output_tree = $$; }
+program: stmt_list { $$ = mk_program($1); output_tree = $$; }
        ;
 
 /* ********************************************************************/
@@ -612,7 +581,7 @@ type: IDENT_LIT { $$ = mk_type($1); }
     | REAL { $$ = mk_real_type(); }
     | STRING_KW { $$ = mk_string_type(); }
     | CHARACTER { $$ = mk_character_type(); }
-    | BOOLEAN { $$ = mk_boolean_type(); puts("fuck"); }
+    | BOOLEAN { $$ = mk_boolean_type(); }
     | LIKE CURRENT { $$ = mk_like_current_type(); }
     | LIKE IDENT_LIT { $$ = mk_like_other_field_type($2); }
     | generic_type { $$ = $1; }
@@ -623,8 +592,8 @@ generic_type: IDENT_LIT '[' type_list ']' { $$ = mk_generic_user_type($1, $3); }
             | TUPLE '[' type_list ']' { $$ = mk_generic_tuple_type($3); }
             ;
 
-type_list: type { $$ = mk_type_list(); $$ = add_type_to_type_list($$, $1); }
-         | type_list ';' type { $$ = add_type_to_type_list($1, $3);  }
+type_list: type { $$ = mk_list(); $$ = add_to_list($$, $1); }
+         | type_list ';' type { $$ = add_to_list($1, $3);  }
          ;
 
 
@@ -755,12 +724,12 @@ ensure_part: ENSURE condition_list
 
 /* ********************************************************************/
 /* Описание инструкций */
-stmt_list_opt: /* empty */ { $$ = mk_stmt_list(mk_compound_stmt()); }
-             | stmt_list   { $$ = mk_stmt_list($1); }
+stmt_list_opt: /* empty */ { $$ = mk_list(); }
+             | stmt_list   { $$ = $1; }
              ;
 
-stmt_list: stmt           { $$ = mk_compound_stmt(); $$ = add_stmt_to_compound($$, $1); }
-         | stmt_list stmt { $$ = add_stmt_to_compound($1, $2); }
+stmt_list: stmt           { $$ = mk_list(); $$ = add_to_list($$, $1); }
+         | stmt_list stmt { $$ = add_to_list($1, $2); }
          ;
 
 stmt: assign_stmt  { $$ = $1; }
@@ -794,20 +763,20 @@ loop_stmt: FROM stmt_list_opt UNTIL expr LOOP stmt_list_opt END { $$ = mk_loop_s
 inspect_stmt: INSPECT expr when_clauses_opt else_clause_opt END { $$ = mk_inspect_stmt($2, $3, $4); }
             ;
 
-when_clauses_opt: /* empty */  { $$ = mk_when_clauses(); }
+when_clauses_opt: /* empty */  { $$ = mk_list(); }
                 | when_clauses { $$ = $1; }
                 ;
 
-when_clauses: WHEN choices_opt THEN stmt_list_opt { $$ = mk_when_clauses(); $$ = add_alt_when_clause($$, $2, $4); }
+when_clauses: WHEN choices_opt THEN stmt_list_opt { $$ = mk_list(); $$ = add_alt_when_clause($$, $2, $4); }
             | when_clauses WHEN choices_opt THEN stmt_list_opt { $$ = add_alt_when_clause($1, $3, $5); }
             ;
 
-choices_opt: /* empty */ { $$ = mk_choice_list(); }
+choices_opt: /* empty */ { $$ = mk_list(); }
            | choices { $$ = $1; }
            ;
 
-choices: choice { $$ = mk_choice_list(); $$ = add_choice($$, $1); }
-       | choices ',' choice { $$ = add_choice($1, $3);  }
+choices: choice { $$ = mk_list(); $$ = add_to_list($$, $1); }
+       | choices ',' choice { $$ = add_to_list($1, $3);  }
        ;
 
 choice: expr { $$ = $1; }
@@ -820,14 +789,14 @@ choice: expr { $$ = $1; }
 if_stmt: IF expr THEN stmt_list_opt elseif_clauses_opt else_clause_opt END { $$ = mk_if_stmt($2, $4, $5, $6); }
        ;
 
-elseif_clauses_opt: /* empty */    { $$ = mk_elseif_stmt_list(); }
+elseif_clauses_opt: /* empty */    { $$ = mk_list(); }
                   | elseif_clauses { $$ = $1; }
                   ;
 
-elseif_clauses: ELSEIF expr THEN stmt_list_opt { $$ = mk_elseif_stmt_list(); $$ = add_elseif_stmt($$, $2, $4); }
+elseif_clauses: ELSEIF expr THEN stmt_list_opt { $$ = mk_list(); $$ = add_elseif_stmt($$, $2, $4); }
               | elseif_clauses ELSEIF expr THEN stmt_list_opt { $$ = add_elseif_stmt($1, $3, $5); }
 
-else_clause_opt: /* empty */        { $$ = mk_stmt_list(NULL); }
+else_clause_opt: /* empty */        { $$ = mk_list(); }
                | ELSE stmt_list_opt { $$ = $2; }
                ;
 
@@ -862,12 +831,12 @@ simple_call: IDENT_LIT %prec LOWER_THAN_PARENS { $$ = mk_simple_call_no_args($1)
            | IDENT_LIT '(' params_list ')' { $$ = mk_simple_call($1, $3); }
            ;
 
-params_list: /* empty */ { $$ = mk_args_list(); }
+params_list: /* empty */ { $$ = mk_list(); }
            | comma_separated_exprs { $$ = $1; }
            ;
 
-comma_separated_exprs: expr { $$ = mk_args_list(); $$ = add_arg_to_list($$, $1); }
-                     | comma_separated_exprs ',' expr { $$ = add_arg_to_list($1, $3); }
+comma_separated_exprs: expr { $$ = mk_list(); $$ = add_to_list($$, $1); }
+                     | comma_separated_exprs ',' expr { $$ = add_to_list($1, $3); }
                      ;
 
 
@@ -875,10 +844,10 @@ comma_separated_exprs: expr { $$ = mk_args_list(); $$ = add_arg_to_list($$, $1);
 /* Тернарный оператор */
 if_expr: IF expr THEN expr elseif_expr_opt ELSE expr END { $$ = mk_if_expr($2, $4, $5, $7); }
 
-elseif_expr_opt: /* empty */ { $$ = mk_elseif_expr_list();  }
+elseif_expr_opt: /* empty */ { $$ = mk_list();  }
                | elseif_expr { $$ = $1; }
 
-elseif_expr: ELSEIF expr THEN expr { $$ = mk_elseif_expr_list(); $$ = add_elseif_expr($$, $2, $4); }
+elseif_expr: ELSEIF expr THEN expr { $$ = mk_list(); $$ = add_elseif_expr($$, $2, $4); }
            | elseif_expr ELSEIF expr THEN expr { $$ = add_elseif_expr($1, $3, $5); }
 
 
