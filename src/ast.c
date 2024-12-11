@@ -497,3 +497,13 @@ mk_tagged_cond(char *tag, Json *cond) {
 
     return tagged_cond;
 }
+
+Json*
+mk_manifest_array(Json *manifest_array_content) {
+    Json *manifest_array = Json_new();
+
+    add_type_to_node(manifest_array, "manifest_array");
+    Json_add_array_to_object(manifest_array, "content", manifest_array_content);
+
+    return manifest_array;
+}

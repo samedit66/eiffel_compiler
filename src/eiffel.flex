@@ -140,8 +140,8 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 ";" 					{ LOG_LEXEM("operator", ";"); return ';'; }
 
 "->"                    { LOG_LEXEM("symbol", "->"); return RARROW; }
-"<<"                    { LOG_LEXEM("symbol", "<<"); }
-">>"                    { LOG_LEXEM("symbol", ">>"); }
+"<<"                    { LOG_LEXEM("symbol", "<<"); return OPEN_MANIFEST_ARRAY; }
+">>"                    { LOG_LEXEM("symbol", ">>"); return CLOSE_MANIFEST_ARRAY; }
 "(" 					{ LOG_LEXEM("symbol", "("); return '('; }
 ")" 					{ LOG_LEXEM("symbol", ")"); return ')'; }
 "{" 					{ LOG_LEXEM("symbol", "{"); return '{'; }

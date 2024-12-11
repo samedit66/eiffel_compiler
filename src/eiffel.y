@@ -42,6 +42,7 @@
 %token <string_value> STRING_CONST
 
 %type <tree> constant expr
+%type <tree> manifest_array manifest_array_content manifest_array_content_opt
 
 %type <tree> assign_stmt writable
 
@@ -103,6 +104,7 @@
 %token RARROW
 %token AS INHERIT REDEFINE RENAME UNDEFINE SELECT
 %token TRUE_KW FALSE_KW VOID
+%token OPEN_MANIFEST_ARRAY CLOSE_MANIFEST_ARRAY
 
 %nonassoc FIELD
 %nonassoc ROUTINE
@@ -532,6 +534,23 @@ constant: INT_CONST     { $$ = mk_int_const($1); }
         | VOID          { $$ = mk_void_const(); }
         ;
 
+
+manifest_array: OPEN_MANIFEST_ARRAY manifest_array_content_opt last_comma_opt CLOSE_MANIFEST_ARRAY { $$ = $2; }
+              ;
+
+last_comma_opt: /* empty */
+              | ','
+              ;
+
+manifest_array_content_opt: /* empty */ { $$ = mk_list(); }
+                          | manifest_array_content { $$ = $1; }
+                          ;
+
+manifest_array_content: expr { $$ = add_to_list(mk_list(), $1); }
+                      | manifest_array_content ',' expr { $$ = add_to_list($1, $3); }
+                      ;
+
+
 expr: constant { $$ = $1; }
     | expr '+' expr { $$ = mk_bin_op("add_op", $1, $3); }
     | expr '-' expr { $$ = mk_bin_op("sub_op", $1, $3); }       
@@ -558,7 +577,8 @@ expr: constant { $$ = $1; }
     | expr IMPLIES expr { $$ = mk_bin_op("implies_op", $1, $3); }
     | call { $$ = $1; }
     | bracket_access { $$ = $1; }
-    | if_expr { $$ = $1; } 
+    | if_expr { $$ = $1; }
+    | manifest_array { $$ = mk_manifest_array($1); }
     ;
 %%
 

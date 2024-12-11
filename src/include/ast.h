@@ -574,3 +574,12 @@ mk_routine_body(Json *local, Json *require, Json *do_clause, Json *then, Json *e
  */
 Json*
 mk_tagged_cond(char *tag, Json *cond);
+
+/**
+ * Создает узел manifest-массива
+ * 
+ * @param manifest_array_content Содержимое manifest-массива
+ * @return Узел manifest-массива
+ */
+Json*
+mk_manifest_array(Json *manifest_array_content);
