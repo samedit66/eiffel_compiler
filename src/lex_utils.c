@@ -57,6 +57,11 @@ is_delim(int ch) {
 }
 
 bool
+is_end(int ch) {
+    return ch == EOF || ch == '\0';
+}
+
+bool
 is_oct_digit(int ch) {
     return '0' <= ch && ch <= '7';
 }
@@ -64,6 +69,27 @@ is_oct_digit(int ch) {
 bool
 is_bin_digit(int ch) {
     return ch == '0' || ch == '1';
+}
+
+bool
+is_possible_part_of_integer(int ch, int base) {
+    switch (base) {
+        case 10:
+            return '0' <= ch && ch <= '9';
+        case 2:
+            return is_bin_digit(ch);
+        case 8:
+            return is_oct_digit(ch);
+        case 16:
+            return isxdigit(ch);
+    }
+
+    return ch == '_';
+}
+
+bool
+is_possible_part_of_real(int ch) {
+    return ch == 'e' || ch == '.' || (ch != '_' && is_possible_part_of_integer(ch, 10));
 }
 
 char*

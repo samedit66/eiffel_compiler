@@ -46,6 +46,16 @@
         fprintf(stderr, "Line %d: " RED_TEXT ": %s", lineno, "error", msg)
 
     #define ERROR(msg) ERROR_AT_LINENO(yylineno, msg)
+
+    #define SKIP_UNTIL_DELIMETER(current_ch) {\
+        StringBuffer_clear(buf);\
+        StringBuffer_append(buf, yytext);\
+        char ch = (current_ch);\
+        do {\
+            StringBuffer_append_char(buf, ch);\
+            ch = input();\
+        } while (!is_end(ch) && !is_delim(ch));\
+    }
 %}
 
 %option noyywrap
@@ -84,9 +94,25 @@ REAL_NUMBER_EXPONENT       ({REAL_NUMBER}|{REAL_NUMBER_PART})[eE][\-+]?{REAL_NUM
 %%
 
 %{
+    // Используется для хранения номера строки найденной лексемы (см. INT_10, INT_8 и все остальные числа)
+    int line;
+
+    // Хранит следующий символ (см. те же правила)
+    char next;
+
+    // Хранит считанное целое число
     int int_value;
-    double real_number;
+
+    // Основание системы счисления для целого числа
+    int base;
+
+    // Хранит считанное дробное число
+    double real_value;
+
+    // Буффер для хранение комплексных лексем
     StringBuffer *buf = StringBuffer_empty();
+
+    // Буффер для хранения aligned verbatim строки
     StringList *verbatim_str = StringList_new();
 %}
 
@@ -279,7 +305,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
     // TODO: Когда-нибудь переписать через StringList_join
     // UPDATE: StringList_join использовать не получится, т.к.
     // тогда нужно контроллировать утечки памяти и где-то освобождать указатель
-    // на строку, которую создает  StringList_join
+    // на строку, которую создает StringList_join
     for (int i = 0; i < StringList_size(verbatim_str); i++) {
         StringBuffer_append(buf, StringList_get(verbatim_str, i));
     }
@@ -320,161 +346,94 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 }
 
 {INT_10} {
-    int line_start = yylineno;
-
-    char nc = input();
-    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || nc == '_') && !is_delim(nc)) {
-        StringBuffer_clear(buf);
-        StringBuffer_append(buf, yytext);
-        do {
-            StringBuffer_append_char(buf, nc);
-            nc = input();
-        } while (nc != EOF && nc != '\0' && !is_delim(nc));
-
-        unput(nc);
-        ERROR_F(line_start, "invalid decimal integer literal: \"%s\"", buf->buffer);
-    }
-    else {
-        unput(nc);
-        parse_int(yytext, &int_value, 10);
-        LOG_LEXEM("decimal integer literal", yytext);
-        
-        yylval.int_value = int_value;
-        return INT_CONST;
-    }
+    base = 10;
+    goto process_integer;
 }
 
 {INT_16} {
-    int line_start = yylineno;
-
-    char nc = input();
-    if (nc != EOF && nc != '\0' && ((isalpha(nc) && !isxdigit(nc)) || nc == '"' || nc == '\'' || nc == '_') && !is_delim(nc)) {
-        StringBuffer_clear(buf);
-        StringBuffer_append(buf, yytext);
-        do {
-            StringBuffer_append_char(buf, nc);
-            nc = input();
-        } while (nc != EOF && nc != '\0' && !is_delim(nc));
-
-        ERROR_F(line_start, "invalid hexadecimal integer literal: \"%s\"", buf->buffer);
-    }
-    else {
-        unput(nc);
-        parse_int(yytext, &int_value, 16);
-        LOG_LEXEM("hexadecimal integer literal", yytext);
-        
-        yylval.int_value = int_value;
-        return INT_CONST;
-    }
+    base = 16;
+    goto process_integer;
 }
 
 {INT_8} {
-    int line_start = yylineno;
-
-    char nc = input();
-    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || !is_oct_digit(nc) || nc == '_') && !is_delim(nc)) {
-        StringBuffer_clear(buf);
-        StringBuffer_append(buf, yytext);
-        do {
-            StringBuffer_append_char(buf, nc);
-            nc = input();
-        } while (nc != EOF && nc != '\0' && !is_delim(nc));
-
-        ERROR_F(line_start, "invalid octal integer literal: \"%s\"", buf->buffer);
-    }
-    else {
-        unput(nc);
-        parse_int(yytext, &int_value, 8);
-        LOG_LEXEM("octal integer literal", yytext);
-
-        yylval.int_value = int_value;
-        return INT_CONST;
-    }
+    base = 8;
+    goto process_integer;
 }
 
 {INT_2} {
-    int line_start = yylineno;
-
-    char nc = input();
-    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || !is_bin_digit(nc) || nc == '_') && !is_delim(nc)) {
-        StringBuffer_clear(buf);
-        StringBuffer_append(buf, yytext);
-        do {
-            StringBuffer_append_char(buf, nc);
-            nc = input();
-        } while (nc != EOF && nc != '\0' && !is_delim(nc));
-
-        ERROR_F(line_start, "invalid binary integer literal: \"%s\"", buf->buffer);
-    }
-    else {
-        unput(nc);
-        parse_int(yytext, &int_value, 2);
-        LOG_LEXEM("binary integer literal", yytext);
-
-        yylval.int_value = int_value;
-        return INT_CONST;
-    }
+    base = 2;
+    goto process_integer;
 }
 
-{REAL_NUMBER} {
-    int line_start = yylineno;
+%{
+process_integer:
+    // Запоминаем строку, на которой было найдено число,
+    // т.к. при запросе следующего символа он может оказаться новой строкой,
+    // и увеличить yylineno
+    line = yylineno;
 
-    char nc = input();
-    if (yytext[strlen(yytext) - 1] == '.' && nc == '.') {
-        unput(nc);
+    next = input();
+
+    if (!is_end(next) && !is_possible_part_of_integer(next, base) && !is_delim(next)) {
+        StringBuffer_clear(buf);
+
+        SKIP_UNTIL_DELIMETER(next);
+
+        unput(next);
+        ERROR_F(line, "invalid integer with base %d literal: \"%s\"", base, buf->buffer);
+        break;
+    }
+
+    unput(next);
+    parse_int(yytext, &int_value, base);
+    LOG_F(line, "integer with base %d literal", base, yytext);
+    yylval.int_value = int_value;
+    return INT_CONST;
+%}
+
+{REAL_NUMBER} { goto process_real; }
+
+{REAL_NUMBER_EXPONENT} { goto process_real; }
+
+%{
+process_real:
+    // Запоминаем строку, на которой было найдено число,
+    // т.к. при запросе следующего символа он может оказаться новой строкой,
+    // и увеличить yylineno
+    line = yylineno;
+
+    next = input();
+
+    // Сначала пытаемся распознать символ задания диапазона "..":
+    // если последний символ считанного текста это точка, и следующий символ тоже точка,
+    // значит это диапазон
+    if (yytext[strlen(yytext) - 1] == '.' && next == '.') {
+        unput(next);
         REJECT;
     }
 
-    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'' || nc == '_') && !is_delim(nc)) {
+    if (!is_end(next) && !is_possible_part_of_real(next) && !is_delim(next)) {
         StringBuffer_clear(buf);
-        StringBuffer_append(buf, yytext);
-        do {
-            StringBuffer_append_char(buf, nc);
-            nc = input();
-        } while (nc != EOF && nc != '\0' && !is_delim(nc));
 
-        ERROR_F(line_start, "invalid real number literal: \"%s\"", buf->buffer);
+        SKIP_UNTIL_DELIMETER(next);
+
+        unput(next);
+        ERROR_F(line, "invalid real literal: \"%s\"", buf->buffer);
+        break;
     }
-    else {
-        unput(nc);
-        parse_real(yytext, &real_number);
-        LOG_LEXEM("real number literal", yytext);
 
-        yylval.real_value = real_number;
-        return REAL_CONST;
-    }
-}
-
-{REAL_NUMBER_EXPONENT} {
-    int line_start = yylineno;
-
-    char nc = input();
-    if (nc != EOF && nc != '\0' && (isalpha(nc) || nc == '"' || nc == '\'') && !is_delim(nc)) {
-        StringBuffer_clear(buf);
-        StringBuffer_append(buf, yytext);
-        do {
-            StringBuffer_append_char(buf, nc);
-            nc = input();
-        } while (nc != EOF && nc != '\0' && !is_delim(nc));
-
-        ERROR_F(line_start, "invalid real exponent number literal: \"%s\"", buf->buffer);
-    }
-    else {
-        unput(nc);
-        parse_real(yytext, &real_number);
-        LOG_LEXEM("real exponent number literal", yytext);
-
-        yylval.real_value = real_number;
-        return REAL_CONST;
-    }
-}
+    unput(next);
+    parse_real(yytext, &real_value);
+    LOG_LEXEM("real number literal", yytext);
+    yylval.real_value = real_value;
+    return REAL_CONST;
+%}
 
 {WHITESPACE} { }
 
 . {
-    if (yytext[0] != '\0') {
+    if (yytext[0] != '\0')
         LOG_F(yylineno, "unknown symbol, code: %x\n", yytext[0]);
-    }
 }
 
 
