@@ -57,6 +57,8 @@
 %type <tree> if_stmt elseif_clauses_opt elseif_clauses else_clause_opt
 
 %type <tree> feature_list feature
+%type <tree> name_and_type type_spec routine_body
+
 %type <tree> class_declaration class_header inheritance_opt creators_opt features_clause_opt
 %type <tree> formal_generics_opt formal_generics generic
 %type <tree> creators
@@ -253,8 +255,8 @@ type_list: type { $$ = mk_list(); $$ = add_to_list($$, $1); }
 
 /* ********************************************************************/
 /* Описания для полей и методов класса */
-feature_list: feature_list
-            | feature_list feature
+feature_list: feature { $$ = add_to_list(mk_list(), $1); }
+            | feature_list feature { $$ = add_to_list($1, $2); }
             ;
 
 /*
@@ -285,22 +287,22 @@ feature_list: feature_list
         ...
     end
 */
-feature: name_and_type
-       | name_and_type '=' constant
-       | ident_list routine_body
-       | name_and_type routine_body
+feature: name_and_type { $$ = mk_class_field($1); }
+       | name_and_type '=' constant { $$ = mk_class_constant($1, $3); }
+       | ident_list routine_body { $$ = mk_void_routine($1, $2); }
+       | name_and_type routine_body { $$ = mk_routine($1, mk_list(), $2); }
        | ident_list '(' args_list_opt ')' routine_body
        | ident_list '(' args_list_opt ')' type_spec routine_body
        ;
 
 /* Список имен с заданным типом */
-name_and_type: ident_list type_spec
+name_and_type: ident_list type_spec { $$ = mk_name_and_type($1, $2); }
              ;
 
 ident_list: IDENT_LIT { $$ = mk_list(); $$ = add_ident_to_list($$, $1); }
           | ident_list ',' IDENT_LIT { $$ = add_ident_to_list($1, $3); }
 
-type_spec: ':' type
+type_spec: ':' type { $$ = $2; }
          ;
 
 /* Список аргументов */

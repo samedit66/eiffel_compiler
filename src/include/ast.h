@@ -441,3 +441,18 @@ mk_alias(char *original_name, char *alias_name);
 
 Json*
 mk_feature_clause(Json *clients, Json *feature_list);
+
+Json*
+mk_class_field(Json *name_and_type);
+
+Json*
+mk_class_constant(Json *name_and_type, Json *constant);
+
+Json*
+mk_name_and_type(Json *names, Json *type_spec);
+
+Json*
+mk_void_routine(Json *names, Json *routine_body);
+
+Json*
+mk_routine(Json *name_and_type, Json *args_list, Json *routine_body);

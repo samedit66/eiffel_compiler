@@ -400,3 +400,52 @@ mk_feature_clause(Json *clients, Json *feature_list) {
 
     return feature_clause;
 }
+
+Json*
+mk_class_field(Json *name_and_type) {
+    Json *class_field = Json_new();
+
+    add_type_to_node(class_field, "class_field");
+    Json_add_object_to_object(class_field, "name_and_type", name_and_type);
+
+    return class_field;
+}
+
+Json*
+mk_class_constant(Json *name_and_type, Json *constant) {
+    Json *class_constant = Json_new();
+
+    add_type_to_node(class_constant, "class_constant");
+    Json_add_object_to_object(class_constant, "name_and_type", name_and_type);
+    Json_add_object_to_object(class_constant, "constant_value", constant);
+
+    return class_constant;
+}
+
+Json*
+mk_name_and_type(Json *names, Json *type_spec) {
+    Json *name_and_type = Json_new();
+
+    Json_add_object_to_object(name_and_type, "field_type", type_spec);
+    Json_add_array_to_object(name_and_type, "names", names);
+
+    return name_and_type;
+}
+
+Json*
+mk_routine(Json *name_and_type, Json *params_list, Json *routine_body) {
+    Json *routine = Json_new();
+
+    add_type_to_node(routine, "routine");
+    Json_add_object_to_object(routine, "class_routine", name_and_type);
+    Json_add_array_to_object(routine, "params", params_list);
+    Json_add_object_to_object(routine, "body", routine_body);
+
+    return routine;
+}
+
+Json*
+mk_void_routine(Json *names, Json *routine_body) {
+    Json *name_and_type = mk_name_and_type(names, mk_type("Void"));
+    return mk_routine(name_and_type, mk_list(), routine_body);
+}
