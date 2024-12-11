@@ -69,6 +69,13 @@
 %type <tree> select_clause
 %type <tree> features_clause clients_opt clients
 
+%type <tree> do_part
+%type <tree> then_part_opt then_part
+%type <tree> local_part_opt local_part var_decl_list
+%type <tree> require_part_opt require_part
+%type <tree> ensure_part_opt ensure_part
+%type <tree> condition_list condition
+
 %type <tree> ident_list
 
 %type <tree> type generic_type type_list
@@ -315,33 +322,33 @@ args_list: name_and_type { $$ = add_to_list(mk_list(), $1); }
          ;
 
 /* Тело метода */
-routine_body: local_part_opt require_part_opt do_part then_part_opt ensure_part_opt END
-            | local_part_opt require_part_opt then_part ensure_part_opt END
+routine_body: local_part_opt require_part_opt do_part then_part_opt ensure_part_opt END { $$ = mk_routine_body($1, $2, $3, $4, $5); }
+            | local_part_opt require_part_opt then_part ensure_part_opt END { $$ = mk_routine_body($1, $2, NULL, $3, $4); }
             ;
 
 /* Секция объявления локальных переменных */
-local_part_opt: /* empty */
-              | local_part
+local_part_opt: /* empty */ { $$ = mk_list(); }
+              | local_part { $$ = $1; }
               ;
 
-local_part: LOCAL var_decl_list
+local_part: LOCAL var_decl_list { $$ = $2; }
           ;
 
-var_decl_list: name_and_type
-             | var_decl_list name_and_type
+var_decl_list: name_and_type { $$ = add_to_list(mk_list(), $1); }
+             | var_decl_list name_and_type { $$ = add_to_list($1, $2); }
              ;
 
 /* Секция предусловий */
-require_part_opt: /* empty */
-                | require_part
+require_part_opt: /* empty */ { $$ = mk_list(); }
+                | require_part { $$ = $1; }
                 ;
 
-require_part: REQUIRE condition_list
+require_part: REQUIRE condition_list { $$ = $2; }
             ;
 
-condition_list: condition
-              | condition_list condition
-              | condition_list ';' condition
+condition_list: condition { $$ = add_to_list(mk_list(), $1); }
+              | condition_list condition { $$ = add_to_list($1, $2); }
+              | condition_list ';' condition { $$ = add_to_list($1, $3); }
               ;
 
 /*
@@ -350,28 +357,28 @@ condition_list: condition
 Либо это один condition, либо два (3 и +4). Несмотря на то, что эта конструкция
 некорректна (с точки зрения семантики), нужно убедится, что даже она распознает правильно
 */
-condition: expr %prec LOWER_THAN_EXPR
-         | IDENT_LIT ':' expr %prec LOWER_THAN_EXPR
+condition: expr %prec LOWER_THAN_EXPR { $$ = mk_tagged_cond(NULL, $1); }
+         | IDENT_LIT ':' expr %prec LOWER_THAN_EXPR { $$ = mk_tagged_cond($1, $3); }
          ;
 
 /* Секция инструкций метода */
-do_part: DO stmt_list_opt
+do_part: DO stmt_list_opt { $$ = $2; }
        ;
 
 /* Секция then */
-then_part_opt: /* empty */
-             | then_part
+then_part_opt: /* empty */ { $$ = mk_empty(); }
+             | then_part { $$ = $1; }
              ;
 
-then_part: THEN expr
+then_part: THEN expr { $$ = $2; }
          ;
 
 /* Секция постусловий  */
-ensure_part_opt: /* empty */
-               | ensure_part
+ensure_part_opt: /* empty */ { $$ = mk_list(); }
+               | ensure_part { $$ = $1; }
                ;
 
-ensure_part: ENSURE condition_list
+ensure_part: ENSURE condition_list { $$ = $2; }
            ;
 
 

@@ -462,3 +462,9 @@ mk_routine_with_no_args(Json *name_and_type, Json *routine_body);
 
 Json*
 mk_routine_with_args(Json *names, Json *params_list, Json *return_type, Json *routine_body);
+
+Json*
+mk_routine_body(Json *local, Json *require, Json *do_clause, Json *then, Json *ensure);
+
+Json*
+mk_tagged_cond(char *tag, Json *cond);

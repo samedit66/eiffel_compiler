@@ -469,3 +469,31 @@ mk_routine_with_no_args(Json *name_and_type, Json *routine_body) {
 
     return routine;
 }
+
+Json*
+mk_routine_body(Json *local, Json *require, Json *do_clause, Json *then, Json *ensure) {
+    Json *routine_body = Json_new();
+
+    add_type_to_node(routine_body, "routine_body");
+    Json_add_array_to_object(routine_body, "local", local);
+    Json_add_array_to_object(routine_body, "require", require);
+    Json_add_array_to_object(routine_body, "do", do_clause == NULL ? mk_list() : do_clause);
+    Json_add_object_to_object(routine_body, "then", then);
+    Json_add_array_to_object(routine_body, "ensure", ensure);
+
+    return routine_body;
+}
+
+Json*
+mk_tagged_cond(char *tag, Json *cond) {
+    Json *tagged_cond = Json_new();
+
+    add_type_to_node(tagged_cond, "tagged_cond");
+
+    if (tag != NULL)
+        Json_add_string_to_object(tagged_cond, "tag", tag);
+    
+    Json_add_object_to_object(tagged_cond, "cond", cond);
+
+    return tagged_cond;
+}
