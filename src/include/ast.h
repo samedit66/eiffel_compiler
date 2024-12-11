@@ -427,44 +427,150 @@ mk_generic_tuple_type(Json *type_list);
 Json*
 mk_class_decl(Json *header, Json *inheritance, Json *creators, Json *features);
 
+/**
+ * Создает узел заголовка класса
+ * 
+ * @param class_name Имя класса
+ * @param generics_list Список обобщений
+ * @return Узел заголовка класса
+ */
 Json*
 mk_class_header(char *class_name, Json *generics_list);
 
+/**
+ * Создает узел ограниченного обобщения (с указанием наследования)
+ * 
+ * @param generic_type Обобщенный тип
+ * @param parent Ограничивающий тип
+ * @return Узел ограниченного обобщения
+ */
 Json*
 mk_constrained_generic(Json *generic_type, Json *parent);
 
+/**
+ * Создает узел секции наследования
+ * 
+ * @param parent_header Заголовок родительского класса
+ * @param rename_clause Секция переименования
+ * @param undefine_clause Секция отмены определения
+ * @param redefine_clause Секция переопределения
+ * @param select_clause Секция выбора
+ * @return Узел секции наследования
+ */
 Json*
 mk_inherit_clause(Json *parent_header, Json *rename_clause, Json *undefine_clause, Json *redefine_clause, Json *select_clause);
 
+/**
+ * Создает узел псевдонима
+ * 
+ * @param original_name Исходное имя
+ * @param alias_name Новое имя (псевдоним)
+ * @return Узел псевдонима
+ */
 Json*
 mk_alias(char *original_name, char *alias_name);
 
+/**
+ * Создает узел секции функций и полей
+ * 
+ * @param clients Список клиентов (классов, которые могут данный метод/поле использовать)
+ * @param feature_list Список функций и полей
+ * @return Узел секции функций и полей
+ */
 Json*
 mk_feature_clause(Json *clients, Json *feature_list);
 
+/**
+ * Создает узел поля класса
+ * 
+ * @param name_and_type Имя и тип поля
+ * @return Узел поля класса
+ */
 Json*
 mk_class_field(Json *name_and_type);
 
+/**
+ * Создает узел константы класса
+ * 
+ * @param name_and_type Имя и тип константы
+ * @param constant Значение константы
+ * @return Узел константы класса
+ */
 Json*
 mk_class_constant(Json *name_and_type, Json *constant);
 
+/**
+ * Создает узел имени и типа
+ * 
+ * @param names Список имен
+ * @param type_spec Спецификация типа
+ * @return Узел имени и типа
+ */
 Json*
 mk_name_and_type(Json *names, Json *type_spec);
 
+/**
+ * Создает узел процедуры без аргументов
+ * 
+ * @param names Имена процедур
+ * @param routine_body Тело процедуры
+ * @return Узел процедуры
+ */
 Json*
 mk_void_routine_with_no_args(Json *names, Json *routine_body);
 
+/**
+ * Создает узел процедуры с аргументами
+ * 
+ * @param names Имена процедуры (список идентификаторов)
+ * @param params_list Список параметров
+ * @param routine_body Тело процедуры
+ * @return Узел процедуры
+ */
 Json*
 mk_void_routine_with_args(Json *names, Json *params_list, Json *routine_body);
 
+/**
+ * Создает узел функции без аргументов
+ * 
+ * @param name_and_type Имя и тип функции
+ * @param routine_body Тело функции
+ * @return Узел функции
+ */
 Json*
 mk_routine_with_no_args(Json *name_and_type, Json *routine_body);
 
+/**
+ * Создает узел функции с аргументами
+ * 
+ * @param names Имена функции (список идентификаторов)
+ * @param params_list Список параметров
+ * @param return_type Тип возвращаемого значения
+ * @param routine_body Тело функции
+ * @return Узел функции
+ */
 Json*
 mk_routine_with_args(Json *names, Json *params_list, Json *return_type, Json *routine_body);
 
+/**
+ * Создает узел тела функции или процедуры
+ * 
+ * @param local Локальные переменные
+ * @param require Блок предусловий
+ * @param do_clause Блок исполнения
+ * @param then Блок then (сокращенной записи Result := ...)
+ * @param ensure Блок постусловий
+ * @return Узел тела
+ */
 Json*
 mk_routine_body(Json *local, Json *require, Json *do_clause, Json *then, Json *ensure);
 
+/**
+ * Создает узел помеченного условия
+ * 
+ * @param tag Метка условия
+ * @param cond Условие
+ * @return Узел помеченного условия
+ */
 Json*
 mk_tagged_cond(char *tag, Json *cond);
