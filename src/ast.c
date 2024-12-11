@@ -231,7 +231,7 @@ Json*
 mk_loop_stmt(Json *init_stmt_list, Json *cond, Json *body_stmt_list) {
     Json *node = Json_new();
     add_type_to_node(node, "loop_stmt");
-    Json_add_object_to_object(node, "init", init_stmt_list);
+    Json_add_array_to_object(node, "init", init_stmt_list);
     Json_add_object_to_object(node, "cond", cond);
     Json_add_array_to_object(node, "body", body_stmt_list);
     return node;
@@ -251,7 +251,7 @@ Json*
 add_alt_when_clause(Json *when_clauses, Json *choices, Json *body) {
     Json *when_stmt = Json_new();
     Json_add_array_to_object(when_stmt, "choices", choices);
-    Json_add_object_to_object(when_stmt, "body", body);
+    Json_add_array_to_object(when_stmt, "body", body);
     Json_add_object_to_array(when_clauses, when_stmt);
     return when_clauses;
 }
