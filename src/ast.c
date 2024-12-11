@@ -193,7 +193,7 @@ Json*
 mk_program(Json *program) {
     Json *node = Json_new();
     add_type_to_node(node, "root");
-    Json_add_array_to_object(node, "program", program);
+    Json_add_array_to_object(node, "classes", program);
     return node;
 }
 
@@ -339,6 +339,7 @@ Json*
 mk_class_decl(Json *header, Json *inheritance, Json *creators, Json *features) {
     Json *class_decl = Json_new();
 
+    add_type_to_node(class_decl, "class_decl");
     Json_add_object_to_object(class_decl, "header", header);
     Json_add_array_to_object(class_decl, "inheritance", inheritance);
     Json_add_array_to_object(class_decl, "creators", creators);
@@ -371,8 +372,8 @@ Json*
 mk_inherit_clause(Json *parent, Json *rename_clause, Json *undefine_clause, Json *redefine_clause, Json *select_clause) {
     Json *inherit_clause = Json_new();
 
-    Json_add_object_to_object(inherit_clause, "parent", parent);
-
+    add_type_to_node(inherit_clause, "parent");
+    Json_add_object_to_object(inherit_clause, "parent_header", parent);
     Json_add_array_to_object(inherit_clause, "rename_clause", rename_clause);
     Json_add_array_to_object(inherit_clause, "undefine_clause", undefine_clause);
     Json_add_array_to_object(inherit_clause, "redefine_clause", redefine_clause);
@@ -385,6 +386,7 @@ Json*
 mk_alias(char *original_name, char *alias_name) {
     Json *alias = Json_new();
 
+    add_type_to_node(alias, "alias");
     Json_add_string_to_object(alias, "original_name", original_name);
     Json_add_string_to_object(alias, "alias_name", alias_name);
 
@@ -395,6 +397,7 @@ Json*
 mk_feature_clause(Json *clients, Json *feature_list) {
     Json *feature_clause = Json_new();
 
+    add_type_to_node(feature_clause, "feature_clause");
     Json_add_array_to_object(feature_clause, "clients", clients);
     Json_add_array_to_object(feature_clause, "feature_list", feature_list);
 
@@ -433,11 +436,12 @@ mk_name_and_type(Json *names, Json *type_spec) {
 }
 
 Json*
-mk_routine(Json *name_and_type, Json *params_list, Json *routine_body) {
+mk_routine_with_args(Json *names, Json *params_list, Json *return_type, Json *routine_body) {
     Json *routine = Json_new();
 
-    add_type_to_node(routine, "routine");
-    Json_add_object_to_object(routine, "class_routine", name_and_type);
+    add_type_to_node(routine, "class_routine");
+    Json *name_and_type = mk_name_and_type(names, return_type);
+    Json_add_object_to_object(routine, "name_and_type", name_and_type);
     Json_add_array_to_object(routine, "params", params_list);
     Json_add_object_to_object(routine, "body", routine_body);
 
@@ -445,7 +449,23 @@ mk_routine(Json *name_and_type, Json *params_list, Json *routine_body) {
 }
 
 Json*
-mk_void_routine(Json *names, Json *routine_body) {
-    Json *name_and_type = mk_name_and_type(names, mk_type("Void"));
-    return mk_routine(name_and_type, mk_list(), routine_body);
+mk_void_routine_with_args(Json *names, Json *params_list, Json *routine_body) {
+    return mk_routine_with_args(names, params_list, mk_type("Void"), routine_body);
+}
+
+Json*
+mk_void_routine_with_no_args(Json *names, Json *routine_body) {
+    return mk_void_routine_with_args(names, mk_list(), routine_body);
+}
+
+Json*
+mk_routine_with_no_args(Json *name_and_type, Json *routine_body) {
+    Json *routine = Json_new();
+
+    add_type_to_node(routine, "class_routine");
+    Json_add_object_to_object(routine, "name_and_type", name_and_type);
+    Json_add_array_to_object(routine, "params", mk_list());
+    Json_add_object_to_object(routine, "body", routine_body);
+
+    return routine;
 }

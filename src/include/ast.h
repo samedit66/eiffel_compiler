@@ -452,7 +452,13 @@ Json*
 mk_name_and_type(Json *names, Json *type_spec);
 
 Json*
-mk_void_routine(Json *names, Json *routine_body);
+mk_void_routine_with_no_args(Json *names, Json *routine_body);
 
 Json*
-mk_routine(Json *name_and_type, Json *args_list, Json *routine_body);
+mk_void_routine_with_args(Json *names, Json *params_list, Json *routine_body);
+
+Json*
+mk_routine_with_no_args(Json *name_and_type, Json *routine_body);
+
+Json*
+mk_routine_with_args(Json *names, Json *params_list, Json *return_type, Json *routine_body);

@@ -57,7 +57,7 @@
 %type <tree> if_stmt elseif_clauses_opt elseif_clauses else_clause_opt
 
 %type <tree> feature_list feature
-%type <tree> name_and_type type_spec routine_body
+%type <tree> name_and_type type_spec routine_body args_list_opt args_list
 
 %type <tree> class_declaration class_header inheritance_opt creators_opt features_clause_opt
 %type <tree> formal_generics_opt formal_generics generic
@@ -289,10 +289,10 @@ feature_list: feature { $$ = add_to_list(mk_list(), $1); }
 */
 feature: name_and_type { $$ = mk_class_field($1); }
        | name_and_type '=' constant { $$ = mk_class_constant($1, $3); }
-       | ident_list routine_body { $$ = mk_void_routine($1, $2); }
-       | name_and_type routine_body { $$ = mk_routine($1, mk_list(), $2); }
-       | ident_list '(' args_list_opt ')' routine_body
-       | ident_list '(' args_list_opt ')' type_spec routine_body
+       | ident_list routine_body { $$ = mk_void_routine_with_no_args($1, $2); }
+       | name_and_type routine_body { $$ = mk_routine_with_no_args($1, $2); }
+       | ident_list '(' args_list_opt ')' routine_body { $$ = mk_void_routine_with_args($1, $3, $5); }
+       | ident_list '(' args_list_opt ')' type_spec routine_body { $$ = mk_routine_with_args($1, $3, $5, $6); }
        ;
 
 /* Список имен с заданным типом */
@@ -306,12 +306,12 @@ type_spec: ':' type { $$ = $2; }
          ;
 
 /* Список аргументов */
-args_list_opt: /* empty */
-             | args_list
+args_list_opt: /* empty */ { $$ = mk_list(); }
+             | args_list { $$ = $1; }
              ;
 
-args_list: name_and_type
-         | args_list ';' name_and_type
+args_list: name_and_type { $$ = add_to_list(mk_list(), $1); }
+         | args_list ';' name_and_type { $$ = add_to_list($1, $3); }
          ;
 
 /* Тело метода */
