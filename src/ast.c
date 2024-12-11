@@ -192,7 +192,7 @@ add_elseif_expr(Json *alts, Json *cond, Json *expr) {
 Json*
 mk_program(Json *program) {
     Json *node = Json_new();
-    add_type_to_node(node, "root");
+    //add_type_to_node(node, "root");
     Json_add_array_to_object(node, "classes", program);
     return node;
 }
