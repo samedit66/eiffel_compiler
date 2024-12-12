@@ -535,11 +535,8 @@ constant: INT_CONST     { $$ = mk_int_const($1); }
         ;
 
 
-manifest_array: OPEN_MANIFEST_ARRAY manifest_array_content_opt last_comma_opt CLOSE_MANIFEST_ARRAY { $$ = $2; }
-              ;
-
-last_comma_opt: /* empty */
-              | ','
+manifest_array: OPEN_MANIFEST_ARRAY manifest_array_content_opt CLOSE_MANIFEST_ARRAY { $$ = $2; }
+              | OPEN_MANIFEST_ARRAY manifest_array_content ',' CLOSE_MANIFEST_ARRAY { $$ = $2; }
               ;
 
 manifest_array_content_opt: /* empty */ { $$ = mk_list(); }
