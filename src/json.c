@@ -110,24 +110,23 @@ Json_add_null_to_array(Json *array) {
 }
 
 static inline void
-_indent(StringBuffer *strbuf, int indent_level, char *indent_value) {
-    for (int i = 0; i < indent_level; i++) {
-        StringBuffer_append(strbuf, indent_value);
+_indent(StringBuffer *strbuf, int indent_level, int indent_size) {
+    int space_count = indent_level * indent_size;
+    for (int i = 0; i < space_count; i++) {
+        StringBuffer_append(strbuf, " ");
     }
 }
 
 static inline void
 _append_int_to_buf(StringBuffer *strbuf, int value) {
-    const int BUFFER_SIZE = 20;
-    char buffer[BUFFER_SIZE];
+    char buffer[20];
     itoa(value, buffer, 10);
     StringBuffer_append(strbuf, buffer);
 }
 
 static inline void
 _append_double_to_buf(StringBuffer *strbuf, double value) {
-    const int BUFFER_SIZE = 20;
-    char buffer[BUFFER_SIZE];
+    char buffer[20];
     sprintf(buffer, "%f", value);
     
     // Убирает лишние нули, которые создает sprintf в конце числа
@@ -156,7 +155,7 @@ _append_bool_to_buf(StringBuffer *strbuf, bool value) {
 }
 
 static char*
-_Json_field_as_string(Field *field, int indent_level, char *indent_value) {
+_Json_field_as_string(Field *field, int indent_level, int indent_size) {
     StringBuffer *strbuf = StringBuffer_empty();
 
     switch (field->value_type) {
@@ -190,36 +189,38 @@ _Json_field_as_string(Field *field, int indent_level, char *indent_value) {
             bool has_some_elements = false;
             if (current_field != NULL) {
                 has_some_elements = true;
-                StringBuffer_append(strbuf, "\n");
+                if (indent_size > 0)
+                    StringBuffer_append(strbuf, "\n");
             }
 
-            int iter_count = 0;
             while (current_field != NULL) {
-                _indent(strbuf, indent_level, indent_value);
+                _indent(strbuf, indent_level, indent_size);
 
                 // Если это объект, то необходимо добавить имя поля перед самим значением
                 if (field->value_type == JSON_OBJECT) {
                     _append_string_to_buf(strbuf, current_field->field_name);
-                    StringBuffer_append(strbuf, ": ");
+                    StringBuffer_append(strbuf, ":");
+                    if (indent_size > 0)
+                        StringBuffer_append(strbuf, " ");
                 }
 
                 StringBuffer_append(
                     strbuf,
-                    _Json_field_as_string(current_field, indent_level, indent_value)
+                    _Json_field_as_string(current_field, indent_level, indent_size)
                 );
 
                 if (current_field->next_field != NULL)
-                    StringBuffer_append(strbuf, ",\n");
-                else
+                    StringBuffer_append(strbuf, ",");
+
+                if (indent_size > 0)
                     StringBuffer_append(strbuf, "\n");
 
                 current_field = current_field->next_field;
-                iter_count += 1;
             }
 
             indent_level--;
             if (has_some_elements)
-                _indent(strbuf, indent_level, indent_value);
+                _indent(strbuf, indent_level, indent_size);
 
             if (field->value_type == JSON_ARRAY)
                 StringBuffer_append(strbuf, "]");
@@ -231,15 +232,44 @@ _Json_field_as_string(Field *field, int indent_level, char *indent_value) {
     return StringBuffer_extract_string(strbuf);
 }
 
+bool
+Json_is_array(Json *possible_array) {
+    if (possible_array == NULL || possible_array->first == NULL)
+        return false;
+
+    bool result = true;
+    Field *current = possible_array->first;
+    while (result && current != NULL) {
+        result = result && (current->field_name == NULL);
+        current = current->next_field;
+    }
+
+    return result;
+}
+
 char*
-Json_object_as_string(Json *json) {
+Json_to_string(Json *json, int space_count) {
     Field *root = (Field*) malloc(sizeof(Field));
-    root->value_type = JSON_OBJECT;
+
+    if (Json_is_array(json))
+        root->value_type = JSON_ARRAY;
+    else
+        root->value_type = JSON_OBJECT;
     root->object_or_array = json;
 
-    char *stringified = _Json_field_as_string(root, 0, "    ");
+    char *stringified = _Json_field_as_string(root, 0, space_count);
 
     free(root);
 
     return stringified;
+}
+
+char*
+Json_to_short_string(Json *json) {
+    return Json_to_string(json, 0);
+}
+
+char*
+Json_to_pretty_string(Json *json) {
+    return Json_to_string(json, 4);
 }

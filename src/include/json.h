@@ -228,14 +228,41 @@ Json_add_bool_to_array(Json *array, bool value);
 Json*
 Json_add_null_to_array(Json *array);
 
+bool
+Json_is_array(Json *possible_array);
+
 /**
  * Генерирует JSON-строку для заданного объекта
+ * с указанием размера отступа (в пробелах)
+ * 
+ * @param json JSON-объект
+ * @param space_count количество пробел в одном отступе
+ * 
+ * @return строка, представляющая данный объект
+ */
+char*
+Json_to_string(Json *json, int space_count);
+
+/**
+ * Генерирует короткую JSON-строку для заданного объекта.
+ * Дает тот же результат что и Json_to_string(json, 0)
  * 
  * @param json JSON-объект
  * 
  * @return строка, представляющая данный объект
  */
 char*
-Json_object_as_string(Json *json);
+Json_to_short_string(Json *json);
+
+/**
+ * Генерирует красивую JSON-строку для заданного объекта.
+ * Дает тот же результат что и Json_to_string(json, 4)
+ * 
+ * @param json JSON-объект
+ * 
+ * @return строка, представляющая данный объект
+ */
+char*
+Json_to_pretty_string(Json *json);
 
 #endif

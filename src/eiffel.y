@@ -580,29 +580,45 @@ expr: constant { $$ = $1; }
     ;
 %%
 
+/**
+ * Переводит абстрактное синтакисеческое дерево в JSON, сохраняя его в файл
+ * с заданным названием, либо печатая его на экран.
+ *
+ * @param file_name имя файла (NULL, если результат нужно напечатать на экран)
+ * @param tree абстрактное синтакисеческое дерево
+ * @return true, если получилось записать в файл или вывести на экран, иначе - false
+ */
 bool
-write_output_tree(char *file_name) {
-    char *json = Json_object_as_string(output_tree);
+write_output_tree(char *file_name, Json *tree) {
+    char *json = Json_to_short_string(tree);
 
     if (file_name == NULL) {
         printf(json);
-        free(json)
-        return 1;
+        free(json);
+        return true;
     }
 
     FILE *output_file = fopen(file_name, "w");
     if (output_file == NULL) {
         free(json);
-        return 0;
+        return false;
     }
 
     fprintf(output_file, json);
     fclose(output_file);
     free(json);
 
-    return 1;
+    return true;
 }
 
+/**
+ * Выполняет парсинг файлов. В случае ошибок (невозможности открыть файл),
+ * печатает сообщения на экран. Если количество файлов - 0,
+ * то выполняется парсинг из stdin.
+ *
+ * @param files_count количество файлов
+ * @param file_names имена файлов
+ */
 void
 parse_files(int files_count, char **file_names) {
     if (files_count == 0) {
@@ -622,6 +638,11 @@ parse_files(int files_count, char **file_names) {
     }
 }
 
+/**
+ * Печатает на экран сообщение о количестве найденных ошибок.
+ * 
+ * @param errors_count количество случившихся ошибок
+ */
 void
 show_parsing_result(int errors_count) {
     if (errors_count == 1)
@@ -644,7 +665,7 @@ main(int argc, char **argv) {
     show_parsing_result(errors_count);
 
     if (errors_count == 0) {
-        if (!write_output_tree(NULL)) {
+        if (!write_output_tree(NULL, output_tree)) {
             printf("Failed to open output file");
             return EXIT_FAILURE;
         }
