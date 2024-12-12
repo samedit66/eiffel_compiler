@@ -1,5 +1,6 @@
 %{
     #include <stdio.h>
+    #include <stdbool.h>
     #include <stdlib.h>
     #include <string.h>
 
@@ -585,26 +586,21 @@ write_output_tree(char *file_name) {
 
     if (file_name == NULL) {
         printf(json);
+        free(json)
         return 1;
     }
 
     FILE *output_file = fopen(file_name, "w");
-    if (output_file == NULL)
+    if (output_file == NULL) {
+        free(json);
         return 0;
+    }
 
     fprintf(output_file, json);
     fclose(output_file);
     free(json);
 
     return 1;
-}
-
-void
-show_parsing_result(int errors_count) {
-    if (errors_count == 1)
-        puts("Failed to parse, got 1 syntax error");
-    else if (errors_count > 1)
-        printf("Failed to parse, got %d syntax errors\n", errors_count);
 }
 
 void
@@ -626,6 +622,14 @@ parse_files(int files_count, char **file_names) {
     }
 }
 
+void
+show_parsing_result(int errors_count) {
+    if (errors_count == 1)
+        puts("Failed to parse, got 1 syntax error");
+    else if (errors_count > 1)
+        printf("Failed to parse, got %d syntax errors\n", errors_count);
+}
+
 int
 main(int argc, char **argv) {
     #ifdef DEBUG_PARSER
@@ -640,7 +644,11 @@ main(int argc, char **argv) {
     show_parsing_result(errors_count);
 
     if (errors_count == 0) {
-        write_output_tree(NULL);
+        if (!write_output_tree(NULL)) {
+            printf("Failed to open output file");
+            return EXIT_FAILURE;
+        }
+
         return EXIT_SUCCESS;
     }
 
