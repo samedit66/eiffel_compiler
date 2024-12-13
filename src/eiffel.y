@@ -5,6 +5,7 @@
     #include <stdbool.h>
     #include <stdlib.h>
     #include <string.h>
+    #include <unistd.h>
 
     #include "./include/ast.h"
 
@@ -584,11 +585,12 @@ void yyerror(const char *str) {
  *
  * @param file_name имя файла (NULL, если результат нужно напечатать на экран)
  * @param tree абстрактное синтакисеческое дерево
+ * @param pretty true, если дерево должно быть красиво отформатированным
  * @return true, если получилось записать в файл или вывести на экран, иначе - false
  */
 bool
-write_output_tree(char *file_name, Json *tree) {
-    char *json = Json_to_short_string(tree);
+write_output_tree(char *file_name, Json *tree, bool pretty) {
+    char *json = pretty ? Json_to_pretty_string(tree) : Json_to_short_string(tree);
 
     if (file_name == NULL) {
         printf(json);
@@ -649,23 +651,60 @@ show_parsing_result(int errors_count) {
         printf("Failed to parse, got %d syntax errors\n", errors_count);
 }
 
+/**
+ * Обрабатывает аргументы командной строки для парсера.
+ * Парсер умеет обрабатывать два аргумента: -o <имя выходного файла> и -p.
+ * Первый из них указываем имя для выходного json-файла, второй обозначает,
+ * что в результате должен быть сгенерирован красиво отформатированный json-файл.
+ *
+ * @param argv количество аргументов командной строки
+ * @param argv список аргументов командной строки
+ * @param pretty_json выходной параметр: нужно ли красивое форматирование
+ * @param output_file_name выходной параметр: имя генерируемого файла (NULL, если имя не предоставлено)
+ *
+ * @return индекс первого не-опционного аргумента
+ */
+int
+process_args(int argc, char **argv, bool *pretty_json, char **output_file_name) {
+    *pretty_json = false;
+    *output_file_name = NULL;
+
+    int opt;
+    while ((opt = getopt(argc, argv, "o:p")) != -1) {
+        switch (opt) {
+            case 'o':
+                if (optarg == NULL)
+                    printf("Parser warning: no output file name provided, waiting for output from stdin");
+                *output_file_name = optarg;
+                break;
+            case 'p':
+                *pretty_json = true;
+                break;
+        }
+    }
+
+    return optind;
+}
+
 int
 main(int argc, char **argv) {
     #ifdef DEBUG_PARSER
         yydebug = 1;
     #endif
 
-    // Пропускаем имя программы в качестве первого аргумента
-    argc--, argv++;
+    bool pretty_json;
+    char *output_file_name;
+    int file_start_idx = process_args(argc, argv, &pretty_json, &output_file_name); 
 
-    parse_files(argc, argv);
+    int files_count = argc - file_start_idx;
+    parse_files(files_count, argv + file_start_idx);
 
     show_parsing_result(errors_count);
 
     if (errors_count == 0) {
         Json *output_tree = mk_program(found_classes);
 
-        if (!write_output_tree(NULL, output_tree)) {
+        if (!write_output_tree(output_file_name, output_tree, pretty_json)) {
             printf("Failed to open output file");
             return EXIT_FAILURE;
         }
