@@ -10,7 +10,7 @@
     extern void yyrestart(FILE *infile);
 
     int errors_count = 0;
-    Json *output_tree = NULL;
+    Json *found_classes = NULL;
 
     void yyerror(const char *str) {
         errors_count++;
@@ -32,7 +32,7 @@
     struct Json *tree;
 }
 
-%start program
+%start class_list
 
 %token EOI 0 "end of file"
 
@@ -84,8 +84,6 @@
 
 %type <tree> class_list
 
-%type <tree> program
-
 %token INT_DIV MOD
 %token AND OR NOT AND_THEN OR_ELSE
 %token NEQ LE GE
@@ -128,14 +126,9 @@
 %%
 
 /* ********************************************************************/
-/* Описание программы */
-program: class_list { $$ = mk_program($1); output_tree = $$; }
-       ;
-
-/* ********************************************************************/
-/* Описание класса */
-class_list: class_declaration { $$ = mk_list(); $$ = add_to_list($$, $1); }
-          | class_list class_declaration { $$ = add_to_list($1, $2);  }
+/* Описание программы: набор классов */
+class_list: class_declaration { if (found_classes == NULL) found_classes = mk_list(); add_to_list(found_classes, $1); }
+          | class_list class_declaration { add_to_list(found_classes, $1);  }
           ;
 
 class_declaration: class_header inheritance_opt creators_opt features_clause_opt END { $$ = mk_class_decl($1, $2, $3, $4); }
@@ -665,6 +658,8 @@ main(int argc, char **argv) {
     show_parsing_result(errors_count);
 
     if (errors_count == 0) {
+        Json *output_tree = mk_program(found_classes);
+
         if (!write_output_tree(NULL, output_tree)) {
             printf("Failed to open output file");
             return EXIT_FAILURE;
