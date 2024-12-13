@@ -1,3 +1,5 @@
+%locations
+
 %{
     #include <stdio.h>
     #include <stdbool.h>
@@ -8,14 +10,10 @@
 
     extern int yylex(void);
     extern void yyrestart(FILE *infile);
+    void yyerror(const char *str);
 
     int errors_count = 0;
     Json *found_classes = NULL;
-
-    void yyerror(const char *str) {
-        errors_count++;
-        fprintf(stderr, "Parser error: %s\n", str);
-    }
 
     #define YYDEBUG 1
 
@@ -574,6 +572,11 @@ expr: constant { $$ = $1; }
     | '(' error ')' { yyerrok; }
     ;
 %%
+
+void yyerror(const char *str) {
+    errors_count++;
+    fprintf(stderr, "Parser error, line %d: %s\n", yylloc.first_line, str);
+}
 
 /**
  * Переводит абстрактное синтакисеческое дерево в JSON, сохраняя его в файл
