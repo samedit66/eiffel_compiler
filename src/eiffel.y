@@ -393,6 +393,7 @@ stmt: assign_stmt  { $$ = $1; }
     | loop_stmt    { $$ = $1; }
     | inspect_stmt { $$ = $1;}
     | call         { $$ = $1; }
+    | error ';'    { yyerrok; }
     | ';'          { $$ = mk_empty(); }
     ;
 
@@ -570,6 +571,7 @@ expr: constant { $$ = $1; }
     | bracket_access { $$ = $1; }
     | if_expr { $$ = $1; }
     | manifest_array { $$ = mk_manifest_array($1); }
+    | '(' error ')' { yyerrok; }
     ;
 %%
 
