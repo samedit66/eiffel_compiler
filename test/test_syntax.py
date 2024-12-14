@@ -1,287 +1,242 @@
-import subprocess
-import re
+from testlib import use, expect, run_eiffel
 
 
-def run_eiffel_parser(
-        eiffel_text: str,
-        parser_name: str = "eiffelp",
-        ) -> tuple[str, str]:
-    """Возвращает результат работы парсера Eiffel по заданному файлу
-
-    :param eiffel_text: текст программы на Eiffel
-    :param parser_name: имя парсера
-
-    :return: кортеж из двух строк: stdout и stderr
-    """
-    try:
-        output = subprocess.run(
-            [parser_name],
-            input=eiffel_text.encode(),
-            capture_output=True,
-            )
-    except FileNotFoundError:
-        raise RuntimeError(f'Couldn\'t find eiffel parser by name "{parser_name}"')
-    return (output.stdout.decode(), output.stderr.decode())
-
-
-def make_error_message(stderr: str):
-    """Считывает все сообщения об ошибках из stderr
-
-    :param stderr: сообщения из stderr потока
-
-    :return: сообщение об ошибках
-    """
-    errors = re.findall(r'error: .*\n?', stderr)
-    return '\n'.join(errors)
-
-
+@expect(
+    {
+        "classes": [
+            {
+                "type": "class_decl",
+                "header": {
+                    "name": "EMPTY",
+                    "generics": []
+                },
+                "inheritance": [],
+                "creators": [],
+                "features": []
+            }
+        ]
+    },
+    full_match=True,
+)
+@run_eiffel
+@use("EmptyClass.e")
 def test_empty_class():
-    input_data = """
-    class
-        SIMPLE
-    end
-    """
-    
-    _, stderr = run_eiffel_parser(input_data)
-
-    assert "syntax error" not in stderr, make_error_message(stderr)
+    pass
 
 
-def test_simple_inheritance_with_rename():
-    input_data = """
-    class SQUARE
-        inherit
-            RECTANGLE
-            rename
-                width as size
-            end
-    end
-    """
-
-    _, stderr = run_eiffel_parser(input_data)
-
-    assert "syntax error" not in stderr, make_error_message(stderr)
-
-
-def test_class_with_feature():
-    input_data = """
-    class
-        APPLICATION
-
-    create
-        make
-
-    feature -- Initialization
-
-        make
-            -- Run application.
-            do
-                io.put_string ("Hello, world")
-                io.put_new_line
-            end
-
-    end -- class APPLICATION
-    """
-
-    _, stderr = run_eiffel_parser(input_data)
-
-    assert "syntax error" not in stderr, make_error_message(stderr)
-
-
-def test_class_with_different_types_of_features():
-    input_data = """
-    class
-        FRACTION
-
-    create
-      make
-
-    feature
-        numerator, denominator: INTEGER
-
-        sum (other: like Current): FRACTION
-        do
-            -- Nothing goes here
-        end
-
-        difference (other: FRACTION): FRACTION
-        do
-            -- Nothing goes here
-        end
-
-        product (other: FRACTION): FRACTION
-        do
-            -- Nothing goes here
-        end
-
-        quotient (other: FRACTION ): FRACTION
-        do
-            -- Nothing goes here
-        end
-
-        inverse: FRACTION do
-            Result.make
-        end
-
-    feature {NONE}
-
-    make (n, d: INTEGER) do
-        numerator := n
-        denominator := d
-    end
-
-    reduce do
-        -- Nothing goes here
-    end
-
-    end -- class FRACTION
-    """
-
-    _, stderr = run_eiffel_parser(input_data)
-
-    assert "syntax error" not in stderr, make_error_message(stderr)
+@expect(
+    {
+        "type": "loop_stmt",
+        "init": [
+            {
+                "type": "assign_stmt",
+                "left": {
+                    "type": "ident_lit",
+                    "value": "i"
+                },
+                "right": {
+                    "type": "int_const",
+                    "value": 1
+                }
+            }
+        ],
+        "cond": {
+            "type": "eq_op",
+            "left": {
+                "type": "feature_call",
+                "owner": {
+                    "type": "empty"
+                },
+                "feature": {
+                    "name": "i",
+                    "args_list": []
+                }
+            },
+            "right": {
+                "type": "feature_call",
+                "owner": {
+                    "type": "empty"
+                },
+                "feature": {
+                    "name": "mm",
+                    "args_list": []
+                }
+            }
+        },
+        "body": [
+            {
+                "type": "assign_stmt",
+                "left": {
+                    "type": "result_const"
+                },
+                "right": {
+                    "type": "add_op",
+                    "left": {
+                        "type": "result_const"
+                    },
+                    "right": {
+                        "type": "bracket_access",
+                        "source": {
+                            "type": "feature_call",
+                            "owner": {
+                                "type": "empty"
+                            },
+                            "feature": {
+                                "name": "months",
+                                "args_list": []
+                            }
+                        },
+                        "index": {
+                            "type": "feature_call",
+                            "owner": {
+                                "type": "empty"
+                            },
+                            "feature": {
+                                "name": "i",
+                                "args_list": []
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+)
+@run_eiffel
+@use("Loop.e")
+def test_loop():
+    pass
 
 
-def test_different_feature_call():
-    input_data = """
-    class
-        TEST_DIFFERENT_FEATURE_CALL
-    
-    feature
-
-        test do
-            test Result.make
-            Precursor[10].call(1, 2, 3)
-            Current.numerator
-            (1 + 2).out
-            a.b()
-            array[1][2][3].call()
-            f(1, 2, 3)
-        end
-    end
-    """
-
-    _, stderr = run_eiffel_parser(input_data)
-
-    assert "syntax error" not in stderr, make_error_message(stderr)
-
-
-def test_inspect_stmt():
-    input_data = """
-    class
-        TEST_INSPECT_STMT
-
-    feature
-
-        test do
-            inspect a
-                when 1, 2, 3 then print(1)
-                when 5, 6..10 then print(2)
-                when 11, 54..98, 99 then print(3)
-                else print(4)
-            end
-        end
-    end
-    """
-
-    _, stderr = run_eiffel_parser(input_data)
-
-    assert "syntax error" not in stderr, make_error_message(stderr)
+@expect(
+    {
+        "classes": [
+            {
+                "type": "class_decl",
+                "header": {
+                    "name": "RECTANGLE",
+                    "generics": []
+                },
+                "inheritance": [
+                    {
+                        "type": "parent",
+                        "parent_header": {
+                            "name": "POLYGON",
+                            "generics": []
+                        },
+                        "rename_clause": [],
+                        "undefine_clause": [],
+                        "redefine_clause": [
+                            "perimeter"
+                        ],
+                        "select_clause": []
+                    }
+                ],
+                "creators": [],
+                "features": []
+            }
+        ]
+    },
+    full_match=True,
+)
+@run_eiffel
+@use("SingleInheritance.e")
+def test_single_inheritance():
+    pass
 
 
-def test_if_stmt():
-    input_data = """
-    class
-        TEST_IF_STMT
-    
-    feature
-
-        test do
-            if a = 10 then
-                print("a is 10")
-            elseif b = 20 then
-                max := b + 10
-            elseif c = 10 then
-                min := c - 20
-            end
-
-            if a then b end
-
-            if a then b else c end
-        end
-    end
-    """
-
-    _, stderr = run_eiffel_parser(input_data)
-
-    assert "syntax error" not in stderr, make_error_message(stderr)
-
-
-def test_loop_stmt():
-    input_data = """
-    class
-        TEST_LOOP_STMT
-    
-    feature
-
-        test do
-            from
-                a := 10
-                b := 20
-                c := 30
-            until a = 10
-            loop
-                print (a)
-                a := a - 1
-            end
-        end
-    end
-    """
-
-    _, stderr = run_eiffel_parser(input_data)
-
-    assert "syntax error" not in stderr, make_error_message(stderr)
-
-
-def test_require_clause():
-    input_data = """
-    class
-        TEST_REQUIRE_CLAUSE
-
-    feature
-
-        test
-        require
-            a /= 10;
-            b < 10
-            c > 20
-            ;
-            d = a + b
-        do
-            
-        end
-    end
-    """
-
-    _, stderr = run_eiffel_parser(input_data)
-
-    assert "syntax error" not in stderr, make_error_message(stderr)
-
-
-def test_if_expr():
-    input_data = """
-    class
-        TEST_IF_EXPR
-    
-    feature
-
-        test do
-            a := if b < c then 10 else 20 end
-            b := if a > c then 20 elseif c = e then 30 else 40 end
-        end
-    end
-    """
-
-    _, stderr = run_eiffel_parser(input_data)
-
-    assert "syntax error" not in stderr, make_error_message(stderr)
+@expect(
+    {
+        "classes": [
+            {
+                "type": "class_decl",
+                "header": {
+                    "name": "LINKED_QUEUE",
+                    "generics": []
+                },
+                "inheritance": [
+                    {
+                        "type": "parent",
+                        "parent_header": {
+                            "name": "QUEUE",
+                            "generics": []
+                        },
+                        "rename_clause": [],
+                        "undefine_clause": [
+                            "is_empty",
+                            "copy",
+                            "is_equal"
+                        ],
+                        "redefine_clause": [
+                            "linear_representation",
+                            "prune_all",
+                            "extend"
+                        ],
+                        "select_clause": [
+                            "item",
+                            "put"
+                        ]
+                    },
+                    {
+                        "type": "parent",
+                        "parent_header": {
+                            "name": "LINKED_LIST",
+                            "generics": []
+                        },
+                        "rename_clause": [
+                            {
+                                "type": "alias",
+                                "original_name": "item",
+                                "alias_name": "ll_item"
+                            },
+                            {
+                                "type": "alias",
+                                "original_name": "remove",
+                                "alias_name": "ll_remove"
+                            },
+                            {
+                                "type": "alias",
+                                "original_name": "make",
+                                "alias_name": "ll_make"
+                            },
+                            {
+                                "type": "alias",
+                                "original_name": "remove_left",
+                                "alias_name": "remove"
+                            },
+                            {
+                                "type": "alias",
+                                "original_name": "put",
+                                "alias_name": "ll_put"
+                            }
+                        ],
+                        "undefine_clause": [
+                            "fill",
+                            "append",
+                            "prune",
+                            "readable",
+                            "writable",
+                            "prune_all",
+                            "extend",
+                            "force",
+                            "is_inserted"
+                        ],
+                        "redefine_clause": [
+                            "duplicate",
+                            "linear_representation"
+                        ],
+                        "select_clause": [
+                            "remove"
+                        ]
+                    }
+                ],
+                "creators": [],
+                "features": []
+            }
+        ]
+    }
+)
+@run_eiffel
+@use("MultipleInheritance.e")
+def test_multiple_inheritance():
+    pass

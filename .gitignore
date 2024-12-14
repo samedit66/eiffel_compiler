@@ -9,3 +9,4 @@ venv
 *.output
 __pycache__
 .pytest_cache
+dot-output/

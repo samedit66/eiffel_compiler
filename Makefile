@@ -19,3 +19,15 @@ clean:
 .PHONY: test
 test: $(EXECUTABLE)
 	pytest -v
+
+# If the first argument is "view"...
+ifeq (view,$(firstword $(MAKECMDGOALS)))
+  # use the rest as arguments for "view"
+  RUN_ARGS = $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  # ...and turn them into do-nothing targets
+  $(eval $(RUN_ARGS):;@:)
+endif
+
+.PHONY: view
+view: $(EXECUTABLE)
+	@python ./test/visualize.py $(RUN_ARGS)

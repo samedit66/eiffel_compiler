@@ -184,6 +184,7 @@ rename_clause: RENAME rename_list { $$ = $2; }
 
 rename_list: IDENT_LIT AS IDENT_LIT { $$ = mk_list(); $$ = add_to_list($$, mk_alias($1, $3)); }
            | rename_list IDENT_LIT AS IDENT_LIT { $$ = add_to_list($1, mk_alias($2, $4)); }
+           | rename_list ',' IDENT_LIT AS IDENT_LIT { $$ = add_to_list($1, mk_alias($3, $5)); }
            ;
 
 
