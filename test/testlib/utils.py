@@ -1,3 +1,4 @@
+from pathlib import Path
 import subprocess
 import re
 
@@ -8,18 +9,18 @@ def replace_rn_with_n(string: str) -> str:
 
 def run_eiffel_parser(
         program: str,
-        parser_name: str = "eiffelp",
+        parser_path: str | Path,
         ) -> tuple[str, str]:
     """Возвращает результат работы парсера Eiffel по заданному файлу
 
     :param program: текст программы на Eiffel
-    :param parser_name: имя парсера
+    :param parser_path: путь к парсеру, включая имя файла парсера
 
     :return: кортеж из двух строк: stdout и stderr
     """
     try:
         output = subprocess.run(
-            [parser_name],
+            [parser_path],
             input=program.encode(),
             capture_output=True,
             )

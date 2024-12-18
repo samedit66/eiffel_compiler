@@ -1,33 +1,36 @@
-SOURCES=src
+SOURCES=src/parser
 EXECUTABLE=eiffelp
+BUILD_DIR=build
 
 .PHONY: build
 build:
-	$(MAKE) -C $(SOURCES) build
-	mv ./$(SOURCES)/$(EXECUTABLE) ./
+	$(MAKE) -C $(SOURCES) ./$(BUILD_DIR)
+	mkdir ./$(BUILD_DIR)
+	mv ./$(SOURCES)/$(EXECUTABLE) ./$(BUILD_DIR)
 
 .PHONY: debug
 debug:
 	$(MAKE) -C $(SOURCES) debug
-	mv ./$(SOURCES)/$(EXECUTABLE) ./
+	mkdir ./$(BUILD_DIR)
+	mv ./$(SOURCES)/$(EXECUTABLE) ./$(BUILD_DIR)
 
 .PHONY: clean
 clean:
-	rm -rf ./$(EXECUTABLE)
+	rm -rf ./$(EXECUTABLE) ./$(BUILD_DIR)
 	$(MAKE) -C $(SOURCES) clean
 
 .PHONY: test
-test: $(EXECUTABLE)
-	pytest -v
+test: $(BUILD_DIR)/$(EXECUTABLE)
+	@pytest -v
 
 # If the first argument is "view"...
 ifeq (view,$(firstword $(MAKECMDGOALS)))
   # use the rest as arguments for "view"
-  RUN_ARGS = $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  VIEW_ARGS = $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
   # ...and turn them into do-nothing targets
-  $(eval $(RUN_ARGS):;@:)
+  $(eval $(VIEW_ARGS):;@:)
 endif
 
 .PHONY: view
-view: $(EXECUTABLE)
-	@python ./test/visualize.py $(RUN_ARGS)
+view: $(BUILD_DIR)/$(EXECUTABLE)
+	@python ./test/visualize.py $(VIEW_ARGS)

@@ -30,9 +30,11 @@ def expect(tree, *, full_match=False):
 
 def run_eiffel(func):
 
+    @functools.wraps(func)
     def wrapper(*args, **kwargs):
         program_text = func(*args, **kwargs)
-        return run_eiffel_parser(program_text)
+        parser_path = Path("build")/"eiffelp"
+        return run_eiffel_parser(program_text, parser_path)
 
     return wrapper
 
