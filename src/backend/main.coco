@@ -1,0 +1,15 @@
+class Tree
+
+data Empty from Tree
+
+data Leaf(item) from Tree
+
+data Node(left, right) from Tree
+
+
+case def depth:
+    case (Empty()) = 0
+    case (Leaf(n)) = 1
+    case (Node(l, r)) = 1 + max(depth(l), depth(r))
+
+Node(Leaf(2), Node(Empty(), Leaf(3))) |> depth |> print

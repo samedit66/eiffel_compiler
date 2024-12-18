@@ -1,23 +1,26 @@
-SOURCES=src/parser
+PARSER_SOURCES=src/parser
+BACKEND_SOURCES=src/backend
 EXECUTABLE=eiffelp
 BUILD_DIR=build
 
 .PHONY: build
-build:
-	$(MAKE) -C $(SOURCES) ./$(BUILD_DIR)
+build: clean
+	$(MAKE) -C $(PARSER_SOURCES) ./$(BUILD_DIR)
 	mkdir ./$(BUILD_DIR)
-	mv ./$(SOURCES)/$(EXECUTABLE) ./$(BUILD_DIR)
+	mv ./$(PARSER_SOURCES)/$(EXECUTABLE) ./$(BUILD_DIR)
+	$(MAKE) -C $(BACKEND_SOURCES)
 
 .PHONY: debug
-debug:
-	$(MAKE) -C $(SOURCES) debug
+debug: clean
+	$(MAKE) -C $(PARSER_SOURCES) debug
 	mkdir ./$(BUILD_DIR)
-	mv ./$(SOURCES)/$(EXECUTABLE) ./$(BUILD_DIR)
+	mv ./$(PARSER_SOURCES)/$(EXECUTABLE) ./$(BUILD_DIR)
+	$(MAKE) -C $(BACKEND_SOURCES)
 
 .PHONY: clean
 clean:
 	rm -rf ./$(EXECUTABLE) ./$(BUILD_DIR)
-	$(MAKE) -C $(SOURCES) clean
+	$(MAKE) -C $(PARSER_SOURCES) clean
 
 .PHONY: test
 test: $(BUILD_DIR)/$(EXECUTABLE)
