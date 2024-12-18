@@ -25,7 +25,7 @@ def run_eiffel_parser(
             capture_output=True,
             )
     except FileNotFoundError:
-        raise RuntimeError(f'Couldn\'t find eiffel parser by name "{parser_name}"')
+        raise RuntimeError(f'Couldn\'t find eiffel parser by path "{parser_path}"')
     stdout, stderr = output.stdout.decode(), output.stderr.decode()
     return replace_rn_with_n(stdout), replace_rn_with_n(stderr)
 
