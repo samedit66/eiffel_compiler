@@ -6,6 +6,10 @@ from testlib.utils import (
     run_eiffel_parser,
     make_error_message,
     )
+from testlib.config import (
+    PARSER_BUILD_PATH,
+    TEST_EXAMPLES_DIR,
+)
 
 
 def expect(tree, *, full_match=False):
@@ -33,13 +37,12 @@ def run_eiffel(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         program_text = func(*args, **kwargs)
-        parser_path = Path("build")/"eiffelp"
-        return run_eiffel_parser(program_text, parser_path)
+        return run_eiffel_parser(program_text, PARSER_BUILD_PATH)
 
     return wrapper
 
 
-def use(example_file, examples_dir=Path("test")/"examples"):
+def use(example_file, examples_dir=TEST_EXAMPLES_DIR):
 
     def decorator(func):
         file_contents = (examples_dir/example_file).read_text()

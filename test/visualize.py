@@ -5,6 +5,7 @@ import sys
 from graphviz import Digraph
 
 from testlib.utils import run_eiffel_parser
+from testlib.config import PARSER_BUILD_PATH
 
 
 def _dict_node_to_dot(value, current_node, graph):
@@ -40,7 +41,7 @@ def dict_to_dot(source: dict, parent=None, graph=None):
 
 def visualize(eiffel_file: str | Path, filename: str | Path = "dot-output/graph.gv") -> None:
     program_text = Path(eiffel_file).read_text()
-    stdout, stderr = run_eiffel_parser(program_text)
+    stdout, stderr = run_eiffel_parser(program_text, PARSER_BUILD_PATH)
     tree = json.loads(stdout)
     graph = dict_to_dot(tree)
     graph.view(filename)
