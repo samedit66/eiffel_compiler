@@ -438,6 +438,15 @@ Json*
 mk_class_header(char *class_name, Json *generics_list);
 
 /**
+ * Создает узел обобщения
+ * 
+ * @param generic_type Обобщенный тип
+ * @return Узел ограниченного обобщения
+ */
+Json*
+mk_generic(Json *generic_type);
+
+/**
  * Создает узел ограниченного обобщения (с указанием наследования)
  * 
  * @param generic_type Обобщенный тип

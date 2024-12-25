@@ -145,7 +145,7 @@ formal_generics: generic { $$ = mk_list(); $$ = add_to_list($$, $1); }
                | formal_generics ',' generic { $$ = add_to_list($1, $3); }
                ;
 
-generic: type { $$ = $1; }
+generic: type { $$ = mk_generic($1); }
        | type RARROW type { $$ = mk_constrained_generic($1, $3); }
        ;
 
@@ -247,7 +247,7 @@ type: IDENT_LIT { $$ = mk_type($1); }
     ;
 
 generic_type: IDENT_LIT '[' type_list ']' { $$ = mk_generic_user_type($1, $3); }
-            | ARRAY '[' type ']' { $$ = mk_generic_array_type($3); }
+            | ARRAY '[' type ']' { $$ = mk_generic_array_type(add_to_list(mk_list(), $3)); }
             | TUPLE '[' type_list ']' { $$ = mk_generic_tuple_type($3); }
             ;
 
