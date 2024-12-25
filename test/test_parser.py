@@ -240,3 +240,203 @@ def test_single_inheritance():
 @use("MultipleInheritance.e")
 def test_multiple_inheritance():
     pass
+
+
+@expect(
+    {
+        "type": "inspect_stmt",
+        "expr": {
+            "type": "feature_call",
+            "owner": {
+                "type": "empty"
+            },
+            "feature": {
+                "name": "a",
+                "args_list": []
+            }
+        },
+        "when_clauses": [
+            {
+                "choices": [
+                    {
+                        "type": "int_const",
+                        "value": 10
+                    }
+                ],
+                "body": [
+                    {
+                        "type": "assign_stmt",
+                        "left": {
+                            "type": "ident_lit",
+                            "value": "a"
+                        },
+                        "right": {
+                            "type": "int_const",
+                            "value": 20
+                        }
+                    }
+                ]
+            },
+            {
+                "choices": [
+                    {
+                        "type": "int_const",
+                        "value": 20
+                    },
+                    {
+                        "type": "int_const",
+                        "value": 10
+                    },
+                    {
+                        "type": "int_const",
+                        "value": 30
+                    }
+                ],
+                "body": [
+                    {
+                        "type": "assign_stmt",
+                        "left": {
+                            "type": "ident_lit",
+                            "value": "a"
+                        },
+                        "right": {
+                            "type": "int_const",
+                            "value": 30
+                        }
+                    }
+                ]
+            },
+            {
+                "choices": [
+                    {
+                        "type": "choice_interval",
+                        "start": {
+                            "type": "int_const",
+                            "value": 1
+                        },
+                        "end": {
+                            "type": "int_const",
+                            "value": 10
+                        }
+                    }
+                ],
+                "body": [
+                    {
+                        "type": "assign_stmt",
+                        "left": {
+                            "type": "ident_lit",
+                            "value": "a"
+                        },
+                        "right": {
+                            "type": "int_const",
+                            "value": 5
+                        }
+                    }
+                ]
+            }
+        ],
+        "else_clause": [
+            {
+                "type": "assign_stmt",
+                "left": {
+                    "type": "ident_lit",
+                    "value": "a"
+                },
+                "right": {
+                    "type": "int_const",
+                    "value": 19
+                }
+            }
+        ]
+    }
+)
+@run_eiffel
+@use("Inspect.e")
+def test_inspect():
+    pass
+
+
+@expect(
+    {
+        "type": "if_stmt",
+        "cond": {
+            "type": "gt_op",
+            "left": {
+                "type": "feature_call",
+                "owner": {
+                    "type": "empty"
+                },
+                "feature": {
+                    "name": "a",
+                    "args_list": []
+                }
+            },
+            "right": {
+                "type": "int_const",
+                "value": 0
+            }
+        },
+        "then_clause": [
+            {
+                "type": "assign_stmt",
+                "left": {
+                    "type": "result_const"
+                },
+                "right": {
+                    "type": "string_const",
+                    "value": "Positive"
+                }
+            }
+        ],
+        "elseif_clauses": [
+            {
+                "type": "elseif_clause",
+                "cond": {
+                    "type": "lt_op",
+                    "left": {
+                        "type": "feature_call",
+                        "owner": {
+                            "type": "empty"
+                        },
+                        "feature": {
+                            "name": "a",
+                            "args_list": []
+                        }
+                    },
+                    "right": {
+                        "type": "int_const",
+                        "value": 0
+                    }
+                },
+                "body": [
+                    {
+                        "type": "assign_stmt",
+                        "left": {
+                            "type": "result_const"
+                        },
+                        "right": {
+                            "type": "string_const",
+                            "value": "Negative"
+                        }
+                    }
+                ]
+            }
+        ],
+        "else_clause": [
+            {
+                "type": "assign_stmt",
+                "left": {
+                    "type": "result_const"
+                },
+                "right": {
+                    "type": "string_const",
+                    "value": "Zero"
+                }
+            }
+        ]
+    }
+)
+@run_eiffel
+@use("IfElseifElse.e")
+def test_if_elseif_else_stmt():
+    pass
