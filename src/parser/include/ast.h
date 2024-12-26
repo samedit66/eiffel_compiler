@@ -592,3 +592,13 @@ mk_tagged_cond(char *tag, Json *cond);
  */
 Json*
 mk_manifest_array(Json *manifest_array_content);
+
+
+/**
+ * Создает узел create-оператора
+ * 
+ * @param constructor_call Узел вызова конструктора
+ * @return Узел create-оператора 
+ */
+Json*
+mk_create(Json *constructor_call);

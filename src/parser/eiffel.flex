@@ -151,6 +151,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 "/"						{ LOG_LEXEM("operator", "/"); return '/'; }
 "^" 					{ LOG_LEXEM("operator", "^"); return '^'; }
 ";" 					{ LOG_LEXEM("operator", ";"); return ';'; }
+"!!"                    { LOG_LEXEM("operator", "!!") return BANG_BANG; }
 
 "->"                    { LOG_LEXEM("symbol", "->"); return RARROW; }
 "<<"                    { LOG_LEXEM("symbol", "<<"); return OPEN_MANIFEST_ARRAY; }

@@ -518,3 +518,13 @@ mk_manifest_array(Json *manifest_array_content) {
 
     return manifest_array;
 }
+
+Json*
+mk_create(Json *constructor_call) {
+    Json *create = Json_new();
+
+    add_type_to_node(create, "create_stmt");
+    Json_add_object_to_object(create, "constructor_call", constructor_call);
+
+    return create;
+}

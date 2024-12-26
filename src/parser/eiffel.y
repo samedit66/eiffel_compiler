@@ -83,6 +83,8 @@
 
 %type <tree> class_list
 
+%type <tree> create_stmt
+
 %token INT_DIV MOD
 %token AND OR NOT AND_THEN OR_ELSE
 %token NEQ LE GE
@@ -103,6 +105,7 @@
 %token AS INHERIT REDEFINE RENAME UNDEFINE SELECT
 %token TRUE_KW FALSE_KW VOID
 %token OPEN_MANIFEST_ARRAY CLOSE_MANIFEST_ARRAY
+%token BANG_BANG
 
 %nonassoc FIELD
 %nonassoc ROUTINE
@@ -393,9 +396,17 @@ stmt: assign_stmt  { $$ = $1; }
     | loop_stmt    { $$ = $1; }
     | inspect_stmt { $$ = $1;}
     | call         { $$ = $1; }
+    | create_stmt  { $$ = $1; }
     | error ';'    { yyerrok; }
     | ';'          { $$ = mk_empty(); }
     ;
+
+
+/* ********************************************************************/
+/* Оператор создание объекта */
+create_stmt: CREATE call { $$ = mk_create($2); }
+           | BANG_BANG call { $$ = mk_create($2); }
+           ;
 
 
 /* ********************************************************************/
