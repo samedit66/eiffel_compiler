@@ -68,6 +68,10 @@ class CharacterType(ConcreteType):
     pass
 
 
+class Void(ConcreteType):
+    pass
+
+
 @dataclass
 class ArrayType(ConcreteType):
     elements_type: ConcreteType
