@@ -5,7 +5,7 @@ from dataclasses import (
     )
 
 from base import IdentifierList
-from features import Feature
+from features import FeatureList
 from type_decl import GenericType, ConcreteType
 
 
@@ -100,7 +100,7 @@ class CreateSection:
 
 @dataclass
 class FeatureSection:
-    features: list[Feature] = field(default_factory=list)
+    feature_list: FeatureList
 
     @classmethod
     def from_list(cls, feature_section: list) -> FeatureSection:
