@@ -554,8 +554,8 @@ manifest_tuple: '[' manifest_array_content_opt ']' { $$ = mk_manifest_tuple($2);
               ;
 
 /* Массив */
-manifest_array: OPEN_MANIFEST_ARRAY manifest_array_content_opt CLOSE_MANIFEST_ARRAY { $$ = $2; }
-              | OPEN_MANIFEST_ARRAY manifest_array_content ',' CLOSE_MANIFEST_ARRAY { $$ = $2; }
+manifest_array: OPEN_MANIFEST_ARRAY manifest_array_content_opt CLOSE_MANIFEST_ARRAY { $$ = mk_manifest_array($2); }
+              | OPEN_MANIFEST_ARRAY manifest_array_content ',' CLOSE_MANIFEST_ARRAY { $$ = mk_manifest_array($2); }
               ;
 
 /* Содержимое кортежа/массива */
@@ -600,8 +600,8 @@ expr: constant %prec LOWER_THAN_BRACKETS { $$ = $1; }
     | expr IMPLIES expr { $$ = mk_bin_op("implies_op", $1, $3); }
     | call %prec LOWER_THAN_BRACKETS { $$ = $1; }
     | bracket_access %prec LOWER_THAN_BRACKETS { $$ = $1; }
-    | manifest_tuple
-    | manifest_array { $$ = mk_manifest_array($1); }
+    | manifest_tuple { $$ = $1; }
+    | manifest_array { $$ = $1; }
     | if_expr { $$ = $1; }
     | '(' error ')' { yyerrok; }
     | create_expr { $$ = $1; }
