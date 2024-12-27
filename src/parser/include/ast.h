@@ -595,6 +595,16 @@ mk_manifest_array(Json *manifest_array_content);
 
 
 /**
+ * Создает узел manifest-кортежа
+ * 
+ * @param manifest_array_content Содержимое manifest-массива
+ * @return Узел manifest-массива
+ */
+Json*
+mk_manifest_tuple(Json *manifest_tuple_content);
+
+
+/**
  * Создает узел create-оператора
  * 
  * @param constructor_call Узел вызова конструктора

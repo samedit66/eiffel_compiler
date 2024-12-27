@@ -520,6 +520,16 @@ mk_manifest_array(Json *manifest_array_content) {
 }
 
 Json*
+mk_manifest_tuple(Json *manifest_tuple_content) {
+    Json *manifest_tuple = Json_new();
+
+    add_type_to_node(manifest_tuple, "manifest_tuple");
+    Json_add_array_to_object(manifest_tuple, "content", manifest_tuple_content);
+
+    return manifest_tuple;
+}
+
+Json*
 mk_create(Json *constructor_call) {
     Json *create = Json_new();
 

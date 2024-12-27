@@ -85,6 +85,8 @@
 
 %type <tree> create_stmt
 
+%type <tree> manifest_tuple
+
 %token INT_DIV MOD
 %token AND OR NOT AND_THEN OR_ELSE
 %token NEQ LE GE
@@ -122,6 +124,7 @@
 %left '*' '/' INT_DIV MOD
 %right '^'
 %nonassoc UMINUS UPLUS
+%nonassoc LOWER_THAN_BRACKETS
 %left '[' ']'
 %right '.'
 
@@ -343,6 +346,7 @@ require_part_opt: /* empty */ { $$ = mk_list(); }
                 ;
 
 require_part: REQUIRE condition_list { $$ = $2; }
+            | REQUIRE condition_list ';' { $$ = $2; }
             ;
 
 condition_list: condition { $$ = add_to_list(mk_list(), $1); }
@@ -378,6 +382,7 @@ ensure_part_opt: /* empty */ { $$ = mk_list(); }
                ;
 
 ensure_part: ENSURE condition_list { $$ = $2; }
+           | ENSURE condition_list ';' { $$ = $2; }
            ;
 
 
@@ -520,7 +525,7 @@ elseif_expr: ELSEIF expr THEN expr { $$ = mk_list(); $$ = add_elseif_expr($$, $2
 
 
 /* ********************************************************************/
-/* Описание выражений */
+/* Выражения и значения */
 
 /* Взятие элемента через квадратный скобки */
 bracket_access: call '[' expr ']' { $$ = mk_bracket_access($1, $3); }
@@ -541,10 +546,17 @@ constant: INT_CONST     { $$ = mk_int_const($1); }
         ;
 
 
+/* Кортеж */
+manifest_tuple: '[' manifest_array_content_opt ']' { $$ = mk_manifest_tuple($2); }
+              | '[' manifest_array_content ',' ']' { $$ = mk_manifest_tuple($2); }
+              ;
+
+/* Массив */
 manifest_array: OPEN_MANIFEST_ARRAY manifest_array_content_opt CLOSE_MANIFEST_ARRAY { $$ = $2; }
               | OPEN_MANIFEST_ARRAY manifest_array_content ',' CLOSE_MANIFEST_ARRAY { $$ = $2; }
               ;
 
+/* Содержимое кортежа/массива */
 manifest_array_content_opt: /* empty */ { $$ = mk_list(); }
                           | manifest_array_content { $$ = $1; }
                           ;
@@ -554,7 +566,7 @@ manifest_array_content: expr { $$ = add_to_list(mk_list(), $1); }
                       ;
 
 
-expr: constant { $$ = $1; }
+expr: constant %prec LOWER_THAN_BRACKETS { $$ = $1; }
     | expr '+' expr { $$ = mk_bin_op("add_op", $1, $3); }
     | expr '-' expr { $$ = mk_bin_op("sub_op", $1, $3); }       
     | expr '*' expr { $$ = mk_bin_op("mul_op", $1, $3); }       
@@ -578,10 +590,11 @@ expr: constant { $$ = $1; }
     | expr GE expr  { $$ = mk_bin_op("ge_op", $1, $3); }       
     | expr NEQ expr { $$ = mk_bin_op("neq_op", $1, $3); }       
     | expr IMPLIES expr { $$ = mk_bin_op("implies_op", $1, $3); }
-    | call { $$ = $1; }
-    | bracket_access { $$ = $1; }
-    | if_expr { $$ = $1; }
+    | call %prec LOWER_THAN_BRACKETS { $$ = $1; }
+    | bracket_access %prec LOWER_THAN_BRACKETS { $$ = $1; }
+    | manifest_tuple 
     | manifest_array { $$ = mk_manifest_array($1); }
+    | if_expr { $$ = $1; }
     | '(' error ')' { yyerrok; }
     ;
 %%
