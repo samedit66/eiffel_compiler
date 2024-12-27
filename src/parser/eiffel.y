@@ -87,6 +87,8 @@
 
 %type <tree> manifest_tuple
 
+%type <tree> create_expr
+
 %token INT_DIV MOD
 %token AND OR NOT AND_THEN OR_ELSE
 %token NEQ LE GE
@@ -566,6 +568,12 @@ manifest_array_content: expr { $$ = add_to_list(mk_list(), $1); }
                       ;
 
 
+/* create-выражение */
+create_expr: CREATE '{' IDENT_LIT '}' { $$ = mk_create_expr($3, mk_empty()); }
+           | CREATE '{' IDENT_LIT '}' '.' call { $$ = mk_create_expr($3, $6); }
+           ;
+
+
 expr: constant %prec LOWER_THAN_BRACKETS { $$ = $1; }
     | expr '+' expr { $$ = mk_bin_op("add_op", $1, $3); }
     | expr '-' expr { $$ = mk_bin_op("sub_op", $1, $3); }       
@@ -592,10 +600,11 @@ expr: constant %prec LOWER_THAN_BRACKETS { $$ = $1; }
     | expr IMPLIES expr { $$ = mk_bin_op("implies_op", $1, $3); }
     | call %prec LOWER_THAN_BRACKETS { $$ = $1; }
     | bracket_access %prec LOWER_THAN_BRACKETS { $$ = $1; }
-    | manifest_tuple 
+    | manifest_tuple
     | manifest_array { $$ = mk_manifest_array($1); }
     | if_expr { $$ = $1; }
     | '(' error ')' { yyerrok; }
+    | create_expr { $$ = $1; }
     ;
 %%
 
