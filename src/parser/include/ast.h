@@ -611,7 +611,7 @@ mk_manifest_tuple(Json *manifest_tuple_content);
  * @return Узел create-оператора 
  */
 Json*
-mk_create(Json *constructor_call);
+mk_create(char *type_name, Json *constructor_call);
 
 
 /**

@@ -530,10 +530,16 @@ mk_manifest_tuple(Json *manifest_tuple_content) {
 }
 
 Json*
-mk_create(Json *constructor_call) {
+mk_create(char *type_name, Json *constructor_call) {
     Json *create = Json_new();
 
     add_type_to_node(create, "create_stmt");
+    
+    if (type_name != NULL)
+        Json_add_string_to_object(create, "type_name", type_name);
+    else
+        Json_add_null_to_object(create, "type_name");
+
     Json_add_object_to_object(create, "constructor_call", constructor_call);
 
     return create;

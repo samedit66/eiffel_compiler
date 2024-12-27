@@ -411,8 +411,10 @@ stmt: assign_stmt  { $$ = $1; }
 
 /* ********************************************************************/
 /* Оператор создание объекта */
-create_stmt: CREATE call { $$ = mk_create($2); }
-           | BANG_BANG call { $$ = mk_create($2); }
+create_stmt: CREATE call                          { $$ = mk_create(NULL, $2); }
+           | CREATE '{' IDENT_LIT '}' '.' call    { $$ = mk_create($3, $6); }
+           | BANG_BANG call                       { $$ = mk_create(NULL, $2); }
+           | BANG_BANG '{' IDENT_LIT '}' '.' call { $$ = mk_create($3, $6); }
            ;
 
 
@@ -571,6 +573,8 @@ manifest_array_content: expr { $$ = add_to_list(mk_list(), $1); }
 /* create-выражение */
 create_expr: CREATE '{' IDENT_LIT '}' { $$ = mk_create_expr($3, mk_empty()); }
            | CREATE '{' IDENT_LIT '}' '.' call { $$ = mk_create_expr($3, $6); }
+           | BANG_BANG '{' IDENT_LIT '}' { $$ = mk_create_expr($3, mk_empty()); }
+           | BANG_BANG '{' IDENT_LIT '}' '.' call { $$ = mk_create_expr($3, $6); }
            ;
 
 
