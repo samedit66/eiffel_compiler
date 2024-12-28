@@ -40,14 +40,6 @@ class StringConst(ConstantValue):
     value: str
 
 
-class ResultConst(ConstantValue):
-    pass
-
-
-class CurrentConst(ConstantValue):
-    pass
-
-
 class TrueConst(ConstantValue):
     pass
 
@@ -68,6 +60,18 @@ class TupleConst(ConstantValue):
 @dataclass
 class ArrayConst(ConstantValue):
     values: ExpressionSequence
+
+
+class SpecialExpression(Expression, ABC):
+    pass
+
+
+class ResultConst(SpecialExpression):
+    pass
+
+
+class CurrentConst(SpecialExpression):
+    pass
 
 
 @dataclass
