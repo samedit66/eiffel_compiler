@@ -17,7 +17,7 @@ from expressions import (
 class Feature(ABC):
     
     @staticmethod
-    def from_dict(feature_dict: dict) -> Field | Constant | Method:
+    def from_dict(feature_dict: dict) -> Feature:
         match feature_dict["type"]:
             case "class_routine":
                 return Method.from_dict(feature_dict)
