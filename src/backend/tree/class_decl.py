@@ -103,8 +103,12 @@ class FeatureSection:
     feature_list: FeatureList
 
     @classmethod
-    def from_list(cls, feature_section: list) -> FeatureSection:
-        return cls()
+    def from_list(cls, features: list) -> FeatureSection:
+        feature_list = [
+            FeatureList.from_list(feature_clause)
+            for feature_clause in features
+        ]
+        return cls(feature_list)
     
 
 @dataclass

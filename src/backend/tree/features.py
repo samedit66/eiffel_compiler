@@ -15,7 +15,16 @@ from expressions import (
 
 
 class Feature(ABC):
-    pass
+    
+    @staticmethod
+    def from_dict(feature_dict: dict) -> Field | Constant | Method:
+        match feature_dict["type"]:
+            case "class_routine":
+                return Method.from_dict(feature_dict)
+            case "class_field":
+                return Field.from_dict(feature_dict)
+            case "class_constant":
+                return Constant.from_dict(feature_dict)
 
 
 @dataclass
@@ -51,7 +60,7 @@ class ParameterList:
 
     @classmethod
     def from_list(cls, params: list) -> ParameterList:
-        parameters = [Field.from_dict(param) for param in params]
+        parameters = [Parameter.from_dict(param) for param in params]
         return cls(parameters)
 
 
@@ -63,7 +72,7 @@ class LocalSection:
 
     @classmethod
     def from_list(cls, var_decls: list) -> LocalSection:
-        variables = [Field.from_dict(var_decl) for var_decl in var_decls]
+        variables = [VariableDecl.from_dict(var_decl) for var_decl in var_decls]
         return cls(variables)
 
 
@@ -94,8 +103,8 @@ class DoSection:
     body: StatementList
 
     @classmethod
-    def from_list(cls, do_dict: dict) -> DoSection:
-        return StatementList.from_list(do_dict["do"])
+    def from_list(cls, do_list: list) -> DoSection:
+        return StatementList.from_list(do_list)
 
 
 @dataclass
@@ -134,8 +143,35 @@ class Method(Feature):
         return_type = ConcreteType.from_dict(class_routine["name_and_type"]["field_type"])
         parameters = ParameterList.from_list(class_routine["params"])
 
+        routine_dict = class_routine["body"]
+        local_section = LocalSection.from_list(routine_dict["local"])
+        require_section = RequireSection.from_list(routine_dict["require"])
+        do_section = DoSection.from_list(routine_dict["do"])
+        then_section = ThenSection.from_dict(routine_dict["then"])
+        ensure_section = EnsureSection.from_list(routine_dict["ensure"])
+
+        return cls(
+            names_list,
+            return_type,
+            parameters,
+            local_section,
+            require_section,
+            do_section,
+            then_section,
+            ensure_section,
+            )
+
 
 @dataclass
 class FeatureList:
     clients: IdentifierList = field(default_factory=list)
     features: list[Feature] = field(default_factory=list)
+
+    @classmethod
+    def from_list(cls, feature_list: list) -> FeatureList:
+        clients = feature_list["clients"]
+        features = [
+            Feature.from_dict(feature_dict)
+            for feature_dict in feature_list["feature_list"]
+        ]
+        return cls(clients, features)
