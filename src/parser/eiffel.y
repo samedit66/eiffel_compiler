@@ -257,6 +257,7 @@ type: IDENT_LIT { $$ = mk_type($1); }
 generic_type: IDENT_LIT '[' type_list ']' { $$ = mk_generic_user_type($1, $3); }
             | ARRAY '[' type ']' { $$ = mk_generic_array_type(add_to_list(mk_list(), $3)); }
             | TUPLE '[' type_list ']' { $$ = mk_generic_tuple_type($3); }
+            | TUPLE {  }
             ;
 
 type_list: type { $$ = mk_list(); $$ = add_to_list($$, $1); }
@@ -411,10 +412,10 @@ stmt: assign_stmt  { $$ = $1; }
 
 /* ********************************************************************/
 /* Оператор создание объекта */
-create_stmt: CREATE call                          { $$ = mk_create(NULL, $2); }
-           | CREATE '{' IDENT_LIT '}' '.' call    { $$ = mk_create($3, $6); }
-           | BANG_BANG call                       { $$ = mk_create(NULL, $2); }
-           | BANG_BANG '{' IDENT_LIT '}' '.' call { $$ = mk_create($3, $6); }
+create_stmt: CREATE call                      { $$ = mk_create(NULL, $2); }
+           | CREATE '{' IDENT_LIT '}' call    { $$ = mk_create($3, $6); }
+           | BANG_BANG call                   { $$ = mk_create(NULL, $2); }
+           | BANG_BANG '{' IDENT_LIT '}' call { $$ = mk_create($3, $6); }
            ;
 
 
