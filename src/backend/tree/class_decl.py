@@ -127,3 +127,116 @@ class ClassDecl:
         create_section = CreateSection.from_list(class_decl["creators"])
         feature_section = FeatureSection.from_list(class_decl["features"])
         return cls(name, generic_list, inherit_section, create_section, feature_section)
+
+
+class_decl = {
+            "type": "class_decl",
+            "header": {
+                "name": "A",
+                "generics": []
+            },
+            "inheritance": [],
+            "creators": [],
+            "features": [
+                {
+                    "type": "feature_clause",
+                    "clients": [],
+                    "feature_list": [
+                        {
+                            "type": "class_routine",
+                            "name_and_type": {
+                                "field_type": {
+                                    "type": "type_spec",
+                                    "type_name": "Void"
+                                },
+                                "names": [
+                                    "m"
+                                ]
+                            },
+                            "params": [],
+                            "body": {
+                                "type": "routine_body",
+                                "local": [],
+                                "require": [
+                                    {
+                                        "type": "tagged_cond",
+                                        "cond": {
+                                            "type": "if_expr",
+                                            "cond": {
+                                                "type": "gt_op",
+                                                "left": {
+                                                    "type": "feature_call",
+                                                    "owner": {
+                                                        "type": "empty"
+                                                    },
+                                                    "feature": {
+                                                        "name": "a",
+                                                        "args_list": []
+                                                    }
+                                                },
+                                                "right": {
+                                                    "type": "feature_call",
+                                                    "owner": {
+                                                        "type": "empty"
+                                                    },
+                                                    "feature": {
+                                                        "name": "b",
+                                                        "args_list": []
+                                                    }
+                                                }
+                                            },
+                                            "then_expr": {
+                                                "type": "int_const",
+                                                "value": 1
+                                            },
+                                            "elseif_exprs": [
+                                                {
+                                                    "type": "elseif_expr",
+                                                    "cond": {
+                                                        "type": "gt_op",
+                                                        "left": {
+                                                            "type": "feature_call",
+                                                            "owner": {
+                                                                "type": "empty"
+                                                            },
+                                                            "feature": {
+                                                                "name": "b",
+                                                                "args_list": []
+                                                            }
+                                                        },
+                                                        "right": {
+                                                            "type": "feature_call",
+                                                            "owner": {
+                                                                "type": "empty"
+                                                            },
+                                                            "feature": {
+                                                                "name": "a",
+                                                                "args_list": []
+                                                            }
+                                                        }
+                                                    },
+                                                    "expr": {
+                                                        "type": "int_const",
+                                                        "value": 3
+                                                    }
+                                                }
+                                            ],
+                                            "else_expr": {
+                                                "type": "int_const",
+                                                "value": 5
+                                            }
+                                        }
+                                    }
+                                ],
+                                "do": [],
+                                "then": {
+                                    "type": "empty"
+                                },
+                                "ensure": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+print(ClassDecl.from_dict(class_decl))

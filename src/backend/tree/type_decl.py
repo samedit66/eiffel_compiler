@@ -26,6 +26,8 @@ class ConcreteType(Type, ABC):
                     return StringType()
                 case "CHARACTER":
                     return CharacterType()
+                case "Void":
+                    return VoidType()
                 case _:
                     return UserDefinedClassType(type_name)
         else: # type_dict["type"] == "generic_type_spec"
@@ -68,7 +70,7 @@ class CharacterType(ConcreteType):
     pass
 
 
-class Void(ConcreteType):
+class VoidType(ConcreteType):
     pass
 
 

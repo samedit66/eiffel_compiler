@@ -304,7 +304,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
     #endif
 
     BEGIN(INITIAL);
-    yylval.string_value = buf->buffer;
+    yylval.string_value = escape(buf->buffer);
     return STRING_CONST;
 }
 

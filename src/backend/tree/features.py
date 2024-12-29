@@ -13,6 +13,8 @@ from expressions import (
     ConstantValue,
 )
 
+from base import is_empty_node
+
 
 class Feature(ABC):
     
@@ -131,11 +133,11 @@ class Method(Feature):
     name: IdentifierList
     return_type: ConcreteType
     parameters: ParameterList
+    do_section: DoSection
     local_section: LocalSection
     require_section: RequireSection
-    do_section: DoSection
-    then_section: ThenSection
     ensure_section: EnsureSection
+    then_section: ThenSection | None = None
 
     @classmethod
     def from_dict(cls, class_routine: dict) -> Method:
@@ -144,21 +146,25 @@ class Method(Feature):
         parameters = ParameterList.from_list(class_routine["params"])
 
         routine_dict = class_routine["body"]
+
         local_section = LocalSection.from_list(routine_dict["local"])
         require_section = RequireSection.from_list(routine_dict["require"])
         do_section = DoSection.from_list(routine_dict["do"])
-        then_section = ThenSection.from_dict(routine_dict["then"])
+        then_section = (
+            None if is_empty_node(routine_dict["then"])
+            else ThenSection.from_dict(routine_dict["then"])
+            )
         ensure_section = EnsureSection.from_list(routine_dict["ensure"])
 
         return cls(
-            names_list,
-            return_type,
-            parameters,
-            local_section,
-            require_section,
-            do_section,
-            then_section,
-            ensure_section,
+            name=names_list,
+            return_type=return_type,
+            parameters=parameters,
+            do_section=do_section,
+            local_section=local_section,
+            require_section=require_section,
+            then_section=then_section,
+            ensure_section=ensure_section,
             )
 
 
