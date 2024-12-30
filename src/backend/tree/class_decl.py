@@ -1,15 +1,12 @@
 from __future__ import annotations
-from dataclasses import (
-    dataclass,
-    field,
-    )
+from dataclasses import dataclass
 
-from base import IdentifierList
-from features import FeatureList
-from type_decl import GenericType, ConcreteType
+from tree.base import IdentifierList
+from tree.features import FeatureList
+from tree.type_decl import GenericType, ConcreteType
 
 
-@dataclass
+@dataclass(match_args=True)
 class Alias:
     original_name: str
     alias_name: str
@@ -19,9 +16,9 @@ class Alias:
         return cls(alias_dict["original_name"], alias_dict["alias_name"])
 
 
-@dataclass
+@dataclass(match_args=True)
 class RenameSection:
-    aliases: list[Alias] = field(default_factory=list)
+    aliases: list[Alias]
 
     @classmethod
     def from_list(cls, aliases_list: list) -> RenameSection:
@@ -29,24 +26,24 @@ class RenameSection:
         return cls(aliases)
 
 
-@dataclass
+@dataclass(match_args=True)
 class UndefineSection:
-    features: IdentifierList = field(default_factory=list)
+    features: IdentifierList
 
 
-@dataclass
+@dataclass(match_args=True)
 class RedefineSection:
-    features: IdentifierList = field(default_factory=list)
+    features: IdentifierList
 
 
-@dataclass
+@dataclass(match_args=True)
 class SelectSection:
-    features: IdentifierList = field(default_factory=list)
+    features: IdentifierList
 
 
-@dataclass
+@dataclass(match_args=True)
 class GenericList:
-    generics: list[GenericType] = field(default_factory=list)
+    generics: list[GenericType]
 
     @classmethod
     def from_list(cls, generics_list: list) -> GenericList:
@@ -59,7 +56,7 @@ class GenericList:
         return cls(generics)
 
 
-@dataclass
+@dataclass(match_args=True)
 class Inheritance:
     class_name: str
     generic_list: GenericList
@@ -79,9 +76,9 @@ class Inheritance:
         return cls(class_name, generic_list, rename_section, undefine_section, redefine_section, select_section)
 
 
-@dataclass
+@dataclass(match_args=True)
 class InheritSection:
-    ancestors: list[Inheritance] = field(default_factory=list)
+    ancestors: list[Inheritance]
 
     @classmethod
     def from_list(cls, inherit_section: list) -> InheritSection:
@@ -89,16 +86,16 @@ class InheritSection:
         return cls(ancestors)
 
 
-@dataclass
+@dataclass(match_args=True)
 class CreateSection:
-    constructors: IdentifierList = field(default_factory=list)
+    constructors: IdentifierList
 
     @classmethod
     def from_list(cls, constructors: IdentifierList) -> CreateSection:
         return cls(constructors)
 
 
-@dataclass
+@dataclass(match_args=True)
 class FeatureSection:
     feature_list: FeatureList
 
@@ -111,7 +108,7 @@ class FeatureSection:
         return cls(feature_list)
     
 
-@dataclass
+@dataclass(match_args=True)
 class ClassDecl:
     name: str
     generic_list: GenericList
@@ -127,116 +124,3 @@ class ClassDecl:
         create_section = CreateSection.from_list(class_decl["creators"])
         feature_section = FeatureSection.from_list(class_decl["features"])
         return cls(name, generic_list, inherit_section, create_section, feature_section)
-
-
-class_decl = {
-            "type": "class_decl",
-            "header": {
-                "name": "A",
-                "generics": []
-            },
-            "inheritance": [],
-            "creators": [],
-            "features": [
-                {
-                    "type": "feature_clause",
-                    "clients": [],
-                    "feature_list": [
-                        {
-                            "type": "class_routine",
-                            "name_and_type": {
-                                "field_type": {
-                                    "type": "type_spec",
-                                    "type_name": "Void"
-                                },
-                                "names": [
-                                    "m"
-                                ]
-                            },
-                            "params": [],
-                            "body": {
-                                "type": "routine_body",
-                                "local": [],
-                                "require": [
-                                    {
-                                        "type": "tagged_cond",
-                                        "cond": {
-                                            "type": "if_expr",
-                                            "cond": {
-                                                "type": "gt_op",
-                                                "left": {
-                                                    "type": "feature_call",
-                                                    "owner": {
-                                                        "type": "empty"
-                                                    },
-                                                    "feature": {
-                                                        "name": "a",
-                                                        "args_list": []
-                                                    }
-                                                },
-                                                "right": {
-                                                    "type": "feature_call",
-                                                    "owner": {
-                                                        "type": "empty"
-                                                    },
-                                                    "feature": {
-                                                        "name": "b",
-                                                        "args_list": []
-                                                    }
-                                                }
-                                            },
-                                            "then_expr": {
-                                                "type": "int_const",
-                                                "value": 1
-                                            },
-                                            "elseif_exprs": [
-                                                {
-                                                    "type": "elseif_expr",
-                                                    "cond": {
-                                                        "type": "gt_op",
-                                                        "left": {
-                                                            "type": "feature_call",
-                                                            "owner": {
-                                                                "type": "empty"
-                                                            },
-                                                            "feature": {
-                                                                "name": "b",
-                                                                "args_list": []
-                                                            }
-                                                        },
-                                                        "right": {
-                                                            "type": "feature_call",
-                                                            "owner": {
-                                                                "type": "empty"
-                                                            },
-                                                            "feature": {
-                                                                "name": "a",
-                                                                "args_list": []
-                                                            }
-                                                        }
-                                                    },
-                                                    "expr": {
-                                                        "type": "int_const",
-                                                        "value": 3
-                                                    }
-                                                }
-                                            ],
-                                            "else_expr": {
-                                                "type": "int_const",
-                                                "value": 5
-                                            }
-                                        }
-                                    }
-                                ],
-                                "do": [],
-                                "then": {
-                                    "type": "empty"
-                                },
-                                "ensure": []
-                            }
-                        }
-                    ]
-                }
-            ]
-        }
-print(ClassDecl.from_dict(class_decl))

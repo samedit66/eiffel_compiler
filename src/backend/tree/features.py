@@ -1,35 +1,37 @@
 from __future__ import annotations
 from abc import ABC
-from dataclasses import (
-    dataclass,
-    field,
-)
+from dataclasses import dataclass
 
-from base import IdentifierList
-from type_decl import ConcreteType
-from statements import StatementList
-from expressions import (
+from tree.base import (
+    IdentifierList,
+    UnknownNodeTypeError,
+    is_empty_node,
+    )
+from tree.type_decl import ConcreteType
+from tree.statements import StatementList
+from tree.expressions import (
     Expression,
     ConstantValue,
-)
-
-from base import is_empty_node
+    )
 
 
 class Feature(ABC):
     
     @staticmethod
     def from_dict(feature_dict: dict) -> Feature:
-        match feature_dict["type"]:
+        node_type = feature_dict["type"]
+        match node_type:
             case "class_routine":
                 return Method.from_dict(feature_dict)
             case "class_field":
                 return Field.from_dict(feature_dict)
             case "class_constant":
                 return Constant.from_dict(feature_dict)
+            case _:
+                raise UnknownNodeTypeError(f"Unknown feature type: {node_type}")
 
 
-@dataclass
+@dataclass(match_args=True)
 class Field(Feature):
     names_list: IdentifierList
     value_type: ConcreteType
@@ -41,7 +43,7 @@ class Field(Feature):
         return cls(names_list, value_type)
 
 
-@dataclass
+@dataclass(match_args=True)
 class Constant(Feature):
     name: IdentifierList
     constant_type: ConcreteType
@@ -51,14 +53,25 @@ class Constant(Feature):
     def from_dict(cls, class_field: dict) -> Constant:
         names_list = class_field["name_and_type"]["names"]
         value_type = ConcreteType.from_dict(class_field["name_and_type"]["field_type"])
-        return cls(names_list, value_type)
+        constant_value = Expression.from_dict(class_field["constant_value"])
+        return cls(names_list, value_type, constant_value)
 
 
-type Parameter = Field
+@dataclass(match_args=True)
+class Parameter:
+    names: IdentifierList
+    parameter_type: ConcreteType
 
-@dataclass
+    @classmethod
+    def from_dict(cls, parameter_dict: dict) -> Parameter:
+        names = parameter_dict["names"]
+        parameter_type = ConcreteType.from_dict(parameter_dict["field_type"])
+        return cls(names, parameter_type)
+
+
+@dataclass(match_args=True)
 class ParameterList:
-    parameters: list[Parameter] = field(default_factory=list)
+    parameters: list[Parameter]
 
     @classmethod
     def from_list(cls, params: list) -> ParameterList:
@@ -68,17 +81,17 @@ class ParameterList:
 
 type VariableDecl = Field
 
-@dataclass
+@dataclass(match_args=True)
 class LocalSection:
-    variables: list[VariableDecl] = field(default_factory=list)
+    variables: list[VariableDecl]
 
     @classmethod
     def from_list(cls, var_decls: list) -> LocalSection:
-        variables = [VariableDecl.from_dict(var_decl) for var_decl in var_decls]
+        variables = [Field.from_dict(var_decl) for var_decl in var_decls]
         return cls(variables)
 
 
-@dataclass
+@dataclass(match_args=True)
 class Condition:
     condition_expr: Expression
     tag: str | None = None
@@ -90,9 +103,9 @@ class Condition:
         return cls(condition_expr, tag)
 
 
-@dataclass
+@dataclass(match_args=True)
 class RequireSection:
-    conditions: list[Condition] = field(default_factory=list)
+    conditions: list[Condition]
 
     @classmethod
     def from_list(cls, cond_list: list) -> RequireSection:
@@ -100,7 +113,7 @@ class RequireSection:
         return cls(conditions)
 
 
-@dataclass
+@dataclass(match_args=True)
 class DoSection:
     body: StatementList
 
@@ -109,7 +122,7 @@ class DoSection:
         return StatementList.from_list(do_list)
 
 
-@dataclass
+@dataclass(match_args=True)
 class ThenSection:
     result_expr: Expression
 
@@ -118,9 +131,9 @@ class ThenSection:
         return cls(Expression.from_dict(expr_dict))
 
 
-@dataclass
+@dataclass(match_args=True)
 class EnsureSection:
-    conditions: list[Condition] = field(default_factory=list)
+    conditions: list[Condition]
 
     @classmethod
     def from_list(cls, cond_list: list) -> EnsureSection:
@@ -128,7 +141,7 @@ class EnsureSection:
         return cls(conditions)
 
 
-@dataclass
+@dataclass(match_args=True)
 class Method(Feature):
     name: IdentifierList
     return_type: ConcreteType
@@ -168,10 +181,10 @@ class Method(Feature):
             )
 
 
-@dataclass
+@dataclass(match_args=True)
 class FeatureList:
-    clients: IdentifierList = field(default_factory=list)
-    features: list[Feature] = field(default_factory=list)
+    clients: IdentifierList
+    features: list[Feature]
 
     @classmethod
     def from_list(cls, feature_list: list) -> FeatureList:

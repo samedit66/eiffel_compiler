@@ -9,8 +9,8 @@ class Type(ABC):
 
 class ConcreteType(Type, ABC):
     
-    @classmethod
-    def from_dict(cls, type_dict: dict) -> ConcreteType:
+    @staticmethod
+    def from_dict(type_dict: dict) -> ConcreteType:
         node_type = type_dict["type"]
         type_name = type_dict["type_name"]
 
@@ -29,7 +29,7 @@ class ConcreteType(Type, ABC):
                 case "Void":
                     return VoidType()
                 case _:
-                    return UserDefinedClassType(type_name)
+                    return UserDefinedClassType(type_name, [])
         else: # type_dict["type"] == "generic_type_spec"
             type_list = type_dict["type_list"]
 
@@ -44,10 +44,10 @@ class ConcreteType(Type, ABC):
                 return UserDefinedClassType(type_name, type_list)
 
 
-@dataclass
+@dataclass(match_args=True)
 class GenericType(Type):
     name: str
-    required_ancestor: ConcreteType | None = None
+    required_ancestor: ConcreteType | None
 
 
 class IntegerType(ConcreteType):
@@ -74,17 +74,17 @@ class VoidType(ConcreteType):
     pass
 
 
-@dataclass
+@dataclass(match_args=True)
 class ArrayType(ConcreteType):
     elements_type: ConcreteType
 
 
-@dataclass
+@dataclass(match_args=True)
 class TupleType(ConcreteType):
     type_list: list[ConcreteType]
 
 
-@dataclass
+@dataclass(match_args=True)
 class UserDefinedClassType(ConcreteType):
     name: str
-    type_list: list[ConcreteType] = field(default_factory=list)
+    type_list: list[ConcreteType]

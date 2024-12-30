@@ -413,9 +413,9 @@ stmt: assign_stmt  { $$ = $1; }
 /* ********************************************************************/
 /* Оператор создание объекта */
 create_stmt: CREATE call                      { $$ = mk_create(NULL, $2); }
-           | CREATE '{' IDENT_LIT '}' call    { $$ = mk_create($3, $6); }
+           | CREATE '{' IDENT_LIT '}' call    { $$ = mk_create($3, $5); }
            | BANG_BANG call                   { $$ = mk_create(NULL, $2); }
-           | BANG_BANG '{' IDENT_LIT '}' call { $$ = mk_create($3, $6); }
+           | BANG_BANG '{' IDENT_LIT '}' call { $$ = mk_create($3, $5); }
            ;
 
 

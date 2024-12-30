@@ -1,22 +1,11 @@
 from __future__ import annotations
 from abc import ABC
-from dataclasses import (
-    dataclass,
-    field,
-)
+from dataclasses import dataclass
 
-from base import is_empty_node
-
-
-class UnknownExpressionTypeError(ValueError):
-    pass
+from tree.base import UnknownNodeTypeError, is_empty_node
 
 
 class Expression(ABC):
-
-    @staticmethod
-    def from_unary_op_dict(unary_op_dict: dict) -> UnaryOp | None:
-        ...
 
     @staticmethod
     def from_dict(expr_dict: dict) -> Expression:
@@ -50,6 +39,8 @@ class Expression(ABC):
                 return BracketAccess.from_dict(expr_dict)
             case "if_expr":
                 return IfExpr.from_dict(expr_dict)
+            case "create_expr":
+                return CreateExpr.from_dict(expr_dict)
             case _:
                 try_bin_op = BinaryOp.from_dict(expr_dict)
                 if try_bin_op is not None:
@@ -59,7 +50,7 @@ class Expression(ABC):
                 if unary_bin_op is not None:
                     return unary_bin_op
 
-                raise UnknownExpressionTypeError(f"Unknown expression type: {expr_type}")
+                raise UnknownNodeTypeError(f"Unknown expression type: {expr_type}")
     
 
 type ExpressionSequence = list[Expression]
@@ -69,22 +60,22 @@ class ConstantValue(Expression, ABC):
     pass
 
 
-@dataclass
+@dataclass(match_args=True)
 class IntegerConst(ConstantValue):
     value: int
 
 
-@dataclass
+@dataclass(match_args=True)
 class RealConst(ConstantValue):
     value: float
 
 
-@dataclass
+@dataclass(match_args=True)
 class CharacterConst(ConstantValue):
     value: str
 
 
-@dataclass
+@dataclass(match_args=True)
 class StringConst(ConstantValue):
     value: str
 
@@ -110,7 +101,7 @@ class VoidConst(ConstantValue):
     pass
 
 
-@dataclass
+@dataclass(match_args=True)
 class TupleLiteral(Expression):
     values: ExpressionSequence
 
@@ -120,7 +111,7 @@ class TupleLiteral(Expression):
         return cls(values)
 
 
-@dataclass
+@dataclass(match_args=True)
 class ArrayLiteral(Expression):
     values: ExpressionSequence
 
@@ -138,10 +129,10 @@ class CurrentConst(Expression):
     pass
 
 
-@dataclass
+@dataclass(match_args=True)
 class FeatureCall(Expression):
     feature_name: str
-    arguments: ExpressionSequence = field(default_factory=list)
+    arguments: ExpressionSequence
     owner: Expression | None = None
 
     @classmethod
@@ -152,9 +143,9 @@ class FeatureCall(Expression):
         return cls(name, arguments, owner)
 
 
-@dataclass
+@dataclass(match_args=True)
 class PrecursorCall(Expression):
-    arguments: ExpressionSequence = field(default_factory=list)
+    arguments: ExpressionSequence
 
     @classmethod
     def from_dict(cls, precursor_call: dict) -> PrecursorCall:
@@ -162,7 +153,7 @@ class PrecursorCall(Expression):
         return cls(arguments)
 
 
-@dataclass
+@dataclass(match_args=True)
 class CreateExpr(Expression):
     type_name: str
     constructor_call: FeatureCall | None = None
@@ -177,7 +168,7 @@ class CreateExpr(Expression):
         return cls(type_name, constructor_call)
 
 
-@dataclass
+@dataclass(match_args=True)
 class ElseifExprBranch(Expression):
     condition: Expression
     expr: Expression
@@ -189,12 +180,12 @@ class ElseifExprBranch(Expression):
         return ElseifExprBranch(condition, expr)
 
 
-@dataclass
+@dataclass(match_args=True)
 class IfExpr(Expression):
     condition: Expression
     then_expr: Expression
     else_expr: Expression
-    elseif_exprs: list[ElseifExprBranch] = field(default_factory=list)
+    elseif_exprs: list[ElseifExprBranch]
 
     @classmethod
     def from_dict(cls, if_expr_dict: dict) -> IfExpr:
@@ -202,10 +193,10 @@ class IfExpr(Expression):
         then_expr = Expression.from_dict(if_expr_dict["then_expr"])
         elseif_exprs = [ElseifExprBranch.from_dict(elseif_expr) for elseif_expr in if_expr_dict["elseif_exprs"]]
         else_expr = Expression.from_dict(if_expr_dict["else_expr"])
-        return cls(condition, then_expr, elseif_exprs, else_expr)
+        return cls(condition, then_expr, else_expr, elseif_exprs)
 
 
-@dataclass
+@dataclass(match_args=True)
 class BracketAccess(Expression):
     indexed_expr: Expression
     indices: ExpressionSequence
@@ -225,7 +216,7 @@ class BracketAccess(Expression):
         return cls(source, indices)
 
 
-@dataclass
+@dataclass(match_args=True)
 class BinaryOp(ABC):
     left: Expression
     right: Expression
@@ -281,10 +272,10 @@ class BinaryOp(ABC):
             case "ge_op":
                 return GeOp(left, right)
             case _:
-                raise UnknownExpressionTypeError(f"Unknown binary expression type: {node_type}")
+                raise UnknownNodeTypeError(f"Unknown binary expression type: {node_type}")
 
 
-@dataclass
+@dataclass(match_args=True)
 class UnaryOp(ABC):
     argument: Expression
 
@@ -303,7 +294,7 @@ class UnaryOp(ABC):
             case "not_op":
                 return NotOp(argument)
             case _:
-                raise UnknownExpressionTypeError(f"Unknown unary expression type: {node_type}")
+                raise UnknownNodeTypeError(f"Unknown unary expression type: {node_type}")
 
 
 class AddOp(BinaryOp):
