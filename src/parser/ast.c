@@ -2,6 +2,7 @@
 #include "./eiffel.tab.h"
 
 extern YYLTYPE current_node_loc;
+extern char *current_file_name; // В файле eiffel.y
 
 Json*
 mk_current_loc_info() {
@@ -363,6 +364,13 @@ mk_class_decl(Json *header, Json *inheritance, Json *creators, Json *features) {
     Json_add_array_to_object(class_decl, "inheritance", inheritance);
     Json_add_array_to_object(class_decl, "creators", creators);
     Json_add_array_to_object(class_decl, "features", features);
+
+    // Костыль для проброса метаданных о том, в каком файле объявлен класс
+    Json_add_string_to_object(
+        class_decl,
+        "file_name",
+        current_file_name == NULL ? "stdin" : current_file_name
+        );
 
     return class_decl;
 }

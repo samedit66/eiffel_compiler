@@ -14,14 +14,14 @@
     void yyerror(const char *str);
 
     int errors_count = 0;
+
+    char *current_file_name = NULL;
     Json *found_classes = NULL;
 
     #define YYDEBUG 1
-
     #define LOG_NODE(msg) printf("Found node: %s\n", msg)
 
     struct YYLTYPE current_node_loc;
-
     #define YYLLOC_DEFAULT(Current, Rhs, N)\
         do {\
             if (N) {\
@@ -689,6 +689,7 @@ parse_files(int files_count, char **file_names) {
             continue;
         }
 
+        current_file_name = file_names[i];
         yyrestart(eiffel_file);
         yyparse();
     }
