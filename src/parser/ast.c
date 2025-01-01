@@ -1,8 +1,27 @@
 #include "./include/json.h"
+#include "./eiffel.tab.h"
 
+extern YYLTYPE current_node_loc;
+
+Json*
+mk_current_loc_info() {
+    Json *loc = Json_new();
+
+    Json_add_int_to_object(loc, "first_line", current_node_loc.first_line);
+    Json_add_int_to_object(loc, "first_column", current_node_loc.first_column);
+    Json_add_int_to_object(loc, "last_line", current_node_loc.last_line);
+    Json_add_int_to_object(loc, "last_column", current_node_loc.last_column);
+
+    return loc;
+}
+
+// В качестве "костыля" помимо задания типа для узла,
+// данный метод добавляет позицию, на которой узел был найден.
+// В нормальной реализации было бы неплохо завести конструктор для создания узлов
 void
 add_type_to_node(Json *node, char *type_name) {
     Json_add_string_to_object(node, "type", type_name);
+    Json_add_object_to_object(node, "location", mk_current_loc_info());
 }
 
 Json*
