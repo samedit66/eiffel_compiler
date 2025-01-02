@@ -2,7 +2,7 @@
 #include "./eiffel.tab.h"
 
 extern YYLTYPE current_node_loc;
-extern char *current_file_name; // В файле eiffel.y
+extern char *current_file_path; // В файле eiffel.y
 
 Json*
 mk_current_loc_info() {
@@ -270,6 +270,7 @@ mk_inspect_stmt(Json *expr, Json *when_clauses, Json *else_stmt_list) {
 Json*
 add_alt_when_clause(Json *when_clauses, Json *choices, Json *body) {
     Json *when_stmt = Json_new();
+    add_type_to_node(when_stmt, "when_clause");
     Json_add_array_to_object(when_stmt, "choices", choices);
     Json_add_array_to_object(when_stmt, "body", body);
     Json_add_object_to_array(when_clauses, when_stmt);
@@ -368,8 +369,8 @@ mk_class_decl(Json *header, Json *inheritance, Json *creators, Json *features) {
     // Костыль для проброса метаданных о том, в каком файле объявлен класс
     Json_add_string_to_object(
         class_decl,
-        "file_name",
-        current_file_name == NULL ? "stdin" : current_file_name
+        "file_path",
+        current_file_path == NULL ? "stdin" : current_file_path
         );
 
     return class_decl;
@@ -581,4 +582,14 @@ mk_create_expr(char *type_name, Json *constructor_call) {
     Json_add_object_to_object(create_expr, "constructor_call", constructor_call);
 
     return create_expr;
+}
+
+Json*
+mk_feature_parameter(Json *name_and_type) {
+    Json *parameter = Json_new();
+
+    add_type_to_node(parameter, "parameter");
+    Json_add_object_to_object(parameter, "name_and_type", name_and_type);
+
+    return parameter;
 }

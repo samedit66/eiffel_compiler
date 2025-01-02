@@ -4,10 +4,12 @@ from dataclasses import dataclass
 
 from tree.base import (
     IdentifierList,
+    Location,
+    Node,
     UnknownNodeTypeError,
     is_empty_node,
     )
-from tree.type_decl import ConcreteType
+from tree.type_decl import TypeDecl
 from tree.statements import StatementList
 from tree.expressions import (
     Expression,
@@ -15,7 +17,7 @@ from tree.expressions import (
     )
 
 
-class Feature(ABC):
+class Feature(Node, ABC):
     
     @staticmethod
     def from_dict(feature_dict: dict) -> Feature:
@@ -34,39 +36,43 @@ class Feature(ABC):
 @dataclass(match_args=True)
 class Field(Feature):
     names_list: IdentifierList
-    value_type: ConcreteType
+    value_type: TypeDecl
 
     @classmethod
     def from_dict(cls, class_field: dict) -> Field:
+        location = Location.from_dict(class_field["location"])
         names_list = class_field["name_and_type"]["names"]
-        value_type = ConcreteType.from_dict(class_field["name_and_type"]["field_type"])
-        return cls(names_list, value_type)
+        value_type = TypeDecl.from_dict(class_field["name_and_type"]["field_type"])
+        return cls(location, names_list, value_type)
 
 
 @dataclass(match_args=True)
 class Constant(Feature):
     name: IdentifierList
-    constant_type: ConcreteType
+    constant_type: TypeDecl
     constant_value: ConstantValue
 
     @classmethod
-    def from_dict(cls, class_field: dict) -> Constant:
-        names_list = class_field["name_and_type"]["names"]
-        value_type = ConcreteType.from_dict(class_field["name_and_type"]["field_type"])
-        constant_value = Expression.from_dict(class_field["constant_value"])
-        return cls(names_list, value_type, constant_value)
+    def from_dict(cls, class_constant: dict) -> Constant:
+        location = Location.from_dict(class_constant["location"])
+        names_list = class_constant["name_and_type"]["names"]
+        value_type = TypeDecl.from_dict(class_constant["name_and_type"]["field_type"])
+        constant_value = Expression.from_dict(class_constant["constant_value"])
+        return cls(location, names_list, value_type, constant_value)
 
 
 @dataclass(match_args=True)
-class Parameter:
+class Parameter(Node):
     names: IdentifierList
-    parameter_type: ConcreteType
+    parameter_type: TypeDecl
 
     @classmethod
     def from_dict(cls, parameter_dict: dict) -> Parameter:
-        names = parameter_dict["names"]
-        parameter_type = ConcreteType.from_dict(parameter_dict["field_type"])
-        return cls(names, parameter_type)
+        location = Location.from_dict(parameter_dict["location"])
+        name_and_type = parameter_dict["name_and_type"]
+        names = name_and_type["names"]
+        parameter_type = TypeDecl.from_dict(name_and_type["field_type"])
+        return cls(location, names, parameter_type)
 
 
 @dataclass(match_args=True)
@@ -92,15 +98,16 @@ class LocalSection:
 
 
 @dataclass(match_args=True)
-class Condition:
+class Condition(Node):
     condition_expr: Expression
     tag: str | None = None
 
     @classmethod
     def from_dict(cls, cond_dict: dict) -> Condition:
+        location = Location.from_dict(cond_dict["location"])
         condition_expr = Expression.from_dict(cond_dict["cond"])
         tag = cond_dict.get("tag")
-        return cls(condition_expr, tag)
+        return cls(location, condition_expr, tag)
 
 
 @dataclass(match_args=True)
@@ -119,7 +126,7 @@ class DoSection:
 
     @classmethod
     def from_list(cls, do_list: list) -> DoSection:
-        return StatementList.from_list(do_list)
+        return cls(StatementList.from_list(do_list))
 
 
 @dataclass(match_args=True)
@@ -144,7 +151,7 @@ class EnsureSection:
 @dataclass(match_args=True)
 class Method(Feature):
     name: IdentifierList
-    return_type: ConcreteType
+    return_type: TypeDecl
     parameters: ParameterList
     do_section: DoSection
     local_section: LocalSection
@@ -154,8 +161,10 @@ class Method(Feature):
 
     @classmethod
     def from_dict(cls, class_routine: dict) -> Method:
+        location = Location.from_dict(class_routine["location"])
+
         names_list = class_routine["name_and_type"]["names"]
-        return_type = ConcreteType.from_dict(class_routine["name_and_type"]["field_type"])
+        return_type = TypeDecl.from_dict(class_routine["name_and_type"]["field_type"])
         parameters = ParameterList.from_list(class_routine["params"])
 
         routine_dict = class_routine["body"]
@@ -170,6 +179,7 @@ class Method(Feature):
         ensure_section = EnsureSection.from_list(routine_dict["ensure"])
 
         return cls(
+            location=location,
             name=names_list,
             return_type=return_type,
             parameters=parameters,

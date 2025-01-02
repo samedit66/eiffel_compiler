@@ -7,10 +7,14 @@ from tree.expressions import (
     FeatureCall,
     UnknownNodeTypeError,
     )
-from tree.base import is_empty_node
+from tree.base import (
+    Location,
+    Node,
+    is_empty_node,
+    )
 
 
-class Statement(ABC):
+class Statement(Node, ABC):
     
     @staticmethod
     def from_dict(stmt_dict: dict) -> Statement:
@@ -32,11 +36,14 @@ class Statement(ABC):
                 raise UnknownNodeTypeError(f"Unknown statement type: {node_type}")
             
 
+@dataclass(match_args=True)
 class StatementList:
-    
-    @staticmethod
-    def from_list(stmts_list: list) -> list[Statement]:
-        return [Statement.from_dict(stmt) for stmt in stmts_list if not is_empty_node(stmt)]
+    statements: list[Statement]
+
+    @classmethod
+    def from_list(cls, stmts_list: list) -> StatementList:
+        statements = [Statement.from_dict(stmt) for stmt in stmts_list if not is_empty_node(stmt)]
+        return cls(statements)
 
 
 @dataclass(match_args=True)
@@ -46,30 +53,32 @@ class FieldName:
 
 @dataclass(match_args=True)
 class Assignment(Statement):
-    location: Expression
+    target: Expression | FieldName
     value: Expression
 
     @classmethod
     def from_dict(cls, assignment_dict: dict) -> Assignment:
-        location_node = assignment_dict["left"]
-        if location_node["type"] == "ident_lit":
-            location = FieldName(location_node["value"])
+        location = Location.from_dict(assignment_dict["location"])
+        target_node = assignment_dict["left"]
+        if target_node["type"] == "ident_lit":
+            target = FieldName(target_node["value"])
         else: # BracketAccess или Result
-            location = Expression.from_dict(location_node)
+            target = Expression.from_dict(target_node)
         value = Expression.from_dict(assignment_dict["right"])
-        return cls(location, value)
+        return cls(location, target, value)
 
 
 @dataclass(match_args=True)
-class ElseifStmtBranch:
+class ElseifStmtBranch(Statement):
     condition: Expression
     body: StatementList
 
     @classmethod
     def from_dict(cls, elseif_stmt_dict: dict) -> ElseifStmtBranch:
+        location = Location.from_dict(elseif_stmt_dict["location"])
         condition = Expression.from_dict(elseif_stmt_dict["cond"])
         body = StatementList.from_list(elseif_stmt_dict["body"])
-        return cls(condition, body)
+        return cls(location, condition, body)
 
 
 @dataclass(match_args=True)
@@ -81,6 +90,7 @@ class IfStmt(Statement):
 
     @classmethod
     def from_dict(cls, if_stmt_dict: dict) -> IfStmt:
+        location = Location.from_dict(if_stmt_dict["location"])
         condition = Expression.from_dict(if_stmt_dict["cond"])
         then_stmt = StatementList.from_list(if_stmt_dict["then_clause"])
         elseif_stmts = [
@@ -88,7 +98,7 @@ class IfStmt(Statement):
             for elseif_stmt in if_stmt_dict["elseif_clauses"]
             ]
         else_stmt = StatementList.from_list(if_stmt_dict["else_clause"])
-        return cls(condition, then_stmt, elseif_stmts, else_stmt)
+        return cls(location, condition, then_stmt, elseif_stmts, else_stmt)
 
 
 @dataclass(match_args=True)
@@ -99,10 +109,11 @@ class LoopStmt(Statement):
 
     @classmethod
     def from_dict(cls, loop_dict: dict) -> LoopStmt:
+        location = Location.from_dict(loop_dict["location"])
         init_stmts = StatementList.from_list(loop_dict["init"])
         until_cond = Expression.from_dict(loop_dict["cond"])
         body = StatementList.from_list(loop_dict["body"])
-        return cls(init_stmts, until_cond, body)
+        return cls(location, init_stmts, until_cond, body)
 
 
 class Choice(ABC):
@@ -140,9 +151,10 @@ class WhenSection(Statement):
 
     @classmethod
     def from_dict(cls, when_section_dict: dict) -> WhenSection:
+        location = Location.from_dict(when_section_dict["location"])
         choices = [Choice.from_dict(choice) for choice in when_section_dict["choices"]]
         body = StatementList.from_list(when_section_dict["body"])
-        return cls(choices, body)
+        return cls(location, choices, body)
     
     
 @dataclass(match_args=True)
@@ -153,10 +165,11 @@ class InspectStmt(Statement):
 
     @classmethod
     def from_dict(cls, inspect_stmt_dict: dict) -> InspectStmt:
+        location = Location.from_dict(inspect_stmt_dict["location"])
         expr = Expression.from_dict(inspect_stmt_dict["expr"])
         when_sections = [WhenSection.from_dict(when) for when in inspect_stmt_dict["when_clauses"]]
         else_section = StatementList.from_list(inspect_stmt_dict["else_clause"])
-        return cls(expr, when_sections, else_section)
+        return cls(location, expr, when_sections, else_section)
 
 
 @dataclass(match_args=True)
@@ -165,8 +178,9 @@ class RoutineCall(Statement):
 
     @classmethod
     def from_dict(cls, feature_call: dict) -> RoutineCall:
+        location = Location.from_dict(feature_call["location"])
         feature_call = FeatureCall.from_dict(feature_call)
-        return cls(feature_call)
+        return cls(location, feature_call)
 
 
 @dataclass(match_args=True)
@@ -176,6 +190,7 @@ class CreateStmt(Statement):
 
     @classmethod
     def from_dict(cls, create_stmt_dict: dict) -> CreateStmt:
+        location = Location.from_dict(create_stmt_dict["location"])
         constructor_call = FeatureCall.from_dict(create_stmt_dict["constructor_call"])
         type_name = None if is_empty_node(create_stmt_dict["type_name"]) else create_stmt_dict["type_name"]
-        return cls(type_name, constructor_call)
+        return cls(location, type_name, constructor_call)

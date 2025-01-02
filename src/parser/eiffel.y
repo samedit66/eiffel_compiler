@@ -15,7 +15,7 @@
 
     int errors_count = 0;
 
-    char *current_file_name = NULL;
+    char *current_file_path = NULL;
     Json *found_classes = NULL;
 
     #define YYDEBUG 1
@@ -339,8 +339,8 @@ args_list_opt: /* empty */ { $$ = mk_list(); }
              | args_list { $$ = $1; }
              ;
 
-args_list: name_and_type { $$ = add_to_list(mk_list(), $1); }
-         | args_list ';' name_and_type { $$ = add_to_list($1, $3); }
+args_list: name_and_type { $$ = add_to_list(mk_list(), mk_feature_parameter($1)); }
+         | args_list ';' name_and_type { $$ = add_to_list($1, mk_feature_parameter($3)); }
          ;
 
 /* Тело метода */
@@ -689,7 +689,7 @@ parse_files(int files_count, char **file_names) {
             continue;
         }
 
-        current_file_name = file_names[i];
+        current_file_path = file_names[i];
         yyrestart(eiffel_file);
         yyparse();
     }

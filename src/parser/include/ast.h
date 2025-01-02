@@ -593,7 +593,6 @@ mk_tagged_cond(char *tag, Json *cond);
 Json*
 mk_manifest_array(Json *manifest_array_content);
 
-
 /**
  * Создает узел manifest-кортежа
  * 
@@ -602,7 +601,6 @@ mk_manifest_array(Json *manifest_array_content);
  */
 Json*
 mk_manifest_tuple(Json *manifest_tuple_content);
-
 
 /**
  * Создает узел create-оператора
@@ -613,7 +611,6 @@ mk_manifest_tuple(Json *manifest_tuple_content);
 Json*
 mk_create(char *type_name, Json *constructor_call);
 
-
 /**
  * Создает узел create-выражения
  * 
@@ -623,3 +620,12 @@ mk_create(char *type_name, Json *constructor_call);
  */
 Json*
 mk_create_expr(char *type_name, Json *constructor_call);
+
+/**
+ * Создает узел параметра в определении метода
+ * 
+ * @param name_and_type Узел с указанием имени (имен) и типа параметра(ов)
+ * @return Узел параметра
+ */
+Json*
+mk_feature_parameter(Json *name_and_type);

@@ -1,9 +1,14 @@
 from __future__ import annotations
 from dataclasses import dataclass
+from pathlib import Path
 
-from tree.base import IdentifierList
+from tree.base import (
+    IdentifierList,
+    Node,
+    Location,
+    )
 from tree.features import FeatureList
-from tree.type_decl import GenericType, ConcreteType
+from tree.type_decl import GenericType, TypeDecl
 
 
 @dataclass(match_args=True)
@@ -50,7 +55,7 @@ class GenericList:
         generics = [
             GenericType(generic_type["type_name"])
             if generic_type["type"] == "generic"
-            else GenericType(generic_type["type_name"], ConcreteType.from_dict(generic_type["parent"]))
+            else GenericType(generic_type["type_name"], TypeDecl.from_dict(generic_type["parent"]))
             for generic_type in generics_list
         ]
         return cls(generics)
@@ -109,18 +114,29 @@ class FeatureSection:
     
 
 @dataclass(match_args=True)
-class ClassDecl:
+class ClassDecl(Node):
     name: str
     generic_list: GenericList
     inherit_section: InheritSection
     create_section: CreateSection
     feature_section: FeatureSection
+    file_path: Path | None
 
     @classmethod
     def from_dict(cls, class_decl: dict) -> ClassDecl:
+        location = Location.from_dict(class_decl["location"])
         name = class_decl["header"]["name"]
         generic_list = GenericList.from_list(class_decl["header"]["generics"])
         inherit_section = InheritSection.from_list(class_decl["inheritance"])
         create_section = CreateSection.from_list(class_decl["creators"])
         feature_section = FeatureSection.from_list(class_decl["features"])
-        return cls(name, generic_list, inherit_section, create_section, feature_section)
+        file_path = Path(class_decl["file_path"]) if class_decl["file_path"] != "stdin" else None
+        return cls(
+            location,
+            name,
+            generic_list,
+            inherit_section,
+            create_section,
+            feature_section,
+            file_path,
+            )

@@ -22,6 +22,12 @@ feature {NONE}
         True; False; True;
     do
         a := if a > b then c elseif a < u then 41 else 12421 end;
+
+        test1
+
+        test(2, a)
+
+        a.test3()
     end
 
 feature {A, B, C}
