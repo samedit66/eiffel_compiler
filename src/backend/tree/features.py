@@ -33,7 +33,7 @@ def separate_declarations(decl_node_dict: dict) -> list:
     for name in names:
         name_and_type_ = {
             "field_type": name_and_type["field_type"],
-            "names": name
+            "name": name
         }
         decl_node_dict_ = {
             **decl_node_dict,
@@ -73,7 +73,7 @@ class Field(Feature):
     @classmethod
     def from_dict(cls, class_field: dict) -> Field:
         location = Location.from_dict(class_field["location"])
-        names_list = class_field["name_and_type"]["names"]
+        names_list = class_field["name_and_type"]["name"]
         value_type = TypeDecl.from_dict(class_field["name_and_type"]["field_type"])
         return cls(location, names_list, value_type)
 
@@ -86,7 +86,7 @@ class Constant(Feature):
     @classmethod
     def from_dict(cls, class_constant: dict) -> Constant:
         location = Location.from_dict(class_constant["location"])
-        names_list = class_constant["name_and_type"]["names"]
+        names_list = class_constant["name_and_type"]["name"]
         value_type = TypeDecl.from_dict(class_constant["name_and_type"]["field_type"])
         constant_value = Expression.from_dict(class_constant["constant_value"])
         return cls(location, names_list, value_type, constant_value)
@@ -106,7 +106,7 @@ class Method(Feature):
     def from_dict(cls, class_routine: dict) -> Method:
         location = Location.from_dict(class_routine["location"])
 
-        name = class_routine["name_and_type"]["names"]
+        name = class_routine["name_and_type"]["name"]
         return_value_type = TypeDecl.from_dict(class_routine["name_and_type"]["field_type"])
         parameters = ParameterList.from_list(class_routine["params"])
 
@@ -144,9 +144,7 @@ class Parameter(Node):
         
         name_and_type = parameter_dict["name_and_type"]
 
-        # Несмотря на то, что атрибут называется "names", в нем
-        # ожидается лишь одна строка - несовершенство именования узлов в дереве...
-        name = name_and_type["names"]
+        name = name_and_type["name"]
 
         parameter_type_node = name_and_type["field_type"]
         parameter_type = TypeDecl.from_dict(parameter_type_node)
