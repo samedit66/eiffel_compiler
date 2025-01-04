@@ -53,9 +53,12 @@ class GenericList:
     @classmethod
     def from_list(cls, generics_list: list) -> GenericList:
         generics = [
-            GenericType(generic_type["type_name"])
+            GenericType(generic_type["generic_type"]["type_name"])
             if generic_type["type"] == "generic"
-            else GenericType(generic_type["type_name"], TypeDecl.from_dict(generic_type["parent"]))
+            else GenericType(
+                generic_type["generic_type"]["type_name"],
+                TypeDecl.from_dict(generic_type["generic_type"]["parent"])
+                )
             for generic_type in generics_list
         ]
         return cls(generics)
@@ -102,7 +105,7 @@ class CreateSection:
 
 @dataclass(match_args=True)
 class FeatureSection:
-    feature_list: FeatureList
+    feature_list: list[FeatureList]
 
     @classmethod
     def from_list(cls, features: list) -> FeatureSection:

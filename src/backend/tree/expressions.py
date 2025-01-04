@@ -48,11 +48,11 @@ class Expression(Node, ABC):
             case "create_expr":
                 return CreateExpr.from_dict(expr_dict)
             case _:
-                try_bin_op = BinaryOp.from_dict(expr_dict)
+                try_bin_op = BinaryOp.try_from_dict(expr_dict)
                 if try_bin_op is not None:
                     return try_bin_op
                 
-                unary_bin_op = UnaryOp.from_dict(expr_dict)
+                unary_bin_op = UnaryOp.try_from_dict(expr_dict)
                 if unary_bin_op is not None:
                     return unary_bin_op
 
@@ -228,8 +228,8 @@ class BracketAccess(Expression):
             source = source["source"]
         
         indices.append(Expression.from_dict(source["index"]))
-        source = Expression.from_dict(source)
-        return cls(location, source, indices)
+        indexed_expr = Expression.from_dict(source)
+        return cls(location, indexed_expr, indices)
 
 
 @dataclass(match_args=True)
@@ -238,7 +238,7 @@ class BinaryOp(Expression):
     right: Expression
 
     @staticmethod
-    def from_dict(bin_op_dict: dict) -> BinaryOp | None:
+    def try_from_dict(bin_op_dict: dict) -> BinaryOp | None:
         left_node = bin_op_dict.get("left")
         if left_node is None: return None
         
@@ -297,7 +297,7 @@ class UnaryOp(Expression):
     argument: Expression
 
     @staticmethod
-    def from_dict(unary_op_dict: dict) -> UnaryOp | None:
+    def try_from_dict(unary_op_dict: dict) -> UnaryOp | None:
         argument_node = unary_op_dict.get("arg")
         if argument_node is None: return None
 

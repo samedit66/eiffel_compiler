@@ -5,6 +5,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Location:
+    """Описывает положения узла синтакисического дерева в исходном тексте программы"""
     first_line: int
     first_column: int
     last_list: int
@@ -21,10 +22,15 @@ class Location:
 
 @dataclass
 class Node(ABC):
-    location: Location 
+    """Абстрактный узел синтаксического дерева"""
+    location: Location | None
+    """Положение узла в тексте программы. Может быть None в ситуации, если
+    одни узлы трансформируются в другие в процессе обработки дерева
+    """
 
 
-type IdentifierList = list[str]
+type Identifier = str
+type IdentifierList = list[Identifier]
 
 
 def is_empty_node(node_dict: dict) -> bool:

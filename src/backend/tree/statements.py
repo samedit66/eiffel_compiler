@@ -59,11 +59,15 @@ class Assignment(Statement):
     @classmethod
     def from_dict(cls, assignment_dict: dict) -> Assignment:
         location = Location.from_dict(assignment_dict["location"])
+
         target_node = assignment_dict["left"]
+
+        target: Expression | FieldName
         if target_node["type"] == "ident_lit":
             target = FieldName(target_node["value"])
         else: # BracketAccess или Result
             target = Expression.from_dict(target_node)
+
         value = Expression.from_dict(assignment_dict["right"])
         return cls(location, target, value)
 
@@ -177,9 +181,9 @@ class RoutineCall(Statement):
     feature_call: FeatureCall
 
     @classmethod
-    def from_dict(cls, feature_call: dict) -> RoutineCall:
-        location = Location.from_dict(feature_call["location"])
-        feature_call = FeatureCall.from_dict(feature_call)
+    def from_dict(cls, feature_call_dict: dict) -> RoutineCall:
+        location = Location.from_dict(feature_call_dict["location"])
+        feature_call = FeatureCall.from_dict(feature_call_dict)
         return cls(location, feature_call)
 
 
@@ -193,4 +197,4 @@ class CreateStmt(Statement):
         location = Location.from_dict(create_stmt_dict["location"])
         constructor_call = FeatureCall.from_dict(create_stmt_dict["constructor_call"])
         type_name = None if is_empty_node(create_stmt_dict["type_name"]) else create_stmt_dict["type_name"]
-        return cls(location, type_name, constructor_call)
+        return cls(location, constructor_call, type_name)

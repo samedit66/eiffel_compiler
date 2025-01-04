@@ -2,27 +2,21 @@ from __future__ import annotations
 from abc import ABC
 from dataclasses import dataclass
 
-from tree.base import (
-    IdentifierList,
-    Location,
-    Node,
-    UnknownNodeTypeError,
-    is_empty_node,
-    )
+from tree.base import *
 from tree.type_decl import TypeDecl
 from tree.statements import StatementList
-from tree.expressions import (
-    Expression,
-    ConstantValue,
-    )
+from tree.expressions import Expression
 
 
+@dataclass
 class Feature(Node, ABC):
-    
+    """Абстракция представления "фичи": поля, метода или константы объекта"""
+    name: Identifier
+
     @staticmethod
     def from_dict(feature_dict: dict) -> Feature:
-        node_type = feature_dict["type"]
-        match node_type:
+        feature_type = feature_dict["type"]
+        match feature_type:
             case "class_routine":
                 return Method.from_dict(feature_dict)
             case "class_field":
@@ -30,12 +24,11 @@ class Feature(Node, ABC):
             case "class_constant":
                 return Constant.from_dict(feature_dict)
             case _:
-                raise UnknownNodeTypeError(f"Unknown feature type: {node_type}")
+                raise UnknownNodeTypeError(f"Unknown feature type: {feature_type}")
 
 
 @dataclass(match_args=True)
 class Field(Feature):
-    names_list: IdentifierList
     value_type: TypeDecl
 
     @classmethod
@@ -48,9 +41,8 @@ class Field(Feature):
 
 @dataclass(match_args=True)
 class Constant(Feature):
-    name: IdentifierList
-    constant_type: TypeDecl
-    constant_value: ConstantValue
+    value_type: TypeDecl
+    constant_value: Expression
 
     @classmethod
     def from_dict(cls, class_constant: dict) -> Constant:
@@ -62,17 +54,104 @@ class Constant(Feature):
 
 
 @dataclass(match_args=True)
+class Method(Feature):
+    return_value_type: TypeDecl
+    parameters: ParameterList
+    do_section: DoSection
+    local_section: LocalSection
+    require_section: RequireSection
+    ensure_section: EnsureSection
+    then_section: ThenSection | None = None
+
+    @classmethod
+    def from_dict(cls, class_routine: dict) -> Method:
+        location = Location.from_dict(class_routine["location"])
+
+        name = class_routine["name_and_type"]["names"]
+        return_value_type = TypeDecl.from_dict(class_routine["name_and_type"]["field_type"])
+        parameters = ParameterList.from_list(class_routine["params"])
+
+        routine_dict = class_routine["body"]
+        local_section = LocalSection.from_list(routine_dict["local"])
+        require_section = RequireSection.from_list(routine_dict["require"])
+        do_section = DoSection.from_list(routine_dict["do"])
+        then_section = (
+            None if is_empty_node(routine_dict["then"])
+            else ThenSection.from_dict(routine_dict["then"])
+            )
+        ensure_section = EnsureSection.from_list(routine_dict["ensure"])
+
+        return cls(
+            location=location,
+            name=name,
+            return_value_type=return_value_type,
+            parameters=parameters,
+            do_section=do_section,
+            local_section=local_section,
+            require_section=require_section,
+            then_section=then_section,
+            ensure_section=ensure_section,
+            )
+
+
+def separate_declarations(decl_nodes: list) -> list:
+    """Используется для разделения деклараций полей, методов, констант
+    и параметров, объявленных "вместе":
+    Необходимо объявления вида
+            a, b: INTEGER; c: STRING
+    перевести в
+            a: INTEGER; b: INTEGER; c: STRING
+    
+    Недостаток данного разделения заключается в том, что частично
+    теряется информация о месте объявления - сохраняются только номера строк
+
+    :param decl_nodes: Список узлов в виде словарей
+    :return: Преобразованный, "разделенный", список узлов, также в виде словарей
+    """
+    separated = []
+
+    for decl in decl_nodes:
+        node_type = decl["type"]
+        location = decl["location"]
+
+        name_and_type = decl["name_and_type"]
+
+        names = name_and_type["names"]
+        for name in names:
+            name_and_type_ = {
+                "field_type": name_and_type["field_type"],
+                "names": name
+            }
+            decl_dict_ = {
+                "type": node_type,
+                "location": location,
+                "name_and_type": name_and_type_
+                }
+            
+            separated.append(decl_dict_)
+
+    return separated
+
+
+@dataclass(match_args=True)
 class Parameter(Node):
-    names: IdentifierList
+    name: Identifier
     parameter_type: TypeDecl
 
     @classmethod
     def from_dict(cls, parameter_dict: dict) -> Parameter:
         location = Location.from_dict(parameter_dict["location"])
+        
         name_and_type = parameter_dict["name_and_type"]
-        names = name_and_type["names"]
-        parameter_type = TypeDecl.from_dict(name_and_type["field_type"])
-        return cls(location, names, parameter_type)
+
+        # Несмотря на то, что атрибут называется "names", в нем
+        # ожидается лишь одна строка - несовершенство именования узлов в дереве...
+        name = name_and_type["names"]
+
+        parameter_type_node = name_and_type["field_type"]
+        parameter_type = TypeDecl.from_dict(parameter_type_node)
+
+        return cls(location, name, parameter_type)
 
 
 @dataclass(match_args=True)
@@ -80,12 +159,13 @@ class ParameterList:
     parameters: list[Parameter]
 
     @classmethod
-    def from_list(cls, params: list) -> ParameterList:
-        parameters = [Parameter.from_dict(param) for param in params]
-        return cls(parameters)
+    def from_list(cls, parameters: list) -> ParameterList:
+        separated = separate_declarations(parameters)
+        return cls([Parameter.from_dict(parameter_dict) for parameter_dict in separated])
 
 
 type VariableDecl = Field
+
 
 @dataclass(match_args=True)
 class LocalSection:
@@ -93,7 +173,8 @@ class LocalSection:
 
     @classmethod
     def from_list(cls, var_decls: list) -> LocalSection:
-        variables = [Field.from_dict(var_decl) for var_decl in var_decls]
+        separated = separate_declarations(var_decls)
+        variables = [Field.from_dict(var_decl) for var_decl in separated]
         return cls(variables)
 
 
@@ -149,58 +230,15 @@ class EnsureSection:
 
 
 @dataclass(match_args=True)
-class Method(Feature):
-    name: IdentifierList
-    return_type: TypeDecl
-    parameters: ParameterList
-    do_section: DoSection
-    local_section: LocalSection
-    require_section: RequireSection
-    ensure_section: EnsureSection
-    then_section: ThenSection | None = None
-
-    @classmethod
-    def from_dict(cls, class_routine: dict) -> Method:
-        location = Location.from_dict(class_routine["location"])
-
-        names_list = class_routine["name_and_type"]["names"]
-        return_type = TypeDecl.from_dict(class_routine["name_and_type"]["field_type"])
-        parameters = ParameterList.from_list(class_routine["params"])
-
-        routine_dict = class_routine["body"]
-
-        local_section = LocalSection.from_list(routine_dict["local"])
-        require_section = RequireSection.from_list(routine_dict["require"])
-        do_section = DoSection.from_list(routine_dict["do"])
-        then_section = (
-            None if is_empty_node(routine_dict["then"])
-            else ThenSection.from_dict(routine_dict["then"])
-            )
-        ensure_section = EnsureSection.from_list(routine_dict["ensure"])
-
-        return cls(
-            location=location,
-            name=names_list,
-            return_type=return_type,
-            parameters=parameters,
-            do_section=do_section,
-            local_section=local_section,
-            require_section=require_section,
-            then_section=then_section,
-            ensure_section=ensure_section,
-            )
-
-
-@dataclass(match_args=True)
 class FeatureList:
     clients: IdentifierList
     features: list[Feature]
 
     @classmethod
-    def from_list(cls, feature_list: list) -> FeatureList:
-        clients = feature_list["clients"]
+    def from_list(cls, features_dict: dict) -> FeatureList:
+        clients = features_dict["clients"]
         features = [
             Feature.from_dict(feature_dict)
-            for feature_dict in feature_list["feature_list"]
+            for feature_dict in features_dict["feature_list"]
         ]
         return cls(clients, features)
