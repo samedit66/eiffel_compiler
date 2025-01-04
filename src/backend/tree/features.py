@@ -8,6 +8,45 @@ from tree.statements import StatementList
 from tree.expressions import Expression
 
 
+def separate_declarations(decl_node_dict: dict) -> list:
+    """Используется для разделения деклараций полей, методов, констант
+    и параметров, объявленных "вместе":
+    Необходимо объявления вида
+            a, b: INTEGER;
+    перевести в
+            a: INTEGER; b: INTEGER;
+    
+    Недостаток данного разделения заключается в том, что частично
+    теряется информация о месте объявления - сохраняются только номера строк
+
+    :param decl_node_dict: Узел объявления
+    :return: Преобразованный, "разделенный", список узлов, также в виде словарей
+    """
+    separated = []
+
+    node_type = decl_node_dict["type"]
+    location = decl_node_dict["location"]
+
+    name_and_type = decl_node_dict["name_and_type"]
+
+    names = name_and_type["names"]
+    for name in names:
+        name_and_type_ = {
+            "field_type": name_and_type["field_type"],
+            "names": name
+        }
+        decl_node_dict_ = {
+            **decl_node_dict,
+            "type": node_type,
+            "location": location,
+            "name_and_type": name_and_type_
+            }
+            
+        separated.append(decl_node_dict_)
+
+    return separated
+
+
 @dataclass
 class Feature(Node, ABC):
     """Абстракция представления "фичи": поля, метода или константы объекта"""
@@ -94,45 +133,6 @@ class Method(Feature):
             )
 
 
-def separate_declarations(decl_nodes: list) -> list:
-    """Используется для разделения деклараций полей, методов, констант
-    и параметров, объявленных "вместе":
-    Необходимо объявления вида
-            a, b: INTEGER; c: STRING
-    перевести в
-            a: INTEGER; b: INTEGER; c: STRING
-    
-    Недостаток данного разделения заключается в том, что частично
-    теряется информация о месте объявления - сохраняются только номера строк
-
-    :param decl_nodes: Список узлов в виде словарей
-    :return: Преобразованный, "разделенный", список узлов, также в виде словарей
-    """
-    separated = []
-
-    for decl in decl_nodes:
-        node_type = decl["type"]
-        location = decl["location"]
-
-        name_and_type = decl["name_and_type"]
-
-        names = name_and_type["names"]
-        for name in names:
-            name_and_type_ = {
-                "field_type": name_and_type["field_type"],
-                "names": name
-            }
-            decl_dict_ = {
-                "type": node_type,
-                "location": location,
-                "name_and_type": name_and_type_
-                }
-            
-            separated.append(decl_dict_)
-
-    return separated
-
-
 @dataclass(match_args=True)
 class Parameter(Node):
     name: Identifier
@@ -160,7 +160,7 @@ class ParameterList:
 
     @classmethod
     def from_list(cls, parameters: list) -> ParameterList:
-        separated = separate_declarations(parameters)
+        separated = [p_ for p in parameters for p_ in separate_declarations(p)]
         return cls([Parameter.from_dict(parameter_dict) for parameter_dict in separated])
 
 
@@ -173,7 +173,7 @@ class LocalSection:
 
     @classmethod
     def from_list(cls, var_decls: list) -> LocalSection:
-        separated = separate_declarations(var_decls)
+        separated = [v_ for v in var_decls for v_ in separate_declarations(v)]
         variables = [Field.from_dict(var_decl) for var_decl in separated]
         return cls(variables)
 
@@ -237,8 +237,11 @@ class FeatureList:
     @classmethod
     def from_list(cls, features_dict: dict) -> FeatureList:
         clients = features_dict["clients"]
+
         features = [
-            Feature.from_dict(feature_dict)
-            for feature_dict in features_dict["feature_list"]
+            Feature.from_dict(f_)
+            for f in features_dict["feature_list"]
+            for f_ in separate_declarations(f)
         ]
+
         return cls(clients, features)
