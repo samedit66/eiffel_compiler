@@ -2,11 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from tree.base import (
-    IdentifierList,
-    Node,
-    Location,
-    )
+from tree.base import *
 from tree.features import FeatureList
 from tree.type_decl import GenericType, TypeDecl
 
