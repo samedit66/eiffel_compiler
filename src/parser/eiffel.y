@@ -127,6 +127,10 @@
 %token TRUE_KW FALSE_KW VOID
 %token OPEN_MANIFEST_ARRAY CLOSE_MANIFEST_ARRAY
 %token BANG_BANG
+%token DEFERRED
+
+%nonassoc DEFERRED
+%nonassoc EFFECTIVE
 
 %nonassoc FIELD
 %nonassoc ROUTINE
@@ -159,7 +163,8 @@ class_declaration: class_header inheritance_opt creators_opt features_clause_opt
                  ;
 
 /* Заголовок класса */
-class_header: CLASS IDENT_LIT formal_generics_opt { $$ = mk_class_header($2, $3); }
+class_header: CLASS IDENT_LIT formal_generics_opt { $$ = mk_effective_class_header($2, $3); }
+            | DEFERRED CLASS IDENT_LIT formal_generics_opt { $$ = mk_deferred_class_header($3, $4); }
             ;
 
 formal_generics_opt: /* empty */ { $$ = mk_list(); }
@@ -200,7 +205,7 @@ inheritance_clause: parent { $$ = mk_inherit_clause($1, mk_list(), mk_list(), mk
                   | parent select_clause END { $$ = mk_inherit_clause($1, mk_list(), mk_list(), mk_list(), $2); }
                   ;
 
-parent: IDENT_LIT formal_generics_opt { $$ = mk_class_header($1, $2); }
+parent: IDENT_LIT formal_generics_opt { $$ = mk_parent_info($1, $2); }
       ;
 
 /* Секция переименования */
@@ -344,8 +349,10 @@ args_list: name_and_type { $$ = add_to_list(mk_list(), mk_feature_parameter($1))
          ;
 
 /* Тело метода */
-routine_body: local_part_opt require_part_opt do_part then_part_opt ensure_part_opt END { $$ = mk_routine_body($1, $2, $3, $4, $5); }
-            | local_part_opt require_part_opt then_part ensure_part_opt END { $$ = mk_routine_body($1, $2, NULL, $3, $4); }
+routine_body: require_part_opt do_part then_part_opt ensure_part_opt END { $$ = mk_effective_routine_body(NULL, $1, $2, $3, $4); }
+            | require_part_opt DEFERRED ensure_part_opt END { $$ = mk_deferred_routine_body($1, $3); }
+            | local_part require_part_opt do_part then_part_opt ensure_part_opt END { $$ = mk_effective_routine_body($1, $2, $3, $4, $5); }
+            | require_part_opt then_part ensure_part_opt END { $$ = mk_effective_routine_body(NULL, $1, NULL, $2, $3); }
             ;
 
 /* Секция объявления локальных переменных */

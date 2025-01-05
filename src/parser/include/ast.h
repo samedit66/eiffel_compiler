@@ -428,18 +428,38 @@ Json*
 mk_class_decl(Json *header, Json *inheritance, Json *creators, Json *features);
 
 /**
- * Создает узел заголовка класса
+ * Создает узел информации о родители в секции наследования
+ * 
+ * @param class_name Имя класса-родителя
+ * @param generics_list Список обобщений
+ * @return Узел информации о родители
+ */
+Json*
+mk_parent_info(char *parent_class_name, Json *generics_list);
+
+/**
+ * Создает узел заголовка эффективного (не абстрактного) класса
  * 
  * @param class_name Имя класса
  * @param generics_list Список обобщений
  * @return Узел заголовка класса
  */
 Json*
-mk_class_header(char *class_name, Json *generics_list);
+mk_effective_class_header(char *class_name, Json *generics_list);
+
+/**
+ * Создает узел заголовка отложенного (абстрактного) класса
+ * 
+ * @param class_name Имя класса
+ * @param generics_list Список обобщений
+ * @return Узел заголовка абстрактного класса
+ */
+Json*
+mk_deferred_class_header(char *class_name, Json *generics_list);
 
 /**
  * Создает узел обобщения
- * 
+ * с
  * @param generic_type Обобщенный тип
  * @return Узел ограниченного обобщения
  */
@@ -572,7 +592,17 @@ mk_routine_with_args(Json *names, Json *params_list, Json *return_type, Json *ro
  * @return Узел тела
  */
 Json*
-mk_routine_body(Json *local, Json *require, Json *do_clause, Json *then, Json *ensure);
+mk_effective_routine_body(Json *local, Json *require, Json *do_clause, Json *then, Json *ensure);
+
+/**
+ * Создает узел тела отложенной функции или процедуры
+ * 
+ * @param require Блок предусловий
+ * @param ensure Блок постусловий
+ * @return Узел тела отложенной функции
+ */
+Json*
+mk_deferred_routine_body(Json *require, Json *ensure);
 
 /**
  * Создает узел помеченного условия

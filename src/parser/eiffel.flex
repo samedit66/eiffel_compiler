@@ -181,7 +181,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 "Current" 				{ LOG_LEXEM("keyword", "CURRENT"); return CURRENT; }
 "do" 					{ LOG_LEXEM("keyword", "DO"); return DO; }
 "debug"                 { LOG_LEXEM("keyword", "DEBUG"); }
-"deferred"              { LOG_LEXEM("keyword", "DEFERRED"); }
+"deferred"              { LOG_LEXEM("keyword", "DEFERRED"); return DEFERRED; }
 "else" 					{ LOG_LEXEM("keyword", "ELSE"); return ELSE; }
 "elseif" 				{ LOG_LEXEM("keyword", "ELSEIF"); return ELSEIF; }
 "end" 					{ LOG_LEXEM("keyword", "END"); return END; }
