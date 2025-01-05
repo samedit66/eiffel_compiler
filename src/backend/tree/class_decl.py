@@ -1,5 +1,5 @@
 from __future__ import annotations
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from tree.base import *
@@ -44,7 +44,7 @@ class SelectSection:
 
 @dataclass(match_args=True)
 class GenericList:
-    generics: list[GenericType]
+    generics: list[GenericType] = field(default_factory=list)
 
     @classmethod
     def from_list(cls, generics_list: list) -> GenericList:
@@ -115,16 +115,18 @@ class FeatureSection:
 @dataclass(match_args=True)
 class ClassDecl(Node):
     name: str
-    generic_list: GenericList
-    inherit_section: InheritSection
-    create_section: CreateSection
-    feature_section: FeatureSection
-    file_path: Path | None
+    is_deferred: bool
+    generic_list: GenericList = field(default_factory=GenericList)
+    inherit_section: InheritSection | None = None
+    create_section: CreateSection | None = None
+    feature_section: FeatureSection | None = None
+    file_path: Path | None = None
 
     @classmethod
     def from_dict(cls, class_decl: dict) -> ClassDecl:
         location = Location.from_dict(class_decl["location"])
         name = class_decl["header"]["name"]
+        is_deferred = class_decl["header"]["is_deferred"]
         generic_list = GenericList.from_list(class_decl["header"]["generics"])
         inherit_section = InheritSection.from_list(class_decl["inheritance"])
         create_section = CreateSection.from_list(class_decl["creators"])
@@ -133,6 +135,7 @@ class ClassDecl(Node):
         return cls(
             location,
             name,
+            is_deferred,
             generic_list,
             inherit_section,
             create_section,

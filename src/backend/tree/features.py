@@ -94,6 +94,7 @@ class Constant(Feature):
 
 @dataclass(match_args=True)
 class Method(Feature):
+    is_deferred: bool
     return_value_type: TypeDecl
     parameters: ParameterList
     do_section: DoSection
@@ -111,6 +112,7 @@ class Method(Feature):
         parameters = ParameterList.from_list(class_routine["params"])
 
         routine_dict = class_routine["body"]
+        is_deferred = routine_dict["is_deferred"]
         local_section = LocalSection.from_list(routine_dict["local"])
         require_section = RequireSection.from_list(routine_dict["require"])
         do_section = DoSection.from_list(routine_dict["do"])
@@ -123,6 +125,7 @@ class Method(Feature):
         return cls(
             location=location,
             name=name,
+            is_deferred=is_deferred,
             return_value_type=return_value_type,
             parameters=parameters,
             do_section=do_section,
