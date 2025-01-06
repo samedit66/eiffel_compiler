@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from tree.base import *
-from tree.features import FeatureList
+from tree.features import FeatureList, Feature
 from tree.type_decl import GenericType, TypeDecl
 
 
@@ -142,3 +142,4 @@ class ClassDecl(Node):
             feature_section,
             file_path,
             )
+    

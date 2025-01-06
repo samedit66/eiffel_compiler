@@ -7,32 +7,9 @@ from tree.class_decl import ClassDecl
 
 
 eiffel_code = """
-class SQUARE
-    inherit RECTANGLE
-        rename height as side, width as side
-    end
-
+class A
 feature
-    area: REAL then side * side end
-
-feature {NONE}
-
-    fuck_that_shit, suck (a, b, c: POINT; d, e: INTEGER)
-    require
-        True; False; True;
-    do
-        a := if a > b then c elseif a < u then 41 else 12421 end;
-
-        test1
-
-        test(2, a)
-
-        a.test3()
-    end
-
-feature {A, B, C}
-
-    constant: INTEGER = 10
+    pi: REAL then 3.14 end
 end
 """
 

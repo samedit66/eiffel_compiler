@@ -4,8 +4,8 @@ from dataclasses import dataclass
 
 from tree.base import *
 from tree.type_decl import TypeDecl
-from tree.statements import StatementList
-from tree.expressions import Expression
+from tree.statements import StatementList, Assignment
+from tree.expressions import Expression, ResultConst, TrueConst
 
 
 def separate_declarations(decl_node_dict: dict) -> list:
@@ -101,7 +101,21 @@ class Method(Feature):
     local_section: LocalSection
     require_section: RequireSection
     ensure_section: EnsureSection
-    then_section: ThenSection | None = None
+
+    @staticmethod
+    def unwrap_then_section(
+            then_section: ThenSection,
+            do_section: DoSection | None
+            ) -> DoSection:
+        result_assignment = then_section.to_result_assignment()
+
+        statements = [] if do_section is None else do_section.body.statements
+        updated_do_section = DoSection(
+            StatementList(
+                [*statements, result_assignment]
+                )
+            )
+        return updated_do_section
 
     @classmethod
     def from_dict(cls, class_routine: dict) -> Method:
@@ -112,15 +126,20 @@ class Method(Feature):
         parameters = ParameterList.from_list(class_routine["params"])
 
         routine_dict = class_routine["body"]
+
         is_deferred = routine_dict["is_deferred"]
+
         local_section = LocalSection.from_list(routine_dict["local"])
         require_section = RequireSection.from_list(routine_dict["require"])
-        do_section = DoSection.from_list(routine_dict["do"])
-        then_section = (
-            None if is_empty_node(routine_dict["then"])
-            else ThenSection.from_dict(routine_dict["then"])
-            )
         ensure_section = EnsureSection.from_list(routine_dict["ensure"])
+
+        # Убираем синтаксический сахар: then-секция превращается в
+        # присвоение к переменной Result выражения, записанного в then-секции
+        do_section = DoSection.from_list(routine_dict["do"])
+        then_section_node = routine_dict["then"]
+        if not is_empty_node(then_section_node):
+            then_section = ThenSection.from_dict(routine_dict["then"])
+            do_section = Method.unwrap_then_section(then_section, do_section)
 
         return cls(
             location=location,
@@ -131,7 +150,6 @@ class Method(Feature):
             do_section=do_section,
             local_section=local_section,
             require_section=require_section,
-            then_section=then_section,
             ensure_section=ensure_section,
             )
 
@@ -185,6 +203,10 @@ class Condition(Node):
     tag: str | None = None
 
     @classmethod
+    def always_true(cls) -> Condition:
+        return cls(location=None, condition_expr=TrueConst(None))
+
+    @classmethod
     def from_dict(cls, cond_dict: dict) -> Condition:
         location = Location.from_dict(cond_dict["location"])
         condition_expr = Expression.from_dict(cond_dict["cond"])
@@ -198,7 +220,21 @@ class RequireSection:
 
     @classmethod
     def from_list(cls, cond_list: list) -> RequireSection:
-        conditions = [Condition.from_dict(cond) for cond in cond_list]
+        # Убираем синтаксический сахар: пустой список предусловий эквивалентен
+        # одному всегда истинному предусловию
+        conditions = [Condition.from_dict(cond) for cond in cond_list] or [Condition.always_true()]
+        return cls(conditions)
+
+
+@dataclass(match_args=True)
+class EnsureSection:
+    conditions: list[Condition]
+
+    @classmethod
+    def from_list(cls, cond_list: list) -> EnsureSection:
+        # Убираем синтаксический сахар: пустой список постусловий эквивалентен
+        # одному всегда истинному постусловию
+        conditions = [Condition.from_dict(cond) for cond in cond_list] or [Condition.always_true()]
         return cls(conditions)
 
 
@@ -215,19 +251,15 @@ class DoSection:
 class ThenSection:
     result_expr: Expression
 
+    def to_result_assignment(self) -> Assignment:
+        location = self.result_expr.location
+        target = ResultConst(location)
+        value = self.result_expr
+        return Assignment(location, target, value)
+
     @classmethod
     def from_dict(cls, expr_dict: dict) -> ThenSection:
         return cls(Expression.from_dict(expr_dict))
-
-
-@dataclass(match_args=True)
-class EnsureSection:
-    conditions: list[Condition]
-
-    @classmethod
-    def from_list(cls, cond_list: list) -> EnsureSection:
-        conditions = [Condition.from_dict(cond) for cond in cond_list]
-        return cls(conditions)
 
 
 @dataclass(match_args=True)
@@ -237,7 +269,9 @@ class FeatureList:
 
     @classmethod
     def from_list(cls, features_dict: dict) -> FeatureList:
-        clients = features_dict["clients"]
+        # Убираем синтаксический сахар: если список клиентов пустой,
+        # это означает, что метод доступен для вызова кому-угодно
+        clients = features_dict["clients"] or ["ANY"]
 
         features = [
             Feature.from_dict(f_)
