@@ -16,15 +16,7 @@ class Alias:
     def from_dict(cls, alias_dict: dict) -> Alias:
         return cls(alias_dict["original_name"], alias_dict["alias_name"])
 
-
-@dataclass(match_args=True)
-class RenameSection:
-    aliases: list[Alias]
-
-    @classmethod
-    def from_list(cls, aliases_list: list) -> RenameSection:
-        aliases = [Alias.from_dict(alias) for alias in aliases_list]
-        return cls(aliases)
+type RenameSection = list[Alias]
 
 
 @dataclass(match_args=True)
@@ -60,8 +52,8 @@ class GenericList:
         return cls(generics)
 
 
-@dataclass(match_args=True)
-class Inheritance:
+@dataclass(match_args=True, kw_only=True)
+class Ancestor:
     class_name: str
     generic_list: GenericList
     rename_section: RenameSection
@@ -70,33 +62,39 @@ class Inheritance:
     select_section: SelectSection
 
     @classmethod
-    def from_dict(cls, inherit_clause: dict) -> Inheritance:
-        class_name = inherit_clause["parent_header"]
-        generic_list = GenericList.from_list(inherit_clause["parent_header"]["generics"])
-        rename_section = RenameSection.from_list(inherit_clause["rename_clause"])
-        undefine_section = UndefineSection(inherit_clause["undefine_clause"])
-        redefine_section = RedefineSection(inherit_clause["redefine_clause"])
-        select_section = SelectSection(inherit_clause["select_clause"])
-        return cls(class_name, generic_list, rename_section, undefine_section, redefine_section, select_section)
+    def from_dict(cls, ancestor_dict: dict) -> Ancestor:
+        class_name = ancestor_dict["parent_header"]["name"]
+        generic_list = GenericList.from_list(ancestor_dict["parent_header"]["generics"])
+        rename_section = RenameSection.from_list(ancestor_dict["rename_clause"])
+        undefine_section = UndefineSection(ancestor_dict["undefine_clause"])
+        redefine_section = RedefineSection(ancestor_dict["redefine_clause"])
+        select_section = SelectSection(ancestor_dict["select_clause"])
+        return cls(
+            class_name=class_name,
+            generic_list=generic_list,
+            rename_section=rename_section,
+            undefine_section=undefine_section,
+            redefine_section=redefine_section,
+            select_section=select_section,
+            )
+
+type InheritSection = list[Ancestor]
 
 
-@dataclass(match_args=True)
-class InheritSection:
-    ancestors: list[Inheritance]
-
-    @classmethod
-    def from_list(cls, inherit_section: list) -> InheritSection:
-        ancestors = [Inheritance.from_dict(ancestor) for ancestor in inherit_section]
-        return cls(ancestors)
+type Constructor = Identifier
+type CreateSection = list[Constructor]
 
 
-@dataclass(match_args=True)
-class CreateSection:
-    constructors: IdentifierList
+type FeatureSection = list[Feature]
 
-    @classmethod
-    def from_list(cls, constructors: IdentifierList) -> CreateSection:
-        return cls(constructors)
+def make_feature_section(feature_clauses: list) -> FeatureSection:
+    features = []
+
+    for feature_clause in feature_clauses:
+        clients = feature_clause["clients"]
+        
+
+    return features
 
 
 @dataclass(match_args=True)
@@ -117,9 +115,9 @@ class ClassDecl(Node):
     name: str
     is_deferred: bool
     generic_list: GenericList = field(default_factory=GenericList)
-    inherit_section: InheritSection | None = None
-    create_section: CreateSection | None = None
-    feature_section: FeatureSection | None = None
+    inherit_section: InheritSection
+    create_section: CreateSection
+    feature_section: FeatureSection
     file_path: Path | None = None
 
     @classmethod

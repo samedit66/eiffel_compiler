@@ -60,5 +60,7 @@ def hierarchy_for(
     while ancestors_to_visit:
         ancestor = ancestors_to_visit.pop(0)
         
+        ancestor_name = ancestor.class_name
+        
 
     return hierarchy

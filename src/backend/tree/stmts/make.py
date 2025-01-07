@@ -1,75 +1,55 @@
 from __future__ import annotations
-from abc import ABC
-from dataclasses import dataclass
 
-from tree.expr import (
-    Expression,
-    FeatureCall,
-    UnknownNodeTypeError,
-    )
-from tree.base import (
-    Location,
-    Node,
-    is_empty_node,
-    )
+from tree.base import *
+from tree.stmts.types import *
 
 
-class Statement(Node, ABC):
-    
-    @staticmethod
-    def from_dict(stmt_dict: dict) -> Statement:
-        node_type = stmt_dict["type"]
-        match node_type:
-            case "assign_stmt":
-                return Assignment.from_dict(stmt_dict)
-            case "if_stmt":
-                return IfStmt.from_dict(stmt_dict)
-            case "loop_stmt":
-                return LoopStmt.from_dict(stmt_dict)
-            case "inspect_stmt":
-                return InspectStmt.from_dict(stmt_dict)
-            case "feature_call":
-                return RoutineCall.from_dict(stmt_dict)
-            case "create_stmt":
-                return CreateStmt.from_dict(stmt_dict)
-            case _:
-                raise UnknownNodeTypeError(f"Unknown statement type: {node_type}")
-            
+def make_stmt(stmt_dict: dict) -> Statement:
+    match stmt_dict["type"]:
+        case "assign_stmt":
+            return make_assignment_stmt(stmt_dict);
+        case "if_stmt":
+            return IfStmt.from_dict(stmt_dict)
+        case "loop_stmt":
+            return LoopStmt.from_dict(stmt_dict)
+        case "inspect_stmt":
+            return InspectStmt.from_dict(stmt_dict)
+        case "feature_call":
+            return RoutineCall.from_dict(stmt_dict)
+        case "create_stmt":
+            return make_create_stmt(stmt_dict)
+        case unknown_node_type:
+            raise UnknownNodeTypeError(f"Unknown statement type: {unknown_node_type}")
+
 
 @dataclass(match_args=True)
-class StatementList:
-    statements: list[Statement]
+class CreateStmt(Statement):
+    constructor_call: FeatureCall
+    type_name: str | None
 
     @classmethod
-    def from_list(cls, stmts_list: list) -> StatementList:
-        statements = [Statement.from_dict(stmt) for stmt in stmts_list if not is_empty_node(stmt)]
-        return cls(statements)
+    def from_dict(cls, create_stmt_dict: dict) -> CreateStmt:
+        location = Location.from_dict(create_stmt_dict["location"])
+        constructor_call = FeatureCall.from_dict(create_stmt_dict["constructor_call"])
+        type_name = None if is_empty_node(create_stmt_dict["type_name"]) else create_stmt_dict["type_name"]
+        return cls(location, constructor_call, type_name)
 
 
-@dataclass(match_args=True)
-class FieldName:
-    name: str
+def make_create_stmt(create_stmt_dict: dict) -> Assignment:
+    owner = create_stmt_dict["constructor_call"]["owner"]
 
+    return Assignment(
+        location=Location.from_dict(create_stmt_dict["location"]),
+        target=
+    )
 
-@dataclass(match_args=True)
-class Assignment(Statement):
-    target: Expression | FieldName
-    value: Expression
-
-    @classmethod
-    def from_dict(cls, assignment_dict: dict) -> Assignment:
-        location = Location.from_dict(assignment_dict["location"])
-
-        target_node = assignment_dict["left"]
-
-        target: Expression | FieldName
-        if target_node["type"] == "ident_lit":
-            target = FieldName(target_node["value"])
-        else: # BracketAccess или Result
-            target = Expression.from_dict(target_node)
-
-        value = Expression.from_dict(assignment_dict["right"])
-        return cls(location, target, value)
+def make_assignment_stmt(assignment_stmt_dict: dict) -> Assignment:
+    left = assignment_stmt_dict["left"]
+    return Assignment(
+        location=Location.from_dict(assignment_stmt_dict["location"]),
+        target=left["value"] if left["type"] == "ident_lit" else make_expr(left),
+        value=make_expr(assignment_stmt_dict["right"]),
+    )
 
 
 @dataclass(match_args=True)

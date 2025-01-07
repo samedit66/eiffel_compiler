@@ -20,7 +20,7 @@ class Location:
         return cls(first_line, first_column, last_line, last_column)
 
 
-@dataclass
+@dataclass(match_args=True, kw_only=True)
 class Node(ABC):
     """Абстрактный узел синтаксического дерева"""
     location: Location | None
