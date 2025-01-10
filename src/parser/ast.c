@@ -366,12 +366,12 @@ mk_class_decl(Json *header, Json *inheritance, Json *creators, Json *features) {
     Json_add_array_to_object(class_decl, "creators", creators);
     Json_add_array_to_object(class_decl, "features", features);
 
-    // Костыль для проброса метаданных о том, в каком файле объявлен класс
-    Json_add_string_to_object(
-        class_decl,
-        "file_path",
-        current_file_path == NULL ? "stdin" : current_file_path
-        );
+    // Костыль для проброса метаданных о том, в каком файле объявлен класс.
+    // NULL означает, что код был считан с stdin
+    if (current_file_path == NULL)
+        Json_add_null_to_object(class_decl, "file_path");
+    else
+        Json_add_string_to_object(class_decl, "file_path", current_file_path);
 
     return class_decl;
 }
@@ -408,24 +408,23 @@ mk_deferred_class_header(char *class_name, Json *generics_list) {
 }
 
 Json*
-mk_generic(Json *generic_type) {
-    Json *generic = Json_new();
-
-    add_type_to_node(generic, "generic");
-    Json_add_object_to_object(generic, "generic_type", generic_type);
-
-    return generic;
-}
-
-Json*
 mk_constrained_generic(Json *generic_type, Json *parent) {
     Json *constrained_generic = Json_new();
 
-    add_type_to_node(constrained_generic, "constrained_generic");
+    add_type_to_node(constrained_generic, "generic");
     Json_add_object_to_object(constrained_generic, "generic_type", generic_type);
-    Json_add_object_to_object(constrained_generic, "parent", parent);
+    
+    if (parent == NULL)
+        Json_add_null_to_object(constrained_generic, "parent");
+    else
+        Json_add_object_to_object(constrained_generic, "parent", parent);
 
     return constrained_generic;
+}
+
+Json*
+mk_generic(Json *generic_type) {
+    return mk_constrained_generic(generic_type, NULL);
 }
 
 Json*

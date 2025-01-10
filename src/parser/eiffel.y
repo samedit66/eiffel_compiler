@@ -89,7 +89,7 @@
 
 %type <tree> do_part
 %type <tree> then_part_opt then_part
-%type <tree> local_part_opt local_part var_decl_list
+%type <tree> local_part var_decl_list
 %type <tree> require_part_opt require_part
 %type <tree> ensure_part_opt ensure_part
 %type <tree> condition_list condition
@@ -355,11 +355,6 @@ routine_body: require_part_opt do_part then_part_opt ensure_part_opt END { $$ = 
             | local_part require_part_opt then_part ensure_part_opt END { $$ = mk_effective_routine_body($1, $2, NULL, $3, $4); }
             | require_part_opt DEFERRED ensure_part_opt END { $$ = mk_deferred_routine_body($1, $3); }
             ;
-
-/* Секция объявления локальных переменных */
-local_part_opt: /* empty */ { $$ = mk_list(); }
-              | local_part { $$ = $1; }
-              ;
 
 local_part: LOCAL var_decl_list { $$ = $2; }
           ;
