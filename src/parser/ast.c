@@ -495,6 +495,16 @@ mk_name_and_type(Json *names, Json *type_spec) {
 }
 
 Json*
+mk_local_var_decl(Json *name_and_type) {
+    Json *var_decl = Json_new();
+
+    add_type_to_node(var_decl, "var_decl");
+    Json_add_object_to_object(var_decl, "name_and_type", name_and_type);
+
+    return var_decl;
+}
+
+Json*
 mk_routine_with_args(Json *names, Json *params_list, Json *return_type, Json *routine_body) {
     Json *routine = Json_new();
 
@@ -560,7 +570,9 @@ mk_tagged_cond(char *tag, Json *cond) {
 
     add_type_to_node(tagged_cond, "tagged_cond");
 
-    if (tag != NULL)
+    if (tag == NULL)
+        Json_add_null_to_object(tagged_cond, "tag");
+    else
         Json_add_string_to_object(tagged_cond, "tag", tag);
     
     Json_add_object_to_object(tagged_cond, "cond", cond);

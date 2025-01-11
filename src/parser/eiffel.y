@@ -150,6 +150,7 @@
 %nonassoc LOWER_THAN_BRACKETS
 %left '[' ']'
 %right '.'
+%nonassoc CREATE
 
 %%
 
@@ -359,8 +360,8 @@ routine_body: require_part_opt do_part then_part_opt ensure_part_opt END { $$ = 
 local_part: LOCAL var_decl_list { $$ = $2; }
           ;
 
-var_decl_list: name_and_type { $$ = add_to_list(mk_list(), $1); }
-             | var_decl_list name_and_type { $$ = add_to_list($1, $2); }
+var_decl_list: name_and_type { $$ = add_to_list(mk_list(), mk_local_var_decl($1)); }
+             | var_decl_list name_and_type { $$ = add_to_list($1, mk_local_var_decl($2)); }
              ;
 
 /* Секция предусловий */

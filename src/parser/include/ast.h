@@ -539,6 +539,15 @@ Json*
 mk_name_and_type(Json *names, Json *type_spec);
 
 /**
+ * Создает узел объявления локальной переменной
+ * 
+ * @param name_and_type Имя и тип локальной переменной
+ * @return Узел локальной переменной
+ */
+Json*
+mk_local_var_decl(Json *name_and_type);
+
+/**
  * Создает узел процедуры без аргументов
  * 
  * @param names Имена процедур
