@@ -71,13 +71,21 @@
     }
 %}
 
+%option 8bit
 %option noyywrap
 %option yylineno
 %option never-interactive
 %option array
 
 
-IDENTIFIER [_a-zA-Z][_a-zA-Z0-9]*
+ALPHA      [A-Za-z]
+U1         [\x80-\xbf]
+U2         [\xc2-\xdf]
+U3         [\xe0-\xef]
+U4         [\xf0-\xf4]
+UALPHA     ({ALPHA}|{U2}{U1}|{U3}{U1}{U1}|{U4}{U1}{U1}{U1})
+
+IDENTIFIER (({UALPHA}|_)({UALPHA}|[_0-9])*)
 
 WHITESPACE [ \n\t\r]+
 

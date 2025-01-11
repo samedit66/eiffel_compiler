@@ -113,6 +113,12 @@ escape(char *str) {
             case '\'': StringBuffer_append(strbuf, "\\\'"); break;
             case '\"': StringBuffer_append(strbuf, "\\\""); break;
             default:
+                // Код ниже был закомментирован в процессе реализации поддержки
+                // utf8 для идентификаторов и строк. Возникла проблема при
+                // добавлении кириллицы, т.к. символы двухбайтные,
+                // isprint(*str) была ложной, из-за этого искажались символы.
+                // Когда-нибудь будет пофикшено...
+                /*
                 if (isprint(*str)) {
                     StringBuffer_append_char(strbuf, *str);
                 }
@@ -122,6 +128,8 @@ escape(char *str) {
                     int size = sprintf(strbuf->buffer, "\\%03o", *str);
                     strbuf->size += size;
                 }
+                */
+                StringBuffer_append_char(strbuf, *str);
                 break;
         }
     }
