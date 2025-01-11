@@ -1,20 +1,36 @@
-from pathlib import Path
 import json
-from pprint import pprint as pp
 
+from tree.class_decl.make import make_class_decl
 from execute import run_eiffel_parser
-from tree.class_decl import ClassDecl
+
 
 
 eiffel_code = """
-class A
+class КВАДРАТ
+
+inherit
+    ПРЯМОУГОЛЬНИК
+    redefine
+        плошадь
+    end
+
 feature
-    pi: REAL then 3.14 end
+    площадь
+    do
+        print ("Площадь!")
+    end
+
+    λ
+    do
+    end
 end
+
 """
 
-program_dict = json.loads(
-    run_eiffel_parser(eiffel_code, "build\\eiffelp.exe")[0]
-)
+json_ast, stderr = run_eiffel_parser(eiffel_code, "build/eiffelp.exe")
+print(json_ast)
+print(stderr)
+dict_ast = json.loads(json_ast)
 
-print(ClassDecl.from_dict(program_dict["classes"][0]))
+class_decl = make_class_decl(dict_ast["classes"][0])
+print(class_decl)

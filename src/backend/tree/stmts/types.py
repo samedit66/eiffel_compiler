@@ -16,6 +16,12 @@ class Assignment(Statement):
 
 
 @dataclass(match_args=True, kw_only=True)
+class CreateStmt(Statement):
+    constructor_call: FeatureCall
+    type_name: str | None
+
+
+@dataclass(match_args=True, kw_only=True)
 class ElseifBranch(Statement):
     condition: Expr
     body: list[Statement]
@@ -25,8 +31,8 @@ class ElseifBranch(Statement):
 class IfStmt(Statement):
     condition: Expr
     then_branch: list[Statement]
-    elseif_branches: list[ElseifBranch]
     else_branch: list[Statement]
+    elseif_branches: list[ElseifBranch]
 
 
 @dataclass(match_args=True, kw_only=True)
@@ -36,7 +42,7 @@ class LoopStmt(Statement):
     body: list[Statement]
 
 
-class Choice(ABC): pass
+class Choice(Node, ABC): pass
 
 
 @dataclass(match_args=True, kw_only=True)

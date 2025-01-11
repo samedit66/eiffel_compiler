@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from tree.base import *
 from tree.type_decl import TypeDecl
-from tree.statements import Statement
+from tree.stmts import Statement
 from tree.expr import Expr
 
 

@@ -1,4 +1,4 @@
-from tree.features import *
+from tree.features.types import *
 from tree.type_decl import make_type_decl
 from tree.expr import ResultConst, make_expr
 from tree.stmts import Assignment, make_stmt
@@ -89,7 +89,7 @@ def make_conditions(condition_list: list) -> list[Condition]:
         condition = Condition(
             location=Location.from_dict(condition_dict["location"]),
             condition_expr=make_expr(condition_dict["cond"]),
-            tag=condition_dict["tag"] if "tag" in condition_dict else None,
+            tag=condition_dict["tag"],
         )
         conditions.append(condition)
 
@@ -144,11 +144,8 @@ def separate_declarations(decl_node_dict: dict) -> list:
     """
     separated = []
 
-    node_type = decl_node_dict["type"]
     location = decl_node_dict["location"]
-
     name_and_type = decl_node_dict["name_and_type"]
-
     names = name_and_type["names"]
     for name in names:
         name_and_type_ = {
@@ -157,7 +154,6 @@ def separate_declarations(decl_node_dict: dict) -> list:
         }
         decl_node_dict_ = {
             **decl_node_dict,
-            "type": node_type,
             "location": location,
             "name_and_type": name_and_type_
             }

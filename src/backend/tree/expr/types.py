@@ -123,7 +123,7 @@ class MinusOp(UnaryOp): pass
 class PlusOp(UnaryOp): pass
 
 
-class IntDiv(BinaryOp): pass
+class IntDivOp(BinaryOp): pass
 
 
 class ModOp(BinaryOp): pass
