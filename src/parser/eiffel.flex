@@ -408,7 +408,7 @@ process_integer:
 
     unput(next);
     parse_int(yytext, &int_value, base);
-    LOG_F(line, "integer with base %d literal", base, yytext);
+    LOG_F(line, "integer %s with base %d literal", yytext, base);
     yylval.int_value = int_value;
     return INT_CONST;
 %}

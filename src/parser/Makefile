@@ -18,6 +18,10 @@ BISON_OUTPUT_C=eiffel.tab.c
 BISON_OUTPUT_H=eiffel.tab.h
 BISON_OUTPUT=eiffel.output
 
+.PHONY: debug
+debug:
+	$(MAKE) build SETTINGS="$(DEBUG_SETTINGS)"
+
 .PHONY: build
 build: clean bison flex $(SOURCES) $(EXECUTABLE)
 
