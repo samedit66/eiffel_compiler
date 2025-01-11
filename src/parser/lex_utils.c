@@ -155,7 +155,7 @@ shift_left(char *str, int shift_size) {
 }
 
 void
-adjust_unaligned_verbatim_string(const StringList* verbatim_str) {
+adjust_unaligned_verbatim_string(const StringList *verbatim_str) {
     int lines_count = StringList_size(verbatim_str);
     if (lines_count == 0)
         return;
@@ -180,3 +180,16 @@ adjust_unaligned_verbatim_string(const StringList* verbatim_str) {
         shift_left(StringList_get(verbatim_str, i), min_space_count);
     }
 }   
+
+// Взято из: https://stackoverflow.com/a/61692729
+int
+strlen_utf8(const char *utf8_str) {
+    int len = 0;
+    for (int i = 0; *utf8_str != 0; ++len) {
+        int v01 = ((*utf8_str & 0x80) >> 7) & ((*utf8_str & 0x40) >> 6);
+        int v2 = (*utf8_str & 0x20) >> 5;
+        int v3 = (*utf8_str & 0x10) >> 4;
+        utf8_str += 1 + ((v01 << v2) | (v01 & v3));
+    }
+    return len;
+}

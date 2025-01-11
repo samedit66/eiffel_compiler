@@ -124,4 +124,16 @@ escape(char *str);
 void
 adjust_unaligned_verbatim_string(const StringList *verbatim_str);
 
+
+/**
+ * Считает длину строки в кодировки utf8.
+ * Никаких проверов на валидность строки не производится.
+ * 
+ * @param utf8_str строка в кодировке utf8
+ * @return длина строки в utf8 (количество code-points)
+ */
+int
+strlen_utf8(const char *utf8_str);
+
+
 #endif

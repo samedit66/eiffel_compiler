@@ -41,10 +41,10 @@ mk_int_const(int val) {
 }
 
 Json*
-mk_char_const(int val) {
+mk_char_const(char *char_const) {
     Json *node = Json_new();
     add_type_to_node(node, "char_const");
-    Json_add_int_to_object(node, "value", val);
+    Json_add_string_to_object(node, "value", char_const);
     return node;
 }
 

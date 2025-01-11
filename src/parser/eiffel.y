@@ -55,7 +55,7 @@
 %token <int_value> INT_CONST
 %token <real_value> REAL_CONST
 %token <ident> IDENT_LIT 
-%token <int_value> CHAR_CONST
+%token <string_value> CHAR_CONST
 %token <string_value> STRING_CONST
 
 %type <tree> constant expr
@@ -106,28 +106,73 @@
 
 %type <tree> create_expr
 
-%token INT_DIV MOD
-%token AND OR NOT AND_THEN OR_ELSE
-%token NEQ LE GE
-%token ASSIGN_TO
-%token END
-%token IF THEN ELSEIF ELSE
-%token FROM UNTIL LOOP
-%token WHEN INSPECT TWO_DOTS
-%token CLASS
-%token LIKE
-%token DO
-%token INTEGER REAL STRING_KW CHARACTER BOOLEAN ARRAY TUPLE
-%token FEATURE CREATE
-%token LOCAL
-%token REQUIRE ENSURE
-%token CURRENT PRECURSOR RESULT
-%token RARROW
-%token AS INHERIT REDEFINE RENAME UNDEFINE SELECT
-%token TRUE_KW FALSE_KW VOID
-%token OPEN_MANIFEST_ARRAY CLOSE_MANIFEST_ARRAY
-%token BANG_BANG
-%token DEFERRED
+%token
+    INT_DIV "//"
+    MOD "\\"
+%token
+    AND "and"
+    OR "or"
+    NOT "not" 
+    AND_THEN "and then"
+    OR_ELSE "or else"
+%token
+    NEQ "/="
+    LE "<="
+    GE ">="
+%token ASSIGN_TO ":="
+%token END "end"
+%token
+    IF "if"
+    THEN "then"
+    ELSEIF "elseif"
+    ELSE "else"
+%token
+    FROM "from"
+    UNTIL "until"
+    LOOP "loop"
+%token
+    WHEN "when"
+    INSPECT "inspect"
+    TWO_DOTS ".."
+%token CLASS "class"
+%token LIKE "like"
+%token DO "do"
+%token
+    INTEGER "INTEGER"
+    REAL"REAL"
+    STRING_KW "STRING"
+    CHARACTER "CHARACTER"
+    BOOLEAN "BOOLEAN"
+    ARRAY "ARRAY"
+    TUPLE "TUPLE"
+%token
+    FEATURE "feature"
+    CREATE "create"
+%token LOCAL "local"
+%token
+    REQUIRE "require"
+    ENSURE "ensure"
+%token
+    CURRENT "current"
+    PRECURSOR "precursor"
+    RESULT "Result"
+%token RARROW "->"
+%token
+    AS "as"
+    INHERIT "inherit"
+    REDEFINE "redefine"
+    RENAME "rename"
+    UNDEFINE "undefine"
+    SELECT "select"
+%token
+    TRUE_KW "True" 
+    FALSE_KW "False" 
+    VOID "Void"
+%token
+    OPEN_MANIFEST_ARRAY "<<"
+    CLOSE_MANIFEST_ARRAY ">>"
+%token BANG_BANG "!!"
+%token DEFERRED "deferred"
 
 %nonassoc DEFERRED
 %nonassoc EFFECTIVE
@@ -707,9 +752,9 @@ parse_files(int files_count, char **file_names) {
 void
 show_parsing_result(int errors_count) {
     if (errors_count == 1)
-        puts("Failed to parse, got 1 syntax error");
+        fprintf(stderr, "Failed to parse, got 1 syntax error\n");
     else if (errors_count > 1)
-        printf("Failed to parse, got %d syntax errors\n", errors_count);
+        fprintf(stderr, "Failed to parse, got %d syntax errors\n", errors_count);
 }
 
 /**
@@ -735,7 +780,7 @@ process_args(int argc, char **argv, bool *pretty_json, char **output_file_name) 
         switch (opt) {
             case 'o':
                 if (optarg == NULL)
-                    printf("Parser warning: no output file name provided, waiting for output from stdin");
+                    fprintf(stderr, "Parser warning: no output file name provided, waiting for output from stdin");
                 *output_file_name = optarg;
                 break;
             case 'p':
@@ -766,7 +811,7 @@ main(int argc, char **argv) {
         Json *output_tree = mk_program(found_classes);
 
         if (!write_output_tree(output_file_name, output_tree, pretty_json)) {
-            printf("Failed to open output file");
+            fprintf(stderr, "Failed to open output file");
             return EXIT_FAILURE;
         }
 

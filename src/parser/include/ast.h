@@ -22,11 +22,11 @@ mk_int_const(int val);
 /**
  * Создает узел константы символа
  * 
- * @param val Числовой код символа (int)
+ * @param val Символьная константа
  * @return Узел с константой символа
  */
 Json*
-mk_char_const(int val);
+mk_char_const(char *val);
 
 /**
  * Создает узел константы вещественного числа

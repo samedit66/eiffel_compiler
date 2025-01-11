@@ -50,15 +50,23 @@
     #endif
     
     #define ERROR_F(lineno, msg, ...) {\
-        fprintf(stderr, "Line %d: " RED_TEXT ": ", lineno, "error");\
+        fprintf(stderr, "Lexer error, line %d: " RED_TEXT ": ", lineno, "error");\
         fprintf(stderr, msg, __VA_ARGS__);\
         fprintf(stderr, "\n");\
     }
 
     #define ERROR_AT_LINENO(lineno, msg)\
-        fprintf(stderr, "Line %d: " RED_TEXT ": %s", lineno, "error", msg)
+        fprintf(stderr, "Lexer error, line %d: " RED_TEXT ": %s\n", lineno, "error", msg)
 
     #define ERROR(msg) ERROR_AT_LINENO(yylineno, msg)
+
+    #define SKIP_UNTIL_CHAR_IN(charset) { \
+        char ch; \
+        do { \
+            ch = input(); \
+            if (ch == '\n') yylineno++; \
+        } while (!is_end(ch) && strchr((charset), ch) == NULL); \
+    }
 
     #define SKIP_UNTIL_DELIMETER(current_ch) {\
         StringBuffer_clear(buf);\
@@ -265,42 +273,78 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 <CHARACTER,STRING>%\>     { StringBuffer_append_char(buf, '}'); }
 <CHARACTER,STRING>%\"     { StringBuffer_append_char(buf, '\"'); }
 <CHARACTER,STRING>%\'     { StringBuffer_append_char(buf, '\''); }
-<CHARACTER,STRING>%(.|\n) { ERROR("invalid escape sequence"); }
+<CHARACTER,STRING>%(.|\n) {
+    ERROR("invalid escape sequence");
+    SKIP_UNTIL_CHAR_IN("'\n");
+    BEGIN(INITIAL);
+    return CHAR_CONST;
+}
 
 <CHARACTER>[^\'\n]* {
     StringBuffer_append(buf, yytext);
-    
-    if (buf->size > 1) {
+
+    int code_points = strlen_utf8(buf->buffer);
+    if (code_points > 1) {
         ERROR_F(yylineno, "expected only one character in singles quotes, but got: '%s'", buf->buffer);
         StringBuffer_clear(buf);
-    }
-}
-
-<CHARACTER>\n       { ERROR_AT_LINENO(yylineno-1, "unclosed character literal"); }
-
-<CHARACTER><<EOF>>  { ERROR("unclosed character literal"); }
-
-<CHARACTER>\' {
-    if (buf->size == 0) {
-        ERROR("empty characters are not permitted");
-    }
-    else if (buf->size > 1) {
-        ERROR_F(yylineno, "expected only one character in singles quotes, but got: '%s'", buf->buffer);
-        StringBuffer_clear(buf);
-    }
-    else {
-        LOG_LEXEM("character", buf->buffer);
+        SKIP_UNTIL_CHAR_IN("'\n");
         BEGIN(INITIAL);
-        yylval.int_value = buf->buffer[0];
         return CHAR_CONST;
     }
 }
 
-<STRING>[^\"\n%]*   { StringBuffer_append(buf, yytext); }
+<CHARACTER>\n {
+    ERROR_AT_LINENO(yylineno-1, "unclosed character literal");
+    BEGIN(INITIAL);
+    return CHAR_CONST;
+}
 
-<STRING>\n          { ERROR("unclosed string"); }
+<CHARACTER><<EOF>> {
+    ERROR("unclosed character literal");
+    BEGIN(INITIAL);
+    return CHAR_CONST;
+}
 
-<STRING><<EOF>>     { ERROR("unclosed string"); }
+<CHARACTER>\' {
+    int code_points = strlen_utf8(buf->buffer);
+    if (code_points == 0) {
+        ERROR("empty characters are not permitted");
+        BEGIN(INITIAL);
+        return CHAR_CONST;
+    }
+    else if (code_points > 1) {
+        ERROR_F(yylineno, "expected only one character in singles quotes, but got: '%s'", buf->buffer);
+        StringBuffer_clear(buf);
+        BEGIN(INITIAL);
+        return CHAR_CONST;
+    }
+    else {
+        LOG_LEXEM("character", buf->buffer);
+        BEGIN(INITIAL);
+        // Символы (CHARACTER) могут быть более одного байта в длину,
+        // чтобы не морочится с сохранением их в int (хотя это тоже возможно),
+        // сохраняем их в string_value, и далее тот, кто обрабатывает JSON-дерево,
+        // будет с этим разбираться
+        yylval.string_value = escape(buf->buffer);
+        return CHAR_CONST;
+    }
+}
+
+<STRING>[^\"\n%]* { StringBuffer_append(buf, yytext); }
+
+<STRING>\n {
+    ERROR_AT_LINENO(yylineno-1, "unclosed string");
+    StringBuffer_clear(buf);
+    BEGIN(INITIAL);
+    return STRING_CONST;
+}
+
+<STRING><<EOF>> {
+    ERROR("unclosed string");
+    StringBuffer_clear(buf);
+    BEGIN(INITIAL);
+    return STRING_CONST;
+}
 
 <STRING>\" {
     // Добавил проверку на режим дебага, чтобы не выделять память,
@@ -341,13 +385,18 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
     #endif
 
     BEGIN(INITIAL);
-    yylval.string_value = buf->buffer;
+    yylval.string_value = escape(buf->buffer);
     return STRING_CONST;
 }
 
 <VERBATIM_ALIGNED_STRING>.*\n { StringList_push(verbatim_str, yytext); }
 
-<VERBATIM_ALIGNED_STRING><<EOF>> { ERROR("unclosed verbatim string"); }
+<VERBATIM_ALIGNED_STRING><<EOF>> {
+    ERROR("unclosed verbatim string");
+    StringList_clear(verbatim_str);
+    BEGIN(INITIAL);
+    return STRING_CONST;
+}
 
 \" {
     StringBuffer_clear(buf);
