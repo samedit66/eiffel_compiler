@@ -52,3 +52,8 @@ class Method(Feature):
     local_var_decls: list[LocalVarDecl]
     require: list[Condition]
     ensure: list[Condition]
+
+
+@dataclass(match_args=True, kw_only=True)
+class ExternalMethod(Feature):
+    language: str

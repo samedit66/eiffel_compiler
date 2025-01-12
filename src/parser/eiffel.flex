@@ -204,7 +204,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 "ensure"                { LOG_LEXEM("keyword", "ENSURE"); return ENSURE; }
 "expanded"              { LOG_LEXEM("keyword", "EXPANDED"); }
 "export"                { LOG_LEXEM("keyword", "EXPORT"); }
-"external"              { LOG_LEXEM("keyword", "EXTERNAL"); }
+"external"              { LOG_LEXEM("keyword", "EXTERNAL"); return EXTERNAL; }
 "feature" 				{ LOG_LEXEM("keyword", "FEATURE"); return FEATURE; }
 "from" 					{ LOG_LEXEM("keyword", "FROM"); return FROM; }
 "False"                 { LOG_LEXEM("keyword", "FALSE"); return FALSE_KW; }

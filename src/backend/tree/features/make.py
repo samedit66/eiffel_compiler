@@ -20,7 +20,13 @@ def make_feature_list(feature_clauses: list) -> list[Feature]:
                     case "class_constant":
                         features.append(make_constant(clients, feature_dict))
                     case "class_routine":
-                        features.append(make_method(clients, feature_dict))
+                        match feature_dict["body"]["type"]:
+                            case "routine_body":
+                                features.append(make_method(clients, feature_dict))
+                            case "external_routine_body":
+                                features.append(make_external_method(clients, feature_dict))
+                            case unknown_body_type:
+                                raise UnknownNodeTypeError(f"Unknown feature body type: {unknown_body_type}")
                     case unknown_feature_type:
                         raise UnknownNodeTypeError(f"Unknown feature node type: {unknown_feature_type}")
 
@@ -125,6 +131,15 @@ def make_method(clients: list[Identifier], method_dict: dict) -> Method:
         local_var_decls=make_local_var_decls(method_dict["body"]["local"]),
         require=make_conditions(method_dict["body"]["require"]),
         ensure=make_conditions(method_dict["body"]["ensure"]),
+    )
+
+
+def make_external_method(clients: list[Identifier], external_method_dict: dict) -> ExternalMethod:
+    return ExternalMethod(
+        location=Location.from_dict(external_method_dict["location"]),
+        name=external_method_dict["name_and_type"]["name"],
+        clients=clients,
+        language=external_method_dict["body"]["language"],
     )
 
 

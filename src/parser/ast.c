@@ -636,3 +636,13 @@ mk_feature_parameter(Json *name_and_type) {
 
     return parameter;
 }
+
+Json*
+mk_external_routine_body(char *language_name) {
+    Json *external_routine_body = Json_new();
+
+    add_type_to_node(external_routine_body, "external_routine_body");
+    Json_add_string_to_object(external_routine_body, "language", language_name);
+
+    return external_routine_body;
+}

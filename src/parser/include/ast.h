@@ -668,3 +668,12 @@ mk_create_expr(char *type_name, Json *constructor_call);
  */
 Json*
 mk_feature_parameter(Json *name_and_type);
+
+/**
+ * Создает узел тела внешней подпрограммы.
+ * 
+ * @param language_name Имя языка, из которого нужно взять определение
+ * @return Узел тела внешней подпрограммы
+ */
+Json*
+mk_external_routine_body(char *language_name);
