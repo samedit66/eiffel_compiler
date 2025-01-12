@@ -1,9 +1,9 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
-from collections import deque
 
-from backend.tree.class_decl import ClassDecl, FeatureSection
-from backend.tree.features import Feature
+from tree.class_decl import ClassDecl
+from tree.features import Feature
+from tree.class_decl.types import Parent
 
 
 @dataclass
@@ -50,17 +50,70 @@ class FeatureFlatTable:
         self.table.append(feature_record)
 
 
+class InheritanceError(Exception): pass
+
+
+class DuplicatesError(Exception): pass
+
+
+class UnknownParentError(InheritanceError): pass
+
+
+def analyze_duplicates(
+        classes: list[ClassDecl],
+        ) -> tuple[set[ClassDecl], set[ClassDecl]]:
+    dups = set()
+    for c in classes:
+        if c not in dups:
+            dups.add(c)
+
+    unique = set(classes) - dups
+    return unique, dups
+
+
 def hierarchy_for(
           needed_class: ClassDecl,
-          all_classes: list[ClassDecl]
+          all_classes: set[ClassDecl],
+          root: str = "ANY",
           ) -> list[ClassDecl]:
-    hierarchy = []
-    ancestors_to_visit = needed_class.inherit_section.ancestors
+    """Выполняет построение иерархии дерева наследования
+    для заданного класса.
+    
+    :param needed_class: Заданный класс.
+    :param all_classes: Множество всех классов в программе.
+    :param root: Имя корневного класса. По умолчанию - `ANY`.
+    :return: список классов, создающих иерархию, начиная 
+    от прямых родителей и заканчивая корневым классом.
+    """
+    if not any(class_decl.class_name == root for class_decl in all_classes):
+        raise UnknownParentError(f"Root class {root} wasn't found")
+    
+    parents = needed_class.inherit
 
-    while ancestors_to_visit:
-        ancestor = ancestors_to_visit.pop(0)
+    # Алгоритм построения иерархии наследования заключается в следующем:
+    # 1) В качестве списка родителей принять прямых родителей класса.
+    # 2) Добавить в иерархию первого родителя из списка, если его еще не было в иерархии.
+    # 3) Пополнить список родителей всеми родителями родителя.
+    # 4) Повторять пункт 2 до тех пор, пока список родителей не пустой.
+    hierarchy = []
+    while parents:
+        parent = parents.pop(0)
         
-        ancestor_name = ancestor.class_name
+        pname = parent.class_name
+        try:
+            pclass = next(class_decl for class_decl in all_classes if class_decl.class_name == pname)
+        except StopIteration:
+            raise UnknownParentError(f"Parent class {pname} wasn't found")
         
+        if pclass not in hierarchy:
+            hierarchy.append(pclass)
+
+        parents.extend(pclass.inherit)
 
     return hierarchy
+
+
+def analyze_inheritance(classes: list[ClassDecl]):
+    unique, dups = analyze_duplicates(classes)
+    if dups:
+        raise DuplicatesError()

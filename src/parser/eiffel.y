@@ -203,7 +203,7 @@
 /* ********************************************************************/
 /* Описание программы: набор классов */
 class_list: class_declaration { if (found_classes == NULL) found_classes = mk_list(); add_to_list(found_classes, $1); }
-          | class_list class_declaration { add_to_list(found_classes, $1);  }
+          | class_list class_declaration { add_to_list(found_classes, $2);  }
           ;
 
 class_declaration: class_header inheritance_opt creators_opt features_clause_opt END { $$ = mk_class_decl($1, $2, $3, $4); }

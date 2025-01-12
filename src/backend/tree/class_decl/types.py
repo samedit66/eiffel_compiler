@@ -1,5 +1,5 @@
 from __future__ import annotations
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from tree.base import *
@@ -16,11 +16,11 @@ class Alias(Node):
 @dataclass(match_args=True, kw_only=True)
 class Parent(Node):
     class_name: Identifier
-    generics: list[GenericType]
-    rename: list[Alias]
-    undefine: list[Identifier]
-    redefine: list[Identifier]
-    select: list[Identifier]
+    generics: list[GenericType] = field(default_factory=list)
+    rename: list[Alias] = field(default_factory=list)
+    undefine: list[Identifier] = field(default_factory=list)
+    redefine: list[Identifier] = field(default_factory=list)
+    select: list[Identifier] = field(default_factory=list)
 
 
 @dataclass(match_args=True, kw_only=True)
@@ -32,3 +32,7 @@ class ClassDecl(Node):
     create: list[Identifier]
     features: list[Feature]
     defined_in_file: Path | None
+
+    def __hash__(self) -> int:
+        return hash(self.class_name)
+    
