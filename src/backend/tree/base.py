@@ -24,13 +24,12 @@ class Location:
 class Node(ABC):
     """Абстрактный узел синтаксического дерева"""
     location: Location | None
-    """Положение узла в тексте программы. Может быть None в ситуации, если
+    """Положение узла в тексте программы. М+ожет быть None в ситуации, если
     одни узлы трансформируются в другие в процессе обработки дерева
     """
 
 
 type Identifier = str
-type IdentifierList = list[Identifier]
 
 
 def is_empty_node(node_dict: dict) -> bool:
