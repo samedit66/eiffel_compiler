@@ -2,10 +2,10 @@ from __future__ import annotations
 from abc import ABC
 from dataclasses import dataclass
 
-from tree.base import *
-from tree.type_decl import TypeDecl
-from tree.stmts import Statement
-from tree.expr import Expr
+from ..base import *
+from ..type_decl import TypeDecl
+from ..stmts import Statement
+from ..expr import Expr
 
 
 @dataclass(match_args=True, kw_only=True)

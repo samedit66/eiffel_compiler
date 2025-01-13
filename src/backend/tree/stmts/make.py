@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from tree.base import *
-from tree.stmts.types import *
-from tree.expr.make import make_expr, make_feature_call
+from ..base import *
+from ..expr.make import make_expr, make_feature_call
+
+from .types import *
 
 
 def make_stmt(stmt_dict: dict) -> Statement:
@@ -23,7 +24,7 @@ def make_stmt(stmt_dict: dict) -> Statement:
             raise UnknownNodeTypeError(f"Unknown statement type: {unknown_node_type}")
 
 
-def make_create_stmt(create_stmt_dict: dict) -> Assignment:
+def make_create_stmt(create_stmt_dict: dict) -> CreateStmt:
     return CreateStmt(
         location=Location.from_dict(create_stmt_dict["location"]),
         constructor_call=make_feature_call(create_stmt_dict["constructor_call"]),

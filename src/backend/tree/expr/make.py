@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from tree.base import *
-from tree.expr.types import *
+from ..base import *
+from ..expr.types import *
 
 
 def make_expr(expr_dict: dict) -> Expr:

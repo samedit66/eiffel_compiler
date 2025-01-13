@@ -2,9 +2,9 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from tree.base import *
-from tree.features import Feature
-from tree.type_decl import GenericType
+from ..base import *
+from ..features import Feature
+from ..type_decl import GenericType
 
 
 @dataclass(match_args=True, kw_only=True)
@@ -21,6 +21,7 @@ class Parent(Node):
     undefine: list[Identifier] = field(default_factory=list)
     redefine: list[Identifier] = field(default_factory=list)
     select: list[Identifier] = field(default_factory=list)
+    class_decl: ClassDecl | None = None 
 
 
 @dataclass(match_args=True, kw_only=True)

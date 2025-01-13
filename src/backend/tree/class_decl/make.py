@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-from tree.base import *
-from tree.class_decl.types import *
-from tree.features import make_feature_list
+from ..base import *
+from ..features import make_feature_list
+
+from .types import *
+
 
 
 def make_class_decl(class_decl_dict: dict) -> ClassDecl:

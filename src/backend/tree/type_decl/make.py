@@ -1,6 +1,8 @@
 from __future__ import annotations
-from tree.base import *
-from tree.type_decl.types import *
+
+from ..base import *
+
+from .types import *
 
 
 def make_type_decl(type_decl_dict: dict) -> TypeDecl:
@@ -59,21 +61,21 @@ def make_generic_type_decl(generic_decl_dict: dict) -> TypeDecl:
     type_list = generic_decl_dict["type_list"]
     match generic_decl_dict["type_name"]:
         case "ARRAY":
-            elements_type = TypeDecl.from_dict(type_list[0])
+            elements_type = make_type_decl(type_list[0])
             return ArrayType(
                 location=location,
                 elements_type=elements_type,
                 )
         case "TUPLE":
-            elements_type_list = [TypeDecl.from_dict(element_type) for element_type in type_list]
+            elements_type_list = [make_type_decl(element_type) for element_type in type_list]
             return TupleType(
                 location=location,
                 elements_type_list=elements_type_list,
                 )
         case type_name: # Определяемый пользователем тип
-            type_list = [TypeDecl.from_dict(element_type) for element_type in type_list]
+            generics = [make_type_decl(element_type) for element_type in type_list]
             return ClassType(
                 location=location,
                 type_name=type_name,
-                type_list=type_list,
+                generics=generics,
                 )

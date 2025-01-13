@@ -2,8 +2,8 @@ from __future__ import annotations
 from abc import ABC
 from dataclasses import dataclass
 
-from tree.base import *
-from tree.expr import Expr, FeatureCall
+from ..base import *
+from ..expr import Expr, FeatureCall
 
 
 class Statement(Node, ABC): pass

@@ -1,11 +1,12 @@
-from tree.features.types import *
-from tree.type_decl import make_type_decl
-from tree.expr import ResultConst, make_expr
-from tree.stmts import Assignment, make_stmt
+from ..type_decl import make_type_decl
+from ..expr import ResultConst, make_expr
+from ..stmts import Assignment, make_stmt
+
+from .types import *
 
 
 def make_feature_list(feature_clauses: list) -> list[Feature]:
-    features = []
+    features: list[Feature] = []
 
     for feature_clause in feature_clauses:
         clients = feature_clause["clients"]
@@ -53,7 +54,7 @@ def make_constant(clients: list[Identifier], constant_dict: dict) -> Constant:
 
 
 def make_parameters(parameters_list: list) -> list[Parameter]:
-    parameters = []
+    parameters: list[Parameter] = []
 
     for parameter_dict in parameters_list:
         parameter_dicts = separate_declarations(parameter_dict)
@@ -71,7 +72,7 @@ def make_parameters(parameters_list: list) -> list[Parameter]:
 
 
 def make_local_var_decls(var_decl_list: list) -> list[LocalVarDecl]:
-    var_decls = []
+    var_decls: list[LocalVarDecl] = []
 
     for var_decl_dict in var_decl_list:
         var_decls_dicts = separate_declarations(var_decl_dict)
@@ -111,7 +112,7 @@ def make_do(method_dict: dict) -> list[Statement]:
         stmts.append(
             Assignment(
                 location=Location.from_dict(then["location"]),
-                target=ResultConst(),
+                target=ResultConst(location=None),
                 value=make_expr(then)
             )
         )
