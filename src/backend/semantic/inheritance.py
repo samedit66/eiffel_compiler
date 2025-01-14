@@ -6,7 +6,7 @@ from tree.features import Feature
 from tree.class_decl.types import Parent
 
 
-@dataclass
+@dataclass(match_args=True, kw_only=True)
 class FeatureRecord:
     """Описание фичи в таблице"""
     class_name: str
@@ -111,6 +111,34 @@ def hierarchy_for(
         parents.extend(pclass.inherit)
 
     return hierarchy
+
+
+def flat(given_class: ClassDecl, all_classes: set[ClassDecl]) -> list[FeatureRecord]:
+    if not given_class.inherit:
+        return [
+            FeatureRecord(
+                class_name=given_class.class_name,
+                feature_name=feature.name,
+                feature_node=feature,
+                )
+            for feature in given_class.features
+        ]
+    
+    flatten = []
+    for parent in given_class.inherit:
+        try:
+            pclass = next(
+                class_decl
+                for class_decl in all_classes
+                if class_decl.class_name == parent.class_name
+                )
+        except StopIteration:
+            raise UnknownParentError(f"Parent class {parent.class_name} wasn't found") from None
+        
+        flatten.extend(flat(pclass, all_classes))
+    
+    flatten.extend(given_class.features)
+    return flatten
 
 
 def analyze_inheritance(classes: list[ClassDecl]):

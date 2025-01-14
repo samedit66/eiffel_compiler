@@ -1,4 +1,4 @@
-from tree.class_decl import *
+from .class_decl import *
 
 
 def make_ast(ast_dict: dict) -> list[ClassDecl]:

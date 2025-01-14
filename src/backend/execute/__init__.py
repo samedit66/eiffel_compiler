@@ -1,1 +1,1 @@
-from execute.run_parser import run_eiffel_parser
+from .run_parser import run_eiffel_parser

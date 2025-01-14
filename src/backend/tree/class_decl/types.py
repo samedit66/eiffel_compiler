@@ -21,7 +21,10 @@ class Parent(Node):
     undefine: list[Identifier] = field(default_factory=list)
     redefine: list[Identifier] = field(default_factory=list)
     select: list[Identifier] = field(default_factory=list)
-    class_decl: ClassDecl | None = None 
+    class_decl: ClassDecl | None = None
+
+    def __hash__(self) -> int:
+        return hash(self.class_name)
 
 
 @dataclass(match_args=True, kw_only=True)
