@@ -1,8 +1,8 @@
 from typing import Iterable
 from itertools import groupby
 
-from .base import SemanticError
-from ..tree.class_decl import ClassDecl, Parent
+from ..base import SemanticError
+from ...tree.class_decl import ClassDecl, Parent
 
 
 class DuplicatesError(SemanticError):
@@ -17,12 +17,18 @@ class DuplicatesError(SemanticError):
     @staticmethod
     def message(dups: Iterable[ClassDecl]) -> str:
         msg_parts = ["Found duplicated classes:"]
+        grouped = {}
 
-        for _, group in groupby(dups, key=lambda decl: decl.class_name):
-            for dup in sorted(group, key=lambda decl: decl.location.first_line):
+        # Группируем дубликаты по имени класса
+        for decl in dups:
+            grouped.setdefault(decl.class_name, []).append(decl)
+
+        for class_name, decls in grouped.items():
+            msg_parts.append(f"Class '{class_name}' appears in:")
+            for decl in sorted(decls, key=lambda d: d.location.first_line):
                 msg_parts.append(
-                    f"    {dup.class_name} in file {dup.defined_in_file}, line {dup.location.first_line}"
-                    )
+                    f"  - File {decl.defined_in_file}, line {decl.location.first_line}"
+                )
 
         return "\n".join(msg_parts)
 
@@ -37,12 +43,18 @@ class NonexistentParentsError(SemanticError):
     @staticmethod
     def message(nonexistent: dict[ClassDecl, list[Parent]]) -> str:
         msg_parts = ["Found nonexistent parents:"]
+        
+        for decl, parents in sorted(nonexistent.items(), key=lambda pair: pair[0].class_name):
+            msg_parts.append(f"For class '{decl.class_name}' in file {decl.defined_in_file}:")
+            
+            grouped = {}
+            for parent in parents:
+                grouped.setdefault(parent.class_name, []).append(parent)
 
-        for decl in sorted(nonexistent, key=lambda decl: decl.class_name):
-            msg_parts.append(f"For class {decl.class_name} in file {decl.defined_in_file}:")
-
-            for parent in nonexistent[decl]:
-                msg_parts.append(f"    Parent {parent.class_name}, line {parent.location.first_line}")
+            for parent_name, parent_locations in grouped.items():
+                msg_parts.append(f"  Parent '{parent_name}' appears in:")
+                for parent in sorted(parent_locations, key=lambda p: p.location.first_line):
+                    msg_parts.append(f"    - Line {parent.location.first_line}")
 
         return "\n".join(msg_parts)
 
@@ -56,12 +68,18 @@ class DuplicatedParentsError(SemanticError):
     @staticmethod
     def message(dup_parents: dict[ClassDecl, list[Parent]]) -> str:
         msg_parts = ["Found duplicated parents:"]
-
+        
         for decl, parents in sorted(dup_parents.items(), key=lambda pair: pair[0].class_name):
-            msg_parts.append(f"For class {decl.class_name} in file {decl.defined_in_file}:")
-
+            msg_parts.append(f"For class '{decl.class_name}' in file {decl.defined_in_file}:")
+            
+            grouped = {}
             for parent in parents:
-                msg_parts.append(f"    Parent {parent.class_name}, line {parent.location.first_line}")
+                grouped.setdefault(parent.class_name, []).append(parent)
+
+            for parent_name, parent_locations in grouped.items():
+                msg_parts.append(f"  Parent '{parent_name}' appears in:")
+                for parent in sorted(parent_locations, key=lambda p: p.location.first_line):
+                    msg_parts.append(f"    - Line {parent.location.first_line}")
 
         return "\n".join(msg_parts)
 
@@ -76,10 +94,10 @@ class SelfInheritedError(SemanticError):
         msg_parts = ["Found circular inheritance:"]
 
         for decl, chain in sorted(self_inherited.items(), key=lambda pair: pair[0].class_name):
-            msg_parts.append(f"For class {decl.class_name} in file {decl.defined_in_file}, line {decl.location.first_line}:")
+            msg_parts.append(f"Class {decl.class_name} involved in chain:")
             
             msg_chain = " => ".join(decl.class_name for decl in chain)
-            msg_parts.append(f"    Chain: {msg_chain}")
+            msg_parts.append(f"  - File {decl.defined_in_file}, near line {decl.location.first_line}: {msg_chain}")
 
         return "\n".join(msg_parts)
 

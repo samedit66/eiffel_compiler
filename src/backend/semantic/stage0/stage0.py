@@ -1,9 +1,9 @@
 from collections import defaultdict
 from typing import Iterable
 
-from ..tree.class_decl import ClassDecl, Parent
+from ...tree.class_decl import ClassDecl, Parent
 
-from .base import SemanticError
+from ..base import SemanticError
 from .errors import *
 
 
@@ -121,6 +121,13 @@ def process_stage0(classes: list[ClassDecl], root_class: str = "ANY") -> None:
 
     В случае выявление семантических ошибок процедура выбрасывает
     соответствующие исключения.
+
+    Parameters
+    ----------
+    classes : list[ClassDecl]
+        Список классов программы
+    root_class : str
+        Название корневого класса
     """
     exps: list[SemanticError] = []
 
@@ -148,5 +155,5 @@ def process_stage0(classes: list[ClassDecl], root_class: str = "ANY") -> None:
         exps.append(SelfInheritedError(self_inherited))
         
     if exps:
-        raise ExceptionGroup("Semantic problems at stage number 0", exps)
+        raise ExceptionGroup("Semantic problems at stage 0", exps)
     

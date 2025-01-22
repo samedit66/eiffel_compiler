@@ -1,6 +1,6 @@
 from __future__ import annotations
 from abc import ABC
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from ..base import *
 from ..type_decl import TypeDecl
@@ -47,11 +47,11 @@ class Condition(Node):
 class Method(Feature):
     is_deferred: bool
     return_type: TypeDecl
-    parameters: list[Parameter]
-    do: list[Statement]
-    local_var_decls: list[LocalVarDecl]
-    require: list[Condition]
-    ensure: list[Condition]
+    parameters: list[Parameter] = field(default_factory=list)
+    do: list[Statement] = field(default_factory=list)
+    local_var_decls: list[LocalVarDecl] = field(default_factory=list)
+    require: list[Condition] = field(default_factory=list)
+    ensure: list[Condition] = field(default_factory=list)
 
 
 @dataclass(match_args=True, kw_only=True)

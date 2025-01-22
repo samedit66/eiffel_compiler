@@ -12,6 +12,9 @@ class Alias(Node):
     original_name: Identifier
     alias_name: Identifier
 
+    def __hash__(self) -> int:
+        return hash(self.original_name)
+
 
 @dataclass(match_args=True, kw_only=True)
 class Parent(Node):
