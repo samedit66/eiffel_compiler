@@ -7,7 +7,7 @@ from itertools import groupby
 from ...tree.class_decl import ClassDecl, Parent, Alias
 from ...tree.features import Field, Constant, Method
 
-from .featureset import FeatureSet
+from .featureset import FeatureSet, FeatureAlreadyInError
 
 
 type RenameRules = dict[str, str]
@@ -108,7 +108,7 @@ def undefine_rules_parse(
     nondefined_anywhere = [
         feature_name
         for feature_name in to_undefine
-        if any(feature_name not in feature_set for feature_set in other_parents_sets)
+        if all(feature_name not in feature_set for feature_set in other_parents_sets)
             and feature_name not in child_set
     ]
     if not is_child_deferred and nondefined_anywhere: raise ValueError()
@@ -414,6 +414,6 @@ def analyze_inheritance(class_decl: ClassDecl) -> FeatureSet:
     child_set = FeatureSet.union(
         child_set,
         *[inheritance.feature_set for inheritance in inheritance_list],
-        )
+    )
     
     return child_set
