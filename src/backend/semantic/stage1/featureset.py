@@ -1,12 +1,11 @@
 from __future__ import annotations
+from collections import defaultdict
 from itertools import groupby
 from typing import Iterator
 
 from ...tree.features import (
     Feature,
     Method,
-    Field,
-    Constant,
     )
 
 from ..base import SemanticError
@@ -31,7 +30,10 @@ class FeatureSet:
         self.feature_set[feature_name] = feature
 
     def remove(self, feature_name: str) -> None:
-        del self.feature_set[feature_name]
+        self.feature_set.pop(feature_name)
+
+    def get(self, feature_name: str) -> Feature | None:
+        return self.feature_set.get(feature_name, None)
 
     def __contains__(self, feature_name: str) -> bool:
         return feature_name in self.feature_set
@@ -60,35 +62,43 @@ class FeatureSet:
         имен отсутствует.
         """
         feature_set = FeatureSet()
-        duplicated: dict[str, list[Feature]] = {}
+        duplicated: dict[str, list[Feature]] = defaultdict(list)
 
-        for feature_name, feature_group in groupby(features, key=lambda feature: feature.name):
-            feature_group = list(feature_group)
+        for feature in features:
+            try:
+                feature_set.add(feature.name, feature)
+            except FeatureAlreadyInError:
+                feature_in = feature_set.get(feature.name)
 
-            if len(feature_group) == 1:
-                feature_set.add(feature_name, feature_group[0])
-                continue
+                # Успешные случаи:
+                # 1) В feature_set записана отложенной фича и сама feature
+                #    является отложенной (добавления при этом не происходит)
+                # 2) В feature_set записана отложенная фича, а сама feature
+                #    является эффективной
+                # 3) В feature_set записана эффективная фича, а сама feature
+                #    является абстрактной (добавления при это не происходит)
+                # В любом другом случае добавление приводит к возникновению исключения
 
-            # Особый случай слияния заключается в следующей ситуации:
-            # имеется несколько одинаково названных фич, причем одна из них
-            # эффективная (определенная), а все остальные - абстрактные (отложенные).
-            # Данная ситуация ошибкой не считается, т.к. доступна только одна реализация.
-            # Помимо этого сюда подпадает и случай, когда всего лишь одна 
-            # эффективная фича и нет отложенных
-            effective = [
-                feature
-                for feature in feature_group
-                if not isinstance(feature, Method) or not feature.is_deferred
-            ]
-            if len(effective) == 1 and len(feature_group) >= 1:
-                feature_set.add(feature_name, effective[0])
-                continue
-
-            # Ошибочная ситуация - несколько одноименных фич, причем более одной
-            # из них имеют одну и ту же реализацию
-            duplicated[feature_name] = feature_group
+                if (isinstance(feature_in, Method) and feature_in.is_deferred
+                        and isinstance(feature, Method) and feature.is_deferred):
+                    pass
+                elif (isinstance(feature_in, Method) and feature_in.is_deferred
+                        and (not isinstance(feature, Method) or not feature.is_deferred)):
+                    feature_set.remove(feature.name)
+                    feature_set.add(feature.name, feature)
+                elif ((not isinstance(feature_in, Method) or not feature_in.is_deferred)
+                        and isinstance(feature, Method) and feature.is_deferred):
+                    pass
+                else:
+                    duplicated[feature.name].append(feature)
 
         if duplicated:
+            # Костыль: при повторении надо учитывать все повторяющиеся версии,
+            # но самая первая версия остается в feature_set, поэтому ее надо оттуда взять
+            for feature_name, feature in feature_set:
+                if feature_name in duplicated:
+                    duplicated[feature_name].append(feature)
+
             raise DuplicateFeaturesError(duplicated)
 
         return feature_set

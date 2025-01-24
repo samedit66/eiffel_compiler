@@ -205,6 +205,14 @@ def redefine_rules_parse(
     if nonredefined_in_child:
         raise ValueError()
     
+    constants_to_redefine = {
+        feature_name: feature
+        for feature_name, feature in parent_set
+        if isinstance(feature, Constant) and feature_name in to_redefine
+    }
+    if constants_to_redefine:
+        raise ValueError()
+
     redefine_rules = FeatureSet()
     for feature_name, feature in child_set:
         if feature_name in to_redefine:
