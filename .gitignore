@@ -11,3 +11,4 @@ __pycache__
 .pytest_cache
 dot-output/
 __coconut_cache__
+.mypy_cache
