@@ -106,7 +106,7 @@ def set_class_decls(classes: list[ClassDecl]) -> None:
                 pass
 
 
-def process_stage0(classes: list[ClassDecl], root_class: str = "ANY") -> None:
+def process_stage0(ast: list[ClassDecl], root_class: str = "ANY") -> set[ClassDecl]:
     """Первая стадия семантического анализа состоит в следующем:
         1) Проверка, что отсутствуют дублированные декларации классов;
         2) Проверка, что все указанные родители существуют;
@@ -124,36 +124,38 @@ def process_stage0(classes: list[ClassDecl], root_class: str = "ANY") -> None:
 
     Parameters
     ----------
-    classes : list[ClassDecl]
-        Список классов программы
+    ast : list[ClassDecl]
+        Абстрактное синтаксическое дерево - список классов программы
     root_class : str
         Название корневого класса
     """
     exps: list[SemanticError] = []
 
-    dups = find_duplicated_classes(classes)
+    dups = find_duplicated_classes(ast)
     if dups:
         exps.append(DuplicatesError(dups))
 
-    nonexistent = find_nonexistent_parents(classes)
+    nonexistent = find_nonexistent_parents(ast)
     if nonexistent:
         exps.append(NonexistentParentsError(nonexistent))
 
-    dup_parents = find_duplicated_parents(classes)
+    dup_parents = find_duplicated_parents(ast)
     if dup_parents:
         exps.append(DuplicatedParentsError(dup_parents))
 
-    if not find_class_by_name(classes, root_class):
+    if not find_class_by_name(ast, root_class):
         exps.append(MissingRootClassError(root_class))
 
-    add_implicit_root_class(classes, root_class)
+    add_implicit_root_class(ast, root_class)
 
-    set_class_decls(classes)
+    set_class_decls(ast)
 
-    self_inherited = find_circular_inheritance(classes)
+    self_inherited = find_circular_inheritance(ast)
     if self_inherited:
         exps.append(SelfInheritedError(self_inherited))
         
     if exps:
         raise ExceptionGroup("Semantic problems at stage 0", exps)
+    
+    return set(ast)
     
