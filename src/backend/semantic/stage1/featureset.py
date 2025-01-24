@@ -2,7 +2,12 @@ from __future__ import annotations
 from itertools import groupby
 from typing import Iterator
 
-from ...tree.features import Feature
+from ...tree.features import (
+    Feature,
+    Method,
+    Field,
+    Constant,
+    )
 
 from ..base import SemanticError
 
@@ -11,7 +16,7 @@ class FeatureAlreadyInError(ValueError):
     ...
 
 
-class DuplicatedFeaturesError(SemanticError):
+class DuplicateFeaturesError(SemanticError):
     ...
 
 
@@ -59,15 +64,31 @@ class FeatureSet:
 
         for feature_name, feature_group in groupby(features, key=lambda feature: feature.name):
             feature_group = list(feature_group)
-            if len(feature_group) > 1:
-                duplicated[feature_name] = feature_group
+
+            if len(feature_group) == 1:
+                feature_set.add(feature_name, feature_group[0])
                 continue
 
-            # Обработки try/except на FeatureAlreadyInError нет,
-            # т.к. groupby группирует повторяющиеся фичи
-            feature_set.add(feature_name, feature_group[0])
+            # Особый случай слияния заключается в следующей ситуации:
+            # имеется несколько одинаково названных фич, причем одна из них
+            # эффективная (определенная), а все остальные - абстрактные (отложенные).
+            # Данная ситуация ошибкой не считается, т.к. доступна только одна реализация.
+            # Помимо этого сюда подпадает и случай, когда всего лишь одна 
+            # эффективная фича и нет отложенных
+            effective = [
+                feature
+                for feature in feature_group
+                if not isinstance(feature, Method) or not feature.is_deferred
+            ]
+            if len(effective) == 1 and len(feature_group) >= 1:
+                feature_set.add(feature_name, effective[0])
+                continue
+
+            # Ошибочная ситуация - несколько одноименных фич, причем более одной
+            # из них имеют одну и ту же реализацию
+            duplicated[feature_name] = feature_group
 
         if duplicated:
-            raise DuplicatedFeaturesError(duplicated)
+            raise DuplicateFeaturesError(duplicated)
 
         return feature_set

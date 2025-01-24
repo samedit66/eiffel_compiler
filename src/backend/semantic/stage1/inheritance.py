@@ -7,7 +7,9 @@ from itertools import groupby
 from ...tree.class_decl import ClassDecl, Parent, Alias
 from ...tree.features import Field, Constant, Method
 
-from .featureset import FeatureSet, FeatureAlreadyInError
+from .featureset import FeatureSet
+
+from .errors import EffectiveClassHasDeferredFaturesError
 
 
 type RenameRules = dict[str, str]
@@ -110,25 +112,28 @@ def undefine_rules_parse(
         for feature_name in to_undefine
         if all(feature_name not in feature_set for feature_set in other_parents_sets)
             and feature_name not in child_set
+            and feature_name not in parent_set
     ]
     if not is_child_deferred and nondefined_anywhere: raise ValueError()
     
-    deferred_features = {
+    features_to_defer = {
         feature_name: feature
         for feature_name, feature in parent_set
-        if feature_name in nondefined_anywhere
+        if all(feature_name not in feature_set for feature_set in other_parents_sets)
+            and feature_name not in child_set
+            and feature_name in to_undefine
     }
 
-    deferred_constants = {
+    constants_to_defer = {
         feature_name: feature
-        for feature_name, feature in deferred_features.items()
+        for feature_name, feature in features_to_defer.items()
         if isinstance(feature, Constant)
     }
-    if deferred_constants:
+    if constants_to_defer:
         raise ValueError()
 
-    converted = {}
-    for feature_name, feature in deferred_features.items():
+    deferred_features = {}
+    for feature_name, feature in features_to_defer.items():
         # Если поле было undefined, то преобразуем его в отложенный метод
         if isinstance(feature, Field):
             feature = Method(
@@ -138,11 +143,14 @@ def undefine_rules_parse(
                 is_deferred=True,
                 return_type=feature.value_type,
                 )
-        converted[feature_name] = feature
+        elif isinstance(feature, Method):
+            feature = copy.replace(feature, is_deferred=True)
+
+        deferred_features[feature_name] = feature
 
     return UndefineRules(
         to_undefine=to_undefine,
-        deferred_features=converted,
+        deferred_features=deferred_features,
     )
 
 
@@ -233,12 +241,12 @@ def select_rules_parse(
     if not to_select:
         return set()
 
-    duplicated = [
+    duplicates = [
         feature_name
         for feature_name in to_select
         if to_select.count(feature_name) > 1
     ]
-    if duplicated:
+    if duplicates:
         raise ValueError()
     
     nonexistent_in_parent = [
@@ -405,7 +413,7 @@ def analyze_inheritance(class_decl: ClassDecl) -> FeatureSet:
             select_rules=select_rules,
         )
 
-        assert len(other_inheritances) == len(other_parents_sets)
+        assert len(other_inheritances) == len(other_parents_sets), "Should never occur"
 
         for other_inheritance, other_set in zip(other_inheritances, other_parents_sets):
             other_inheritance.feature_set = other_set
@@ -415,5 +423,14 @@ def analyze_inheritance(class_decl: ClassDecl) -> FeatureSet:
         child_set,
         *[inheritance.feature_set for inheritance in inheritance_list],
     )
+
+    # 6 этап: проверка, что у effective класса отсутствуют deferred фичи
+    deferred = [
+        feature
+        for _, feature in child_set
+        if isinstance(feature, Method) and feature.is_deferred
+    ]
+    if deferred and not class_decl.is_deferred:
+        raise EffectiveClassHasDeferredFaturesError(deferred)
     
     return child_set
