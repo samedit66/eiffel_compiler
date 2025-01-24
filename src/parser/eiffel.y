@@ -567,6 +567,12 @@ call: simple_call { $$ = mk_feature_with_unknown_owner_call($1); }
     | '(' expr ')'   '.' simple_call { $$ = mk_feature_with_owner_call($2, $5); }
     | bracket_access '.' simple_call { $$ = mk_feature_with_owner_call($1, $3); }
     | call           '.' simple_call { $$ = mk_feature_with_owner_call($1, $3); }
+    | INT_CONST      '.' simple_call { $$ = mk_feature_with_owner_call(mk_int_const($1), $3); }
+    | REAL_CONST     '.' simple_call { $$ = mk_feature_with_owner_call(mk_real_const($1), $3); }
+    | CHAR_CONST     '.' simple_call { $$ = mk_feature_with_owner_call(mk_char_const($1), $3); }
+    | STRING_CONST   '.' simple_call { $$ = mk_feature_with_owner_call(mk_string_const($1), $3); }
+    | TRUE_KW        '.' simple_call { $$ = mk_feature_with_owner_call(mk_boolean_const(true), $3); } 
+    | FALSE_KW       '.' simple_call { $$ = mk_feature_with_owner_call(mk_boolean_const(false), $3); } 
     ;
 
 precursor_call: PRECURSOR %prec LOWER_THAN_EXPR { $$ = mk_precursor_no_args_call(); }
