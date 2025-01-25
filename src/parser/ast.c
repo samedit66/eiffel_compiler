@@ -638,11 +638,14 @@ mk_feature_parameter(Json *name_and_type) {
 }
 
 Json*
-mk_external_routine_body(char *language_name) {
+mk_external_routine_body(char *language_name, char *external_routine_name, Json *require, Json *ensure) {
     Json *external_routine_body = Json_new();
 
     add_type_to_node(external_routine_body, "external_routine_body");
     Json_add_string_to_object(external_routine_body, "language", language_name);
+    Json_add_string_to_object(external_routine_body, "alias", external_routine_name);
+    Json_add_array_to_object(external_routine_body, "require", require == NULL ? mk_list() : require);
+    Json_add_array_to_object(external_routine_body, "ensure", ensure == NULL ? mk_list() : ensure);
 
     return external_routine_body;
 }

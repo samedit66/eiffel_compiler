@@ -186,7 +186,7 @@ or{WHITESPACE}else 	    { LOG_LEXEM("operator", "OR_ELSE"); return OR_ELSE; }
 "all" 					{ LOG_LEXEM("keyword", "ALL"); }
 "across"                { LOG_LEXEM("keyword", "ACROSS"); }
 "agent"                 { LOG_LEXEM("keyword", "AGENT"); }
-"alias"                 { LOG_LEXEM("keyword", "ALIAS"); }
+"alias"                 { LOG_LEXEM("keyword", "ALIAS"); return ALIAS; }
 "as"                    { LOG_LEXEM("keyword", "AS"); return AS; }
 "assign"                { LOG_LEXEM("keyword", "ASSIGN"); }
 "attribute"             { LOG_LEXEM("keyword", "ATTRIBUTE"); }

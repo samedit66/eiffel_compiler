@@ -673,7 +673,8 @@ mk_feature_parameter(Json *name_and_type);
  * Создает узел тела внешней подпрограммы.
  * 
  * @param language_name Имя языка, из которого нужно взять определение
+ * @param external_routine_name "Псевдоним", зависящий от языка реализации внешней процедуры
  * @return Узел тела внешней подпрограммы
  */
 Json*
-mk_external_routine_body(char *language_name);
+mk_external_routine_body(char *language_name, char *external_routine_name, Json *require, Json *ensure);

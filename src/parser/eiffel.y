@@ -174,6 +174,7 @@
 %token BANG_BANG "!!"
 %token DEFERRED "deferred"
 %token EXTERNAL "external"
+%token ALIAS "alias"
 
 %nonassoc DEFERRED
 %nonassoc EFFECTIVE
@@ -401,7 +402,7 @@ routine_body: require_part_opt do_part then_part_opt ensure_part_opt END { $$ = 
             | require_part_opt then_part ensure_part_opt END { $$ = mk_effective_routine_body(NULL, $1, NULL, $2, $3); }
             | local_part require_part_opt then_part ensure_part_opt END { $$ = mk_effective_routine_body($1, $2, NULL, $3, $4); }
             | require_part_opt DEFERRED ensure_part_opt END { $$ = mk_deferred_routine_body($1, $3); }
-            | EXTERNAL STRING_CONST END { $$ = mk_external_routine_body($2); }
+            | require_part_opt EXTERNAL STRING_CONST ALIAS STRING_CONST ensure_part_opt END { $$ = mk_external_routine_body($3, $5, $1, $6); }
             ;
 
 local_part: LOCAL var_decl_list { $$ = $2; }

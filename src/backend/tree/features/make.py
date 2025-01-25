@@ -141,6 +141,11 @@ def make_external_method(clients: list[Identifier], external_method_dict: dict) 
         name=external_method_dict["name_and_type"]["name"],
         clients=clients,
         language=external_method_dict["body"]["language"],
+        return_type=make_type_decl(external_method_dict["name_and_type"]["field_type"]),
+        parameters=make_parameters(external_method_dict["params"]),
+        alias=external_method_dict["body"]["alias"],
+        require=make_conditions(external_method_dict["body"]["require"]),
+        ensure=make_conditions(external_method_dict["body"]["ensure"]),
     )
 
 

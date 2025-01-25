@@ -44,16 +44,21 @@ class Condition(Node):
 
 
 @dataclass(match_args=True, kw_only=True)
-class Method(Feature):
-    is_deferred: bool
+class BaseMethod(Feature, ABC):
     return_type: TypeDecl
     parameters: list[Parameter] = field(default_factory=list)
-    do: list[Statement] = field(default_factory=list)
-    local_var_decls: list[LocalVarDecl] = field(default_factory=list)
     require: list[Condition] = field(default_factory=list)
     ensure: list[Condition] = field(default_factory=list)
 
 
 @dataclass(match_args=True, kw_only=True)
-class ExternalMethod(Feature):
+class Method(BaseMethod):
+    is_deferred: bool
+    do: list[Statement] = field(default_factory=list)
+    local_var_decls: list[LocalVarDecl] = field(default_factory=list)
+
+
+@dataclass(match_args=True, kw_only=True)
+class ExternalMethod(BaseMethod):
     language: str
+    alias: str
