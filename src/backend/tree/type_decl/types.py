@@ -9,57 +9,28 @@ class TypeDecl(Node, ABC):
     pass
 
 
-class IntegerType(TypeDecl):
-    pass
-
-
-class RealType(TypeDecl):
-    pass
-
-
-class BooleanType(TypeDecl):
-    pass
-
-
-class StringType(TypeDecl):
-    pass
-
-
-class CharacterType(TypeDecl):
-    pass
-
-
-class VoidType(TypeDecl):
-    pass
-
-
-@dataclass(match_args=True, kw_only=True)
-class ArrayType(TypeDecl):
-    elements_type: TypeDecl
-
-
-@dataclass(match_args=True, kw_only=True)
-class TupleType(TypeDecl):
-    elements_type_list: list[TypeDecl]
-
-
 @dataclass(match_args=True, kw_only=True)
 class ClassType(TypeDecl):
-    type_name: str
+    name: str
     generics: list[TypeDecl]
 
 
 @dataclass(match_args=True, kw_only=True)
-class GenericType(Node):
+class TupleType(TypeDecl):
+    generics: list[TypeDecl]
+
+
+@dataclass(match_args=True, kw_only=True)
+class GenericSpec(Node):
     template_type_name: str
     required_parent: TypeDecl | None = None
 
 
 @dataclass
-class LikeCurrentType(TypeDecl):
+class LikeCurrent(TypeDecl):
     pass
 
 
 @dataclass(match_args=True, kw_only=True)
-class LikeOtherFieldType(TypeDecl):
-    other_field_name: str
+class LikeFeature(TypeDecl):
+    feature_name: str
