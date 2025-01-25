@@ -2,6 +2,8 @@ from __future__ import annotations
 from abc import ABC
 from dataclasses import dataclass
 
+from ...tree.base import Node
+
 from ..base import *
 from ..expr import Expr, FeatureCall
 
@@ -19,6 +21,13 @@ class Assignment(Statement):
 class CreateStmt(Statement):
     constructor_call: FeatureCall
     type_name: str | None
+
+
+@dataclass(match_args=True, kw_only=True)
+class ConstructorCall(Node):
+    object_name: str
+    constructor_name: str | None
+    arguments: list[Expr]
 
 
 @dataclass(match_args=True, kw_only=True)

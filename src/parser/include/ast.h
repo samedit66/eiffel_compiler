@@ -678,3 +678,14 @@ mk_feature_parameter(Json *name_and_type);
  */
 Json*
 mk_external_routine_body(char *language_name, char *external_routine_name, Json *require, Json *ensure);
+
+
+/**
+ * Создает узел вызова конструктора объекта.abort
+ * 
+ * @param object_name Имя объекта (переменной, поля класса)
+ * @param call Конструктор
+ * @return Узел вызова конструктора
+ */
+Json*
+mk_constructor_call(char *object_name, Json *call);

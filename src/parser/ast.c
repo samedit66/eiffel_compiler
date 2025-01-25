@@ -649,3 +649,18 @@ mk_external_routine_body(char *language_name, char *external_routine_name, Json 
 
     return external_routine_body;
 }
+
+Json*
+mk_constructor_call(char *object_name, Json *call) {
+    Json *constructor = Json_new();
+
+    add_type_to_node(constructor, "constructor_call");
+    Json_add_string_to_object(constructor, "object", object_name);
+    
+    if (call == NULL)
+        Json_add_null_to_object(constructor, "feature");
+    else
+        Json_add_object_to_object(constructor, "feature", call);
+
+    return constructor;
+}

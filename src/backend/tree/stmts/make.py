@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from ..base import *
 from ..expr.make import make_expr, make_feature_call
+from ..expr.types import FeatureCall
 
 from .types import *
 
@@ -27,8 +28,27 @@ def make_stmt(stmt_dict: dict) -> Statement:
 def make_create_stmt(create_stmt_dict: dict) -> CreateStmt:
     return CreateStmt(
         location=Location.from_dict(create_stmt_dict["location"]),
-        constructor_call=make_feature_call(create_stmt_dict["constructor_call"]),
+        constructor_call=make_constructor_call(create_stmt_dict["constructor_call"]),
         type_name=create_stmt_dict["type_name"],
+    )
+
+
+def make_constructor_call(constructor_call_dict: dict) -> FeatureCall:
+    constructor_name = (
+        None
+        if constructor_call_dict["feature"] is None
+        else constructor_call_dict["feature"]["name"]
+    )
+    args_list = (
+        []
+        if constructor_call_dict["feature"] is None
+        else constructor_call_dict["feature"]["args_list"]
+    )
+    return ConstructorCall(
+        location=Location.from_dict(constructor_call_dict["location"]),
+        object_name=constructor_call_dict["object"],
+        constructor_name=constructor_name,
+        arguments=[make_expr(arg) for arg in args_list],
     )
 
 
