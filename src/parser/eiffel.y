@@ -315,20 +315,22 @@ clients: '{' ident_list '}' { $$ = $2; }
 /* ********************************************************************/
 /* Описание типов */
 type: IDENT_LIT { $$ = mk_type($1); }
-    | INTEGER { $$ = mk_integer_type(); }
-    | REAL { $$ = mk_real_type(); }
-    | STRING_KW { $$ = mk_string_type(); }
-    | CHARACTER { $$ = mk_character_type(); }
-    | BOOLEAN { $$ = mk_boolean_type(); }
+    // Типы ниже определены в стандартной библиотеке:
+    // | INTEGER { $$ = mk_integer_type(); }
+    // | REAL { $$ = mk_real_type(); }
+    // | STRING_KW { $$ = mk_string_type(); }
+    // | CHARACTER { $$ = mk_character_type(); }
+    // | BOOLEAN { $$ = mk_boolean_type(); }
     | LIKE CURRENT { $$ = mk_like_current_type(); }
     | LIKE IDENT_LIT { $$ = mk_like_other_field_type($2); }
     | generic_type { $$ = $1; }
     ;
 
 generic_type: IDENT_LIT '[' type_list ']' { $$ = mk_generic_user_type($1, $3); }
-            | ARRAY '[' type ']' { $$ = mk_generic_array_type(add_to_list(mk_list(), $3)); }
+            // Массив стал типом определенным в стандартной библиотеке
+            // | ARRAY '[' type ']' { $$ = mk_generic_array_type(add_to_list(mk_list(), $3)); }
             | TUPLE '[' type_list ']' { $$ = mk_generic_tuple_type($3); }
-            | TUPLE {  }
+            | TUPLE                   { $$ = mk_generic_tuple_type(mk_list()); }
             ;
 
 type_list: type { $$ = mk_list(); $$ = add_to_list($$, $1); }
