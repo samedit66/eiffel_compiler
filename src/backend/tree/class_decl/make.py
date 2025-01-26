@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from ..base import *
 from ..features import make_feature_list
+from ..type_decl import make_type_decl
 
 from .types import *
 
@@ -42,9 +43,10 @@ def make_class_decl(class_decl_dict: dict) -> ClassDecl:
     )
 
 
-def make_generic(generic_dict: dict) -> GenericType:
-    return GenericType(
+def make_generic(generic_dict: dict) -> GenericSpec:
+    required_parent = make_type_decl(generic_dict["parent"]) if generic_dict["parent"] else None
+    return GenericSpec(
         location=Location.from_dict(generic_dict["location"]),
         template_type_name=generic_dict["generic_type"]["type_name"],
-        required_parent=generic_dict["parent"],
+        required_parent=required_parent,
     )

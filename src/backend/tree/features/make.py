@@ -63,7 +63,7 @@ def make_parameters(parameters_list: list) -> list[Parameter]:
             Parameter(
                 location=Location.from_dict(parameter_dict["location"]),
                 name=parameter_dict["name_and_type"]["name"],
-                parameter_type=make_type_decl(parameter_dict["name_and_type"]["field_type"]),
+                value_type=make_type_decl(parameter_dict["name_and_type"]["field_type"]),
             )
             for parameter_dict in parameter_dicts
         )

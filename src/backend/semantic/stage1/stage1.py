@@ -11,7 +11,7 @@ from .inheritance import analyze_inheritance
 class FlattenClass:
     decl: ClassDecl
     own_features: FeatureSet
-    parents: set[FlattenClass]
+    parents: list[FlattenClass]
 
     @property
     def name(self) -> str:
@@ -29,20 +29,20 @@ class FlattenClass:
         return cls(
             decl=decl,
             own_features=analyze_inheritance(decl),
-            parents={
+            parents=[
                 FlattenClass.from_class_decl(parent.class_decl)
                 for parent in decl.inherit
-            }
+            ]
         )
 
 
-def process_stage1(classes: set[ClassDecl]) -> set[FlattenClass]:
+def process_stage1(classes: set[ClassDecl]) -> list[FlattenClass]:
     exps = []
 
-    flatten_classes = set()
+    flatten_classes = []
     for decl in classes:
         try:
-            flatten_classes.add(FlattenClass.from_class_decl(decl))
+            flatten_classes.append(FlattenClass.from_class_decl(decl))
         except Exception as e:
             exps.append(e)
 

@@ -28,7 +28,7 @@ class Constant(Feature):
 @dataclass(match_args=True, kw_only=True)
 class Parameter(Node):
     name: Identifier
-    parameter_type: TypeDecl
+    value_type: TypeDecl
 
 
 @dataclass(match_args=True, kw_only=True)

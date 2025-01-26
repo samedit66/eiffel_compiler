@@ -106,7 +106,7 @@ def set_class_decls(classes: list[ClassDecl]) -> None:
                 pass
 
 
-def process_stage0(ast: list[ClassDecl], root_class: str = "ANY") -> set[ClassDecl]:
+def process_stage0(ast: list[ClassDecl], root_class: str = "ANY") -> list[ClassDecl]:
     """Первая стадия семантического анализа состоит в следующем:
         1) Проверка, что отсутствуют дублированные декларации классов;
         2) Проверка, что все указанные родители существуют;
@@ -157,5 +157,5 @@ def process_stage0(ast: list[ClassDecl], root_class: str = "ANY") -> set[ClassDe
     if exps:
         raise ExceptionGroup("Semantic problems at stage 0", exps)
     
-    return set(ast)
+    return ast
     

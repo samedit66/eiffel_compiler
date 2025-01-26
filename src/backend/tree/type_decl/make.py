@@ -37,7 +37,7 @@ def make_like_type_decl(like_decl_dict: dict) -> TypeDecl:
             return LikeFeature(
                 location=location,
                 feature_name=like_what_value["value"],
-                )
+            )
         case unknown_value:
             raise UnknownNodeTypeError(f"Unknown value type of like spec: {unknown_value}")
 
@@ -48,7 +48,7 @@ def make_generic_type_decl(generic_decl_dict: dict) -> TypeDecl:
     generics = [
         make_type_decl(element_type)
         for element_type in generic_decl_dict["type_list"]
-        ]
+    ]
     
     if type_name == "TUPLE":
         return TupleType(location=location, generics=generics)
