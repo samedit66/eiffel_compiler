@@ -58,7 +58,10 @@ class TypeScope:
 
     def __contains__(self, type_name: str) -> bool:
         return self.find(type_name) is not None
-    
+
+    def __iter__(self):
+        return iter(self.defined_types.values())
+
     @staticmethod
     def from_classes(classes: list[FlattenClass]) -> TypeScope:
         type_scope = TypeScope()
@@ -134,6 +137,7 @@ class TypedMethod(TypedFeature):
     name: str
     method_ref: BaseMethod
     local_scope: Scope
+    parameters: list[TypedLocal] = field(default_factory=list)
 
 
 class TypedClass:
@@ -151,8 +155,23 @@ class TypedClass:
     def __eq__(self, other_class: TypedClass) -> bool:
         return self.name == other_class.name
 
+    def __hash__(self) -> int:
+        return hash(self.name)
+
     def __repr__(self) -> str:
         return f"\"Class {self.name}, features {self.features_scope}\""
+
+    def iterfeatures(self):
+        return iter(self.features_scope)
+
+    def responds_to(self, feature_name: str, caller: TypedClass) -> bool:
+        feature = self.features_scope.find(feature_name)
+        if feature is None:
+            return False
+        
+        assert isinstance(feature, TypedFeature), "Should never occur"
+
+        return any(caller.conforms_to(client) for client in feature.clients)
 
     def conforms_to(self, other_class: TypedClass) -> bool:
         # Дикий костыль... 
@@ -162,3 +181,41 @@ class TypedClass:
         if self == other_class:
             return True
         return any(parent.conforms_to(other_class) for parent in self.parents)
+
+    @staticmethod
+    def common_ancestor(classes: list[TypedClass]) -> TypedClass | None:
+        """
+        Находит ближайший общий предок для списка классов.
+
+        :param classes: список объектов TypedClass
+        :return: ближайший общий предок или None, если его нет
+        """
+        if not classes:
+            return None
+
+        # Функция для получения всех предков класса с их уровнями глубины
+        def get_ancestors_with_depth(cls: TypedClass, depth: int = 0, ancestors: dict = None) -> dict[TypedClass, int]:
+            ancestors = ancestors or {}
+            ancestors[cls] = depth
+            for parent in cls.parents:
+                if parent not in ancestors or ancestors[parent] > depth + 1:
+                    get_ancestors_with_depth(parent, depth + 1, ancestors)
+            return ancestors
+
+        # Получаем предков первого класса с глубиной
+        common_ancestors = get_ancestors_with_depth(classes[0])
+
+        # Пересекаем предков с предками остальных классов
+        for cls in classes[1:]:
+            current_ancestors = get_ancestors_with_depth(cls)
+            common_ancestors = {
+                ancestor: min(common_ancestors[ancestor], current_ancestors[ancestor])
+                for ancestor in common_ancestors.keys() & current_ancestors.keys()
+            }
+
+        # Если пересечение пустое, то общего предка нет
+        if not common_ancestors:
+            return None
+
+        # Найти ближайшего общего предка (с минимальной глубиной)
+        return min(common_ancestors, key=common_ancestors.get)

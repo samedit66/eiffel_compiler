@@ -170,6 +170,9 @@ def make_bin_op(bin_op_dict: dict) -> BinaryOp:
     if op_class is None:
         raise UnknownNodeTypeError(f"Unknown binary expression type: {node_type}")
 
+    if hasattr(op_class, "to_feature_call"):
+        return op_class.to_feature_call()
+
     return op_class(
         location=Location.from_dict(bin_op_dict["location"]),
         left=make_expr(bin_op_dict["left"]),
@@ -189,6 +192,9 @@ def make_unary_op(unary_op_dict: dict) -> UnaryOp:
     if op_class is None:
         raise UnknownNodeTypeError(f"Unknown unary expression type: {node_type}")
     
+    if hasattr(op_class, "to_feature_call"):
+        return op_class.to_feature_call()
+
     return op_class(
         location=Location.from_dict(unary_op_dict["location"]),
         argument=make_expr(unary_op_dict["arg"]),

@@ -24,6 +24,7 @@ feature
     -- По умолчанию возвращает строку с описанием местоположения
     -- объекта в памяти.
     external "Java"
+    alias "com.eiffel.base.Any.out"
     end
 
 feature
@@ -34,6 +35,7 @@ feature
     -- При необходимости пытается преобзовать его в строку 
     -- с помощью метода out.
     external "Java"
+    alias "com.eiffel.base.Any.write"
     end
 
     writeln (obj: ANY)
@@ -58,6 +60,7 @@ feature
     readln: STRING
     -- Выполняет считывает строки с потока ввода и возращает ее.
     external "Java"
+    alias "com.eiffel.base.Any.readln"
     end
 
 end

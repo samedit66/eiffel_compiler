@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from ..base import *
 
 
-class Expr(Node, ABC): pass
+class Expr(Node, ABC): ...
 
 
 class ConstantValue(Expr, ABC): pass
@@ -66,6 +66,7 @@ class FeatureCall(Expr):
 class PrecursorCall(Expr):
     arguments: list[Expr]
     ancestor_name: str | None = None
+    feature_name: str | None = None
 
 
 @dataclass(match_args=True, kw_only=True)
@@ -105,31 +106,169 @@ class UnaryOp(Expr):
     argument: Expr
 
 
-class AddOp(BinaryOp): pass
+class AddOp(BinaryOp):
+
+    def to_feature_call(self) -> FeatureCall:
+        return FeatureCall(
+            location=self.location,
+            feature_name="add",
+            owner=self.left,
+            arguments=[self.right],
+        )
 
 
-class SubOp(BinaryOp): pass
+class SubOp(BinaryOp):
+
+    def to_feature_call(self) -> FeatureCall:
+        return FeatureCall(
+            location=self.location,
+            feature_name="sub",
+            owner=self.left,
+            arguments=[self.right],
+        )
 
 
-class MulOp(BinaryOp): pass
+class MulOp(BinaryOp):
+
+    def to_feature_call(self) -> FeatureCall:
+        return FeatureCall(
+            location=self.location,
+            feature_name="mul",
+            owner=self.left,
+            arguments=[self.right],
+        )
 
 
-class DivOp(BinaryOp): pass
+class DivOp(BinaryOp):
+
+    def to_feature_call(self) -> FeatureCall:
+        return FeatureCall(
+            location=self.location,
+            feature_name="div",
+            owner=self.left,
+            arguments=[self.right],
+        )
 
 
-class MinusOp(UnaryOp): pass
+class MinusOp(UnaryOp):
+
+    def to_feature_call(self) -> FeatureCall:
+        return FeatureCall(
+            location=self.location,
+            feature_name="neg",
+            owner=self.left,
+            arguments=[],
+        )
 
 
-class PlusOp(UnaryOp): pass
+class PlusOp(UnaryOp):
+
+    def to_feature_call(self) -> FeatureCall:
+        return FeatureCall(
+            location=self.location,
+            feature_name="pos",
+            owner=self.left,
+            arguments=[],
+        )
 
 
-class IntDivOp(BinaryOp): pass
+class IntDivOp(BinaryOp):
+
+    def to_feature_call(self) -> FeatureCall:
+        return FeatureCall(
+            location=self.location,
+            feature_name="intdiv",
+            owner=self.left,
+            arguments=[self.right],
+        )
 
 
-class ModOp(BinaryOp): pass
+class ModOp(BinaryOp):
+
+    def to_feature_call(self) -> FeatureCall:
+        return FeatureCall(
+            location=self.location,
+            feature_name="mod",
+            owner=self.left,
+            arguments=[self.right],
+        )
 
 
-class PowOp(BinaryOp): pass
+class PowOp(BinaryOp):
+
+    def to_feature_call(self) -> FeatureCall:
+        return FeatureCall(
+            location=self.location,
+            feature_name="pow",
+            owner=self.left,
+            arguments=[self.right],
+        )
+
+
+class LtOp(BinaryOp):
+
+    def to_feature_call(self) -> FeatureCall:
+        return FeatureCall(
+            location=self.location,
+            feature_name="lt",
+            owner=self.left,
+            arguments=[self.right],
+        )
+
+
+class GtOp(BinaryOp):
+
+    def to_feature_call(self) -> FeatureCall:
+        return FeatureCall(
+            location=self.location,
+            feature_name="gt",
+            owner=self.left,
+            arguments=[self.right],
+        )
+
+
+class EqOp(BinaryOp):
+
+    def to_feature_call(self) -> FeatureCall:
+        return FeatureCall(
+            location=self.location,
+            feature_name="eq",
+            owner=self.left,
+            arguments=[self.right],
+        )
+
+
+class NeqOp(BinaryOp):
+
+    def to_feature_call(self) -> FeatureCall:
+        return FeatureCall(
+            location=self.location,
+            feature_name="ne",
+            owner=self.left,
+            arguments=[self.right],
+        )
+
+
+class LeOp(BinaryOp):
+
+    def to_feature_call(self) -> FeatureCall:
+        return FeatureCall(
+            location=self.location,
+            feature_name="le",
+            owner=self.left,
+            arguments=[self.right],
+        )
+
+
+class GeOp(BinaryOp):
+
+    def to_feature_call(self) -> FeatureCall:
+        return FeatureCall(
+            location=self.location,
+            feature_name="ge",
+            owner=self.left,
+            arguments=[self.right],
+        )
 
 
 class AndOp(BinaryOp): pass
@@ -148,24 +287,6 @@ class OrElseOp(BinaryOp): pass
 
 
 class XorOp(BinaryOp): pass
-
-
-class LtOp(BinaryOp): pass
-
-
-class GtOp(BinaryOp): pass
-
-
-class EqOp(BinaryOp):  pass
-
-
-class NeqOp(BinaryOp): pass
-
-
-class LeOp(BinaryOp): pass
-
-
-class GeOp(BinaryOp): pass
 
 
 class ImpliesOp(BinaryOp): pass

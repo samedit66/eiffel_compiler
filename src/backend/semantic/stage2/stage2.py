@@ -121,9 +121,12 @@ def make_typed_method(
 ) -> TypedMethod:
     method_context = Scope(context)
 
+    parameters = []
     # Добавляем в скоуп параметры метода...
     for local in make_locals(method.parameters, context, context_class, types):
-        method_context.add(local)
+        parameters.append(local)
+        added = method_context.add(local)
+        assert added, f"Local variable or function parameter must not share same names with features: {local.name}"
 
     # ...чтобы на их основании иметь возможность определить,
     # тип возвращаемого значения (полезно в случае like <anchor>)
@@ -158,6 +161,7 @@ def make_typed_method(
         clients=clients,
         method_ref=method,
         local_scope=method_context,
+        parameters=parameters,
     )
 
 
@@ -292,6 +296,16 @@ def type_scope_with_generics(
     return type_scope.copy()
 
 
+def type_check_method(method: TypedMethod, owner: TypedClass, type_scope: TypeScope) -> None:
+    for stmt in method.method_ref.do:
+        ...
+
+
+def type_check(type_scope: TypeScope) -> None:
+    for tc in type_scope:
+        ...
+
+
 def process_stage2(classes: list[FlattenClass]) -> list[TypedClass]:
     # 1. Создаем скоуп-типов с упоминанем всех классов программы
     global_type_scope = TypeScope.from_classes(classes)
@@ -336,4 +350,6 @@ def process_stage2(classes: list[FlattenClass]) -> list[TypedClass]:
 
         tc.parents = parents
 
-    print(global_type_scope)
+    type_check(global_type_scope)
+
+    return global_type_scope.as_list()
