@@ -5,7 +5,7 @@ from backend.tree import make_ast
 from backend.semantic.stage0 import process_stage0
 from backend.execute import run_eiffel_parser
 from backend.semantic.stage1 import process_stage1
-from backend.semantic.stage2.stage2 import process_stage2
+from backend.semantic.stage2.stage2_old import process_stage2
 from backend.semantic.stage2.types import TypedClass
 
 

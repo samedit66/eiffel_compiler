@@ -336,8 +336,41 @@ def inheritance_info_parse(parent: Parent) -> InheritanceInfo:
     )
 
 
+def parse_constructors(
+        constructors: list[str],
+        feature_set: FeatureSet,
+) -> list[Method]:
+    nonexistent = []
+
+    found: list[Method] = []
+    for constructor_name in constructors:
+        if constructor_name not in feature_set:
+            nonexistent.append(constructor_name)
+            continue
+
+        cf = feature_set.get(constructor_name)
+        found.append(cf)
+
+    if nonexistent:
+        raise ValueError()
+    
+    not_methods = []
+    for cf in found:
+        if not isinstance(cf, Method):
+            not_methods.append(cf)
+
+    if not_methods:
+        raise ValueError()
+    
+    return found
+
+
 def analyze_inheritance(class_decl: ClassDecl) -> FeatureSet:
     child_set = FeatureSet.parse(class_decl.features)
+
+    # 0 этап: (возможно, должен быть не тут): проверка того, что 
+    # все указанные конструкторы существуют
+    constructors = parse_constructors(class_decl.class_name, child_set)
 
     inheritance_list = [
         inheritance_info_parse(parent)
@@ -440,5 +473,5 @@ def analyze_inheritance(class_decl: ClassDecl) -> FeatureSet:
     ]
     if deferred and not class_decl.is_deferred:
         raise EffectiveClassHasDeferredFaturesError(deferred)
-    
+
     return child_set
