@@ -5,34 +5,42 @@ from backend.tree import make_ast
 from backend.semantic.stage0 import process_stage0
 from backend.execute import run_eiffel_parser
 from backend.semantic.stage1 import process_stage1
-from backend.semantic.stage2.stage2_old import process_stage2
-from backend.semantic.stage2.types import TypedClass
 
 
 eiffel_code = """
-class ANY end
-
+class ANY
 feature
+    default_create do end
 
-    f
-    local
-        a: INTEGER
-    do
-        a := 
-    end
-
+    out: STRING do end
 end
 
-class NONE
+class STRING end
+
+class A
+inherit ANY rename default_create as dick redefine out end
+feature common do end
+feature out: STRING do end
 end
 
-class T
-    
+class B
+feature common do end
 end
 
-class BOOLEAN
+class C
+inherit
+    A rename out as A_out end
+    B select common end
 end
+
+class D inherit C end
 """
+
+def pretty_ftable(ftable):
+    implicit = [f"{record.class_name}:{record.name}" for record in ftable.implicit]
+    features = [f"{record.class_name}:{record.name}" for record in ftable.features]
+    return f"[{" ".join(implicit + features)}]"
+
 
 json_ast, stderr = run_eiffel_parser(eiffel_code, "build/eiffelp.exe")
 if stderr:
@@ -44,7 +52,6 @@ dict_ast = json.loads(json_ast)
 ast = make_ast(dict_ast)
 
 classes = process_stage0(ast)
-flatten_classes = process_stage1(classes)
 
-classes = process_stage2(flatten_classes)
-print(classes)
+ftable = process_stage1(classes)[5].features
+print(pretty_ftable(ftable))

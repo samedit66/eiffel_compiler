@@ -29,7 +29,7 @@ from ...tree.type_decl import (
 from ...tree.expr import Expr
 
 from ..stage1 import FlattenClass
-from ..stage1.featureset import FeatureSet
+from ..stage1.ftable import FeatureSet
 
 from .types import *
 

@@ -18,6 +18,7 @@ class FlattenClass:
     source_file: Path | None
     location: Location
     parents: list[FlattenClass]
+    constructors: list[str]
 
     def __hash__(self) -> int:
         return hash(self.name)
@@ -34,7 +35,8 @@ class FlattenClass:
             parents=[
                 FlattenClass.from_class_decl(parent.class_decl)
                 for parent in decl.inherit
-            ]
+            ],
+            constructors=decl.create,
         )
 
 
