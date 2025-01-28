@@ -1,34 +1,36 @@
 from __future__ import annotations
 from dataclasses import dataclass
+from pathlib import Path
 
-from ...tree.class_decl import ClassDecl
-
-from .featureset import FeatureSet
-from .inheritance import analyze_inheritance
+from ...tree.class_decl import ClassDecl, GenericSpec
+from ...tree.base import Location
 
 
-@dataclass(match_args=True, kw_only=True)
+from .inheritance import FTable, analyze_inheritance
+
+
+@dataclass(kw_only=True)
 class FlattenClass:
-    decl: ClassDecl
-    own_features: FeatureSet
+    name: str
+    is_deferred: bool
+    generics: list[GenericSpec]
+    features: FTable
+    source_file: Path | None
+    location: Location
     parents: list[FlattenClass]
 
-    @property
-    def name(self) -> str:
-        return self.decl.class_name
-    
-    @property
-    def source_file(self) -> str:
-        return self.decl.defined_in_file
-    
     def __hash__(self) -> int:
         return hash(self.name)
     
     @classmethod
     def from_class_decl(cls, decl: ClassDecl) -> FlattenClass:
         return cls(
-            decl=decl,
-            own_features=analyze_inheritance(decl),
+            name=decl.class_name,
+            is_deferred=decl.is_deferred,
+            generics=decl.generics,
+            features=analyze_inheritance(decl),
+            source_file=decl.defined_in_file,
+            location=decl.location,
             parents=[
                 FlattenClass.from_class_decl(parent.class_decl)
                 for parent in decl.inherit
