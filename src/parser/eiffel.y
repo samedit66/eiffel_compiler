@@ -444,7 +444,7 @@ do_part: DO stmt_list_opt { $$ = $2; }
        ;
 
 /* Секция then */
-then_part_opt: /* empty */ { $$ = mk_empty(); }
+then_part_opt: /* empty */ { $$ = NULL; }
              | then_part { $$ = $1; }
              ;
 
@@ -467,8 +467,8 @@ stmt_list_opt: /* empty */ { $$ = mk_list(); }
              | stmt_list   { $$ = $1; }
              ;
 
-stmt_list: stmt           { $$ = mk_list(); $$ = add_to_list($$, $1); }
-         | stmt_list stmt { $$ = add_to_list($1, $2); }
+stmt_list: stmt           { $$ = mk_list(); if ($1 != NULL) $$ = add_to_list($$, $1); }
+         | stmt_list stmt { if ($2 != NULL) $$ = add_to_list($1, $2); }
          ;
 
 stmt: assign_stmt  { $$ = $1; }
@@ -478,7 +478,7 @@ stmt: assign_stmt  { $$ = $1; }
     | call         { $$ = $1; }
     | create_stmt  { $$ = $1; }
     | error ';'    { yyerrok; }
-    | ';'          { $$ = mk_empty(); }
+    | ';'          { $$ = NULL; }
     ;
 
 
@@ -654,9 +654,9 @@ manifest_array_content: expr { $$ = add_to_list(mk_list(), $1); }
 
 
 /* create-выражение */
-create_expr: CREATE '{' IDENT_LIT '}'                    { $$ = mk_create_expr($3, mk_empty()); }
+create_expr: CREATE '{' IDENT_LIT '}'                    { $$ = mk_create_expr($3, NULL); }
            | CREATE '{' IDENT_LIT '}' '.' simple_call    { $$ = mk_create_expr($3, $6); }
-           | BANG_BANG '{' IDENT_LIT '}'                 { $$ = mk_create_expr($3, mk_empty()); }
+           | BANG_BANG '{' IDENT_LIT '}'                 { $$ = mk_create_expr($3, NULL); }
            | BANG_BANG '{' IDENT_LIT '}' '.' simple_call { $$ = mk_create_expr($3, $6); }
            ;
 

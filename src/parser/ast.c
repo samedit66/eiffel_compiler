@@ -13,6 +13,11 @@ mk_current_loc_info() {
     Json_add_int_to_object(loc, "last_line", current_node_loc.last_line);
     Json_add_int_to_object(loc, "last_column", current_node_loc.last_column);
 
+    if (current_file_path == NULL)
+        Json_add_null_to_object(loc, "filename");
+    else
+        Json_add_string_to_object(loc, "filename", current_file_path);
+
     return loc;
 }
 
@@ -23,13 +28,6 @@ void
 add_type_to_node(Json *node, char *type_name) {
     Json_add_string_to_object(node, "type", type_name);
     Json_add_object_to_object(node, "location", mk_current_loc_info());
-}
-
-Json*
-mk_empty() {
-    Json *node = Json_new();
-    add_type_to_node(node, "empty");
-    return node;
 }
 
 Json*
@@ -104,7 +102,8 @@ mk_ident_lit(char *ident) {
 Json*
 mk_bin_op(char *op_name, Json *left, Json *right) {
     Json *node = Json_new();
-    add_type_to_node(node, op_name);
+    add_type_to_node(node, "binop");
+    Json_add_string_to_object(node, "binop_type", op_name);
     Json_add_object_to_object(node, "left", left);
     Json_add_object_to_object(node, "right", right);
     return node;
@@ -113,7 +112,8 @@ mk_bin_op(char *op_name, Json *left, Json *right) {
 Json*
 mk_unary_op(char *op_name, Json *arg) {
     Json *node = Json_new();
-    add_type_to_node(node, op_name);
+    add_type_to_node(node, "unop");
+    Json_add_string_to_object(node, "unop_type", op_name);
     Json_add_object_to_object(node, "arg", arg);\
     return node;
 }
@@ -169,7 +169,7 @@ mk_feature_with_owner_call(Json *owner, Json *feature) {
     if (owner != NULL)
         Json_add_object_to_object(node, "owner", owner);
     else
-        Json_add_object_to_object(node, "owner", mk_empty());
+        Json_add_null_to_object(node, "owner");
     Json_add_object_to_object(node, "feature", feature);
     return node;
 }
@@ -366,13 +366,6 @@ mk_class_decl(Json *header, Json *inheritance, Json *creators, Json *features) {
     Json_add_array_to_object(class_decl, "creators", creators);
     Json_add_array_to_object(class_decl, "features", features);
 
-    // Костыль для проброса метаданных о том, в каком файле объявлен класс.
-    // NULL означает, что код был считан с stdin
-    if (current_file_path == NULL)
-        Json_add_null_to_object(class_decl, "file_path");
-    else
-        Json_add_string_to_object(class_decl, "file_path", current_file_path);
-
     return class_decl;
 }
 
@@ -548,7 +541,10 @@ mk_routine_body(bool is_deferred, Json *local, Json *require, Json *do_clause, J
     Json_add_array_to_object(routine_body, "local", local == NULL ? mk_list() : local);
     Json_add_array_to_object(routine_body, "require", require == NULL ? mk_list() : require);
     Json_add_array_to_object(routine_body, "do", do_clause == NULL ? mk_list() : do_clause);
-    Json_add_object_to_object(routine_body, "then", then == NULL ? mk_empty() : then);
+    if (then == NULL)
+        Json_add_null_to_object(routine_body, "then");
+    else
+        Json_add_object_to_object(routine_body, "then", then);
     Json_add_array_to_object(routine_body, "ensure", ensure == NULL ? mk_list() : ensure);
 
     return routine_body;
@@ -561,7 +557,7 @@ mk_effective_routine_body(Json *local, Json *require, Json *do_clause, Json *the
 
 Json*
 mk_deferred_routine_body(Json *require, Json *ensure) {
-    return mk_routine_body(true, mk_list(), require, NULL, mk_empty(), ensure);
+    return mk_routine_body(true, mk_list(), require, NULL, NULL, ensure);
 }
 
 Json*
