@@ -162,19 +162,21 @@ mk_simple_call_no_args(char *feature_name);
 /**
  * Создает узел вызова предка с аргументами
  * 
+ * @param parent_name Имя родителя (может быть NULL)
  * @param args_list Список аргументов
  * @return Узел вызова предка с аргументами
  */
 Json*
-mk_precursor_args_call(Json *args_list);
+mk_precursor_args_call(char *parent_name, Json *args_list);
 
 /**
  * Создает узел вызова метода родителя с тем же именем без аргументов
  * 
+ * @param parent_name Имя родителя (может быть NULL)
  * @return Узел вызова метода родителя с тем же именем без аргументов
  */
 Json*
-mk_precursor_no_args_call();
+mk_precursor_no_args_call(char *parent_name);
 
 /**
  * Создает узел вызова метода с указанием владельца метода

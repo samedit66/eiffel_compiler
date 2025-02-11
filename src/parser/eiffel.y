@@ -583,8 +583,10 @@ call: simple_call { $$ = mk_feature_with_unknown_owner_call($1); }
     | FALSE_KW       '.' simple_call { $$ = mk_feature_with_owner_call(mk_boolean_const(false), $3); } 
     ;
 
-precursor_call: PRECURSOR %prec LOWER_THAN_EXPR { $$ = mk_precursor_no_args_call(); }
-              | PRECURSOR '(' params_list ')' { $$ = mk_precursor_args_call($3); }
+precursor_call: PRECURSOR %prec LOWER_THAN_EXPR { $$ = mk_precursor_no_args_call(NULL); }
+              | PRECURSOR '(' params_list ')' { $$ = mk_precursor_args_call(NULL, $3); }
+              | '{' IDENT_LIT '}' PRECURSOR %prec LOWER_THAN_EXPR { $$ = mk_precursor_no_args_call($2); }
+              | '{' IDENT_LIT '}' PRECURSOR '(' params_list ')' { $$ = mk_precursor_args_call($2, $6); }
               ;
 
 simple_call: IDENT_LIT %prec LOWER_THAN_PARENS { $$ = mk_simple_call_no_args($1); }

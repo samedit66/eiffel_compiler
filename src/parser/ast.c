@@ -1,4 +1,5 @@
 #include "./include/json.h"
+#include "./include/lex_utils.h"
 #include "./eiffel.tab.h"
 
 extern YYLTYPE current_node_loc;
@@ -16,14 +17,11 @@ mk_current_loc_info() {
     if (current_file_path == NULL)
         Json_add_null_to_object(loc, "filename");
     else
-        Json_add_string_to_object(loc, "filename", current_file_path);
+        Json_add_string_to_object(loc, "filename", escape(current_file_path));
 
     return loc;
 }
 
-// В качестве "костыля" помимо задания типа для узла,
-// данный метод добавляет позицию, на которой узел был найден.
-// В нормальной реализации было бы неплохо завести конструктор для создания узлов
 void
 add_type_to_node(Json *node, char *type_name) {
     Json_add_string_to_object(node, "type", type_name);
@@ -149,16 +147,20 @@ mk_simple_call_no_args(char *feature_name) {
 }
 
 Json*
-mk_precursor_args_call(Json *args_list) {
+mk_precursor_args_call(char *parent_name, Json *args_list) {
     Json *node = Json_new();
     add_type_to_node(node, "precursor_call");
+    if (parent_name == NULL)
+        Json_add_null_to_object(node, "parent_name");
+    else
+        Json_add_string_to_object(node, "parent_name", parent_name);
     Json_add_array_to_object(node, "args_list", args_list);
     return node;
 }
 
 Json*
-mk_precursor_no_args_call() {
-    return mk_precursor_args_call(mk_list());
+mk_precursor_no_args_call(char *parent_name) {
+    return mk_precursor_args_call(parent_name, mk_list());
 }
 
 Json*
