@@ -10,14 +10,15 @@ class CompilerError(Exception):
         self.desc = desc
         self.location = location
 
-    def format_location(self) -> str:
-        if self.location is None:
+    @staticmethod
+    def format_location(location: Location | None) -> str:
+        if location is None:
             return ""
-        filename = self.location.filename or "<input>"
-        return f"{filename}:{self.location.first_line}:{self.location.first_column}: "
+        filename = location.filename or "<input>"
+        return f"{filename}:{location.first_line}:{location.first_column}: "
 
     def __str__(self) -> str:
-        return (f"{self.BOLD_COLOR}{self.format_location()}"
+        return (f"{self.BOLD_COLOR}{self.format_location(self.location)}"
                 f"{self.ERROR_COLOR}error: "
                 f"{self.RESET_COLOR}{self.desc}")
 
