@@ -1,15 +1,76 @@
-from ..type_decl import make_type_decl
-from ..expr import ResultConst, make_expr
-from ..stmts import Assignment, make_stmt
+from __future__ import annotations
+from abc import ABC
+from dataclasses import dataclass, field
 
-from .types import *
+from .abstract_node import *
+from .type_decl import TypeDecl, make_type_decl
+from .stmts import Statement, Assignment, make_stmt
+from .expr import Expr, ResultConst, make_expr
+
+
+@dataclass(match_args=True, kw_only=True)
+class Feature(Node, ABC):
+    name: str
+    clients: list[str]
+
+
+@dataclass(match_args=True, kw_only=True)
+class Field(Feature):
+    value_type: TypeDecl
+
+
+@dataclass(match_args=True, kw_only=True)
+class Constant(Feature):
+    value_type: TypeDecl
+    constant_value: Expr
+
+
+@dataclass(match_args=True, kw_only=True)
+class Parameter(Node):
+    name: str
+    value_type: TypeDecl
+
+
+@dataclass(match_args=True, kw_only=True)
+class LocalVarDecl(Node):
+    name: str
+    value_type: TypeDecl
+
+
+@dataclass(match_args=True, kw_only=True)
+class Condition(Node):
+    condition_expr: Expr
+    tag: str | None = None
+
+
+@dataclass(match_args=True, kw_only=True)
+class BaseMethod(Feature, ABC):
+    return_type: TypeDecl
+    parameters: list[Parameter] = field(default_factory=list)
+    require: list[Condition] = field(default_factory=list)
+    ensure: list[Condition] = field(default_factory=list)
+
+
+@dataclass(match_args=True, kw_only=True)
+class Method(BaseMethod):
+    is_deferred: bool
+    do: list[Statement] = field(default_factory=list)
+    local_var_decls: list[LocalVarDecl] = field(default_factory=list)
+
+
+@dataclass(match_args=True, kw_only=True)
+class ExternalMethod(BaseMethod):
+    language: str
+    alias: str
 
 
 def make_feature_list(feature_clauses: list) -> list[Feature]:
     features: list[Feature] = []
 
     for feature_clause in feature_clauses:
-        clients = feature_clause["clients"]
+        # По умолчанию, если клиенты не указаны,
+        # клиентом считается ANY класс и его наследники
+        clients = feature_clause["clients"] or ["ANY"]
 
         for feature_dict in feature_clause["feature_list"]:
             feature_dicts = separate_declarations(feature_dict)
@@ -23,34 +84,41 @@ def make_feature_list(feature_clauses: list) -> list[Feature]:
                     case "class_routine":
                         match feature_dict["body"]["type"]:
                             case "routine_body":
-                                features.append(make_method(clients, feature_dict))
+                                features.append(make_method(
+                                    clients, feature_dict))
                             case "external_routine_body":
-                                features.append(make_external_method(clients, feature_dict))
+                                features.append(
+                                    make_external_method(
+                                        clients, feature_dict))
                             case unknown_body_type:
-                                raise UnknownNodeTypeError(f"Unknown feature body type: {unknown_body_type}")
+                                raise UnknownNodeTypeError(
+                                    f"Unknown feature body type: {unknown_body_type}")
                     case unknown_feature_type:
-                        raise UnknownNodeTypeError(f"Unknown feature node type: {unknown_feature_type}")
+                        raise UnknownNodeTypeError(
+                            f"Unknown feature node type: {unknown_feature_type}")
 
     return features
 
 
-def make_field(clients: list[Identifier], field_dict: dict) -> Field:
+def make_field(clients: list[str], field_dict: dict) -> Field:
     return Field(
-        location=Location.from_dict(field_dict["location"]),
+        location=Location(**field_dict["location"]),
         name=field_dict["name_and_type"]["name"],
         clients=clients,
         value_type=make_type_decl(field_dict["name_and_type"]["field_type"]),
-        )
+    )
 
 
-def make_constant(clients: list[Identifier], constant_dict: dict) -> Constant:
+def make_constant(clients: list[str], constant_dict: dict) -> Constant:
     return Constant(
-        location=Location.from_dict(constant_dict["location"]),
+        location=Location(**constant_dict["location"]),
         name=constant_dict["name_and_type"]["name"],
         clients=clients,
-        value_type=make_type_decl(constant_dict["name_and_type"]["field_type"]),
-        constant_value=make_expr(constant_dict["constant_value"]),
-        )
+        value_type=make_type_decl(
+            constant_dict["name_and_type"]["field_type"]),
+        constant_value=make_expr(
+            constant_dict["constant_value"]),
+    )
 
 
 def make_parameters(parameters_list: list) -> list[Parameter]:
@@ -61,7 +129,7 @@ def make_parameters(parameters_list: list) -> list[Parameter]:
 
         parameters.extend(
             Parameter(
-                location=Location.from_dict(parameter_dict["location"]),
+                location=Location(**parameter_dict["location"]),
                 name=parameter_dict["name_and_type"]["name"],
                 value_type=make_type_decl(parameter_dict["name_and_type"]["field_type"]),
             )
@@ -79,7 +147,7 @@ def make_local_var_decls(var_decl_list: list) -> list[LocalVarDecl]:
 
         var_decls.extend(
             LocalVarDecl(
-                location=Location.from_dict(var_decl_dict["location"]),
+                location=Location(**var_decl_dict["location"]),
                 name=var_decl_dict["name_and_type"]["name"],
                 value_type=make_type_decl(var_decl_dict["name_and_type"]["field_type"]),
             )
@@ -94,7 +162,7 @@ def make_conditions(condition_list: list) -> list[Condition]:
 
     for condition_dict in condition_list:
         condition = Condition(
-            location=Location.from_dict(condition_dict["location"]),
+            location=Location(**condition_dict["location"]),
             condition_expr=make_expr(condition_dict["cond"]),
             tag=condition_dict["tag"],
         )
@@ -108,10 +176,10 @@ def make_do(method_dict: dict) -> list[Statement]:
     stmts = [make_stmt(stmt_dict) for stmt_dict in body["do"]]
 
     then = body["then"]
-    if not is_empty_node(then):
+    if then is not None:
         stmts.append(
             Assignment(
-                location=Location.from_dict(then["location"]),
+                location=Location(**then["location"]),
                 target=ResultConst(location=None),
                 value=make_expr(then)
             )
@@ -120,9 +188,9 @@ def make_do(method_dict: dict) -> list[Statement]:
     return stmts
 
 
-def make_method(clients: list[Identifier], method_dict: dict) -> Method:
+def make_method(clients: list[str], method_dict: dict) -> Method:
     return Method(
-        location=Location.from_dict(method_dict["location"]),
+        location=Location(**method_dict["location"]),
         name=method_dict["name_and_type"]["name"],
         clients=clients,
         is_deferred=method_dict["body"]["is_deferred"],
@@ -135,17 +203,23 @@ def make_method(clients: list[Identifier], method_dict: dict) -> Method:
     )
 
 
-def make_external_method(clients: list[Identifier], external_method_dict: dict) -> ExternalMethod:
+def make_external_method(
+        clients: list[str],
+        external_method_dict: dict) -> ExternalMethod:
     return ExternalMethod(
-        location=Location.from_dict(external_method_dict["location"]),
+        location=Location(**external_method_dict["location"]),
         name=external_method_dict["name_and_type"]["name"],
         clients=clients,
         language=external_method_dict["body"]["language"],
-        return_type=make_type_decl(external_method_dict["name_and_type"]["field_type"]),
-        parameters=make_parameters(external_method_dict["params"]),
+        return_type=make_type_decl(
+            external_method_dict["name_and_type"]["field_type"]),
+        parameters=make_parameters(
+            external_method_dict["params"]),
         alias=external_method_dict["body"]["alias"],
-        require=make_conditions(external_method_dict["body"]["require"]),
-        ensure=make_conditions(external_method_dict["body"]["ensure"]),
+        require=make_conditions(
+            external_method_dict["body"]["require"]),
+        ensure=make_conditions(
+            external_method_dict["body"]["ensure"]),
     )
 
 
@@ -156,7 +230,7 @@ def separate_declarations(decl_node_dict: dict) -> list:
             a, b: INTEGER;
     перевести в
             a: INTEGER; b: INTEGER;
-    
+
     Недостаток данного разделения заключается в том, что частично
     теряется информация о месте объявления - сохраняются только номера строк
 
@@ -177,8 +251,8 @@ def separate_declarations(decl_node_dict: dict) -> list:
             **decl_node_dict,
             "location": location,
             "name_and_type": name_and_type_
-            }
-            
+        }
+
         separated.append(decl_node_dict_)
 
     return separated

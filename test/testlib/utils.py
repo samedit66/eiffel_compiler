@@ -30,7 +30,7 @@ def run_eiffel_parser(
     return replace_rn_with_n(stdout), replace_rn_with_n(stderr)
 
 
-def make_error_message(stderr: str):
+def make_error_message(stderr):
     """Считывает все сообщения об ошибках из stderr
 
     :param stderr: сообщения из stderr потока

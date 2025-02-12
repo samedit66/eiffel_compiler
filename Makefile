@@ -1,5 +1,4 @@
-PARSER_SOURCES=src/parser
-BACKEND_SOURCES=src/backend
+PARSER_SOURCES=serpent/parser
 EXECUTABLE=eiffelp
 BUILD_DIR=build
 
@@ -8,14 +7,12 @@ build: clean
 	$(MAKE) -C $(PARSER_SOURCES) ./$(BUILD_DIR)
 	mkdir ./$(BUILD_DIR)
 	mv ./$(PARSER_SOURCES)/$(EXECUTABLE) ./$(BUILD_DIR)
-	$(MAKE) -C $(BACKEND_SOURCES)
 
 .PHONY: debug
 debug: clean
 	$(MAKE) -C $(PARSER_SOURCES) debug
 	mkdir ./$(BUILD_DIR)
 	mv ./$(PARSER_SOURCES)/$(EXECUTABLE) ./$(BUILD_DIR)
-	$(MAKE) -C $(BACKEND_SOURCES)
 
 .PHONY: clean
 clean:
