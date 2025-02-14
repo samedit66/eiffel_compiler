@@ -6,13 +6,19 @@ from .features import Feature, make_feature_list
 from .type_decl import ClassType, GenericSpec, make_type_decl
 
 
-@dataclass(match_args=True, kw_only=True)
+@dataclass(kw_only=True)
 class Alias(Node):
     original_name: str
     alias_name: str
 
 
-@dataclass(match_args=True, kw_only=True)
+@dataclass(kw_only=True)
+class SelectedFeatures:
+    class_name: str
+    selected_features: list[str]
+
+
+@dataclass(kw_only=True)
 class Parent(Node):
     class_name: str
     generics: list[GenericSpec] = field(default_factory=list)
@@ -22,7 +28,7 @@ class Parent(Node):
     select: list[str] = field(default_factory=list)
 
 
-@dataclass(match_args=True, kw_only=True)
+@dataclass(kw_only=True)
 class ClassDecl(Node):
     class_name: str
     is_deferred: bool = True
@@ -59,7 +65,9 @@ def make_class_decl(class_decl_dict: dict) -> ClassDecl:
                 ],
                 undefine=parent_dict["undefine_clause"],
                 redefine=parent_dict["redefine_clause"],
-                select=parent_dict["select_clause"],
+                select=SelectedFeatures(
+                    class_name=parent_dict["parent_header"]["name"],
+                    selected_features=parent_dict["select_clause"]),
             )
             for parent_dict in class_decl_dict["inheritance"]
         ],
