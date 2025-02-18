@@ -1,26 +1,69 @@
+from abc import ABC, abstractmethod, abstractproperty
 from .tree.abstract_node import Location
 
 
-class CompilerError(Exception):
-    ERROR_COLOR = "\x1B[31m"
+class CompilerDiagnostic(ABC, Exception):
     BOLD_COLOR = "\033[1m"
     RESET_COLOR = "\x1B[0m"
 
-    def __init__(self, desc: str, location: Location | None = None) -> None:
+    def __init__(
+            self,
+            desc: str,
+            location: Location | None = None,
+            source: str | None = None) -> None:
+        """
+        :param desc: Описание проблемы.
+        :param location: Опционально, позиция (или диапазон) в исходном коде.
+        :param source: Альтернативный источник ошибки (например, имя файла), если ошибка не привязана к позиции.
+        """
         self.desc = desc
         self.location = location
+        self.source = source
+
+    @property
+    @abstractmethod
+    def severity(self) -> str:
+        """Строка, обозначающая тип проблемы (например, 'error' или 'warning')."""
+
+    @property
+    @abstractmethod
+    def color(self) -> str:
+        """Цветовое выделение для типа проблемы."""
 
     @staticmethod
-    def format_location(location: Location | None) -> str:
-        if location is None:
+    def format_source(location: Location | None, source: str | None) -> str:
+        if location is not None:
+            return f"{location}: "
+        elif source is not None:
+            return f"{source}: "
+        else:
             return ""
-        filename = location.filename or "<input>"
-        return f"{filename}:{location.first_line}:{location.first_column}: "
 
     def __str__(self) -> str:
-        return (f"{self.BOLD_COLOR}{self.format_location(self.location)}"
-                f"{self.ERROR_COLOR}error: "
+        source_str = self.format_source(self.location, self.source)
+        return (f"{self.BOLD_COLOR}{source_str}"
+                f"{self.color}{self.severity}: "
                 f"{self.RESET_COLOR}{self.desc}")
+
+
+class CompilerError(CompilerDiagnostic):
+    @property
+    def severity(self) -> str:
+        return "error"
+
+    @property
+    def color(self) -> str:
+        return "\x1B[31m"  # Красный цвет для ошибок
+
+
+class CompilerWarning(CompilerDiagnostic):
+    @property
+    def severity(self) -> str:
+        return "warning"
+
+    @property
+    def color(self) -> str:
+        return "\x1B[33m"  # Желтый цвет для предупреждений
 
 
 class ErrorCollector:
@@ -36,8 +79,8 @@ class ErrorCollector:
         return len(self.errors) == 0
 
     def show(self) -> None:
-        if self.ok(): return
+        if self.ok():
+            return
 
         for error in self.errors:
             print(error, end=self.LINE_SEPARATOR)
-            
