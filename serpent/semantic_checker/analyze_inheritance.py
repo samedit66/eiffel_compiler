@@ -182,7 +182,8 @@ def check_redefine_clause(
         elif isinstance(parent_feature, Method) and parent_feature.is_deferred:
             raise CompilerError(
                 f"Cannot redefine feature '{
-                    parent_feature.name}' that is not yet defined. \
+                    parent_feature.name}' of class '{
+                    parent.class_name}' that is not yet defined. \
 If you're trying to define it, just remove it from redefine clause",
                 parent.location)
 
@@ -430,22 +431,22 @@ def check_create_clause(
             (cf for cf in own_child_features if cf.name == feature_name), None)
         if candidate is None:
             raise CompilerError(
-                f"Creation procedure '{feature_name}' is not defined in the class '{class_decl.class_name}'",
-                class_decl.location)
+                f"Creation procedure '{feature_name}' is not defined in the class '{
+                    class_decl.class_name}'", class_decl.location)
 
         # Проверка, что найденная фича является методом
         if not isinstance(candidate.node, BaseMethod):
             raise CompilerError(
-                f"Feature '{feature_name}' is not a method and cannot be a creation procedure in the class '{class_decl.class_name}'",
-                class_decl.location)
+                f"Feature '{feature_name}' is not a method and cannot be a creation procedure in the class '{
+                    class_decl.class_name}'", class_decl.location)
 
         # Проверка, что конструктор - фича, которая ничего не возвращает
         method = candidate.node
         if not (isinstance(method.return_type, ClassType)
                 and method.return_type.name == "<VOID>"):
             raise CompilerError(
-                f"Creation feature '{feature_name}' must be a procedure in the class '{class_decl.class_name}'",
-                class_decl.location)
+                f"Creation feature '{feature_name}' must be a procedure in the class '{
+                    class_decl.class_name}'", class_decl.location)
 
 
 def check_duplicate_features(features: list[FeatureRecord]) -> None:
@@ -593,8 +594,6 @@ def adapt(class_decl: ClassDecl,
         parent_table = adapt(parent_decl, class_mapping)
         parent_features = parent_table.explicit_features
 
-        child_table.constructors.extend(parent_table.constructors)
-
         # 1 этап. Применяем rename clause.
         check_rename_clause(
             parent,
@@ -666,9 +665,11 @@ def adapt(class_decl: ClassDecl,
     child_table.selected = remove_duplicates(selected_features)
 
     check_create_clause(class_decl, child_table.explicit_features)
+
     constructors, own_child_features = split_create_features(
-        inherited + child_table.own, class_decl.create)
+        child_table.own, class_decl.create)
     child_table.constructors = constructors
+    child_table.own = own_child_features
 
     return child_table
 
