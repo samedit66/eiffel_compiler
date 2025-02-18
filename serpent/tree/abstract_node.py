@@ -12,10 +12,13 @@ class Location:
     filename: str | None
 
     def __repr__(self) -> str:
-        file_info = f"{self.filename}:" if self.filename else ""
-        position = (f"{self.first_line}:{self.first_column}"
-                    f"-{self.last_line}:{self.last_column}")
-        return f"{file_info}{position}"
+        filename = self.filename or "<input>"
+        if (self.first_line == self.last_line and
+                self.first_column == self.last_column):
+            return f"{filename}@{self.first_line}:{self.first_column}"
+        else:
+            return f"{filename}@{self.first_line}:{self.first_column}-" \
+                f"{self.last_line}:{self.last_column}"
 
 
 @dataclass(kw_only=True)

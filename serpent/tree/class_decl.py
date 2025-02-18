@@ -21,11 +21,14 @@ class SelectedFeatures:
 @dataclass(kw_only=True)
 class Parent(Node):
     class_name: str
+    select: SelectedFeatures
     generics: list[GenericSpec] = field(default_factory=list)
     rename: list[Alias] = field(default_factory=list)
     undefine: list[str] = field(default_factory=list)
     redefine: list[str] = field(default_factory=list)
-    select: list[str] = field(default_factory=list)
+
+    def __hash__(self) -> int:
+        return hash(self.class_name)
 
 
 @dataclass(kw_only=True)
@@ -78,7 +81,13 @@ def make_class_decl(class_decl_dict: dict) -> ClassDecl:
     # В случае, если у класса не было явно указанных родителей,
     # устанавливаем в качестве родителя ANY
     if not class_decl.inherit and class_decl.class_name != "ANY":
-        class_decl.inherit = [Parent(location=None, class_name="ANY")]
+        class_decl.inherit = [
+            Parent(
+                location=None,
+                class_name="ANY",
+                select=SelectedFeatures(
+                    class_name="ANY",
+                    selected_features=[]))]
 
     # В случае, если у класс не было явно указанных конструкторов,
     # устанавливаем конструктор по умолчанию

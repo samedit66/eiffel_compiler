@@ -1,5 +1,9 @@
 from .ast import make_ast
-from .class_decl import ClassDecl, Alias, SelectedFeatures
+from .class_decl import (
+    ClassDecl,
+    Parent,
+    Alias,
+    SelectedFeatures)
 from .expr import (
     Expr,
     ConstantValue,
