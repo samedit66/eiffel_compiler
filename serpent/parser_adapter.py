@@ -19,9 +19,10 @@ def parse(source, parser_path):
             [parser_path],
             input=source.encode(),
             capture_output=True,
-            )
+        )
     except FileNotFoundError:
-        raise RuntimeError(f'Couldn\'t find eiffel parser by path "{parser_path}"')
+        raise RuntimeError(
+            f'Couldn\'t find eiffel parser by path "{parser_path}"')
     stdout, stderr = output.stdout.decode(), output.stderr.decode()
     return replace_rn_with_n(stdout), replace_rn_with_n(stderr)
 
