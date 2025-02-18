@@ -40,7 +40,8 @@ class FeatureTable:
     precursors: list[FeatureRecord]
     selected: list[FeatureRecord]
     inherited: list[FeatureRecord]
-    own: list[FeatureTable]
+    own: list[FeatureRecord]
+    constructors: list[FeatureRecord]
 
     @property
     def class_name(self) -> str:
@@ -48,7 +49,7 @@ class FeatureTable:
 
     @property
     def explicit_features(self):
-        return self.own + self.inherited
+        return self.own + self.inherited + self.constructors
 
 
 def check_rename_clause(
@@ -429,13 +430,13 @@ def check_create_clause(
             (cf for cf in own_child_features if cf.name == feature_name), None)
         if candidate is None:
             raise CompilerError(
-                f"Creation procedure '{feature_name}' is not defined in the class",
+                f"Creation procedure '{feature_name}' is not defined in the class '{class_decl.class_name}'",
                 class_decl.location)
 
         # Проверка, что найденная фича является методом
         if not isinstance(candidate.node, BaseMethod):
             raise CompilerError(
-                f"Feature '{feature_name}' is not a method and cannot be a creation procedure",
+                f"Feature '{feature_name}' is not a method and cannot be a creation procedure in the class '{class_decl.class_name}'",
                 class_decl.location)
 
         # Проверка, что конструктор - фича, которая ничего не возвращает
@@ -443,7 +444,7 @@ def check_create_clause(
         if not (isinstance(method.return_type, ClassType)
                 and method.return_type.name == "<VOID>"):
             raise CompilerError(
-                f"Creation feature '{feature_name}' must be a procedure",
+                f"Creation feature '{feature_name}' must be a procedure in the class '{class_decl.class_name}'",
                 class_decl.location)
 
 
@@ -531,11 +532,26 @@ def check_if_all_defined(
             f"'{feature.name}' in {feature.location}"
             for feature in deferred_features])
         ending = "" if len(deferred_features) == 1 else "s"
-        
+
         raise CompilerError(
             f"Class '{class_decl.class_name}' is not deferred but \
 contains deferred feature{ending}: {info_about_deferred_features}",
             class_decl.location)
+
+
+def split_create_features(
+        all_features: list[FeatureRecord],
+        constructors_names: list[str]):
+    constructors = []
+    features = []
+
+    for feature in all_features:
+        if feature.name in constructors_names:
+            constructors.append(feature)
+        else:
+            features.append(feature)
+
+    return constructors, features
 
 
 def adapt(class_decl: ClassDecl,
@@ -559,8 +575,14 @@ def adapt(class_decl: ClassDecl,
         precursors=[],
         selected=[],
         inherited=[],
+        constructors=[],
         own=own_child_features)
     if not class_decl.inherit:
+        check_create_clause(class_decl, own_child_features)
+        constructors, own_child_features = split_create_features(
+            own_child_features, class_decl.create)
+        child_table.constructors = constructors
+        child_table.own = own_child_features
         return child_table
 
     parent_to_features = {}
@@ -570,6 +592,8 @@ def adapt(class_decl: ClassDecl,
         parent_decl = class_mapping[parent.class_name]
         parent_table = adapt(parent_decl, class_mapping)
         parent_features = parent_table.explicit_features
+
+        child_table.constructors.extend(parent_table.constructors)
 
         # 1 этап. Применяем rename clause.
         check_rename_clause(
@@ -642,6 +666,9 @@ def adapt(class_decl: ClassDecl,
     child_table.selected = remove_duplicates(selected_features)
 
     check_create_clause(class_decl, child_table.explicit_features)
+    constructors, own_child_features = split_create_features(
+        inherited + child_table.own, class_decl.create)
+    child_table.constructors = constructors
 
     return child_table
 
@@ -650,7 +677,7 @@ def analyze_inheritance(
         classes: list[ClassDecl],
         error_collector: ErrorCollector) -> list[FeatureTable]:
     class_mapping = {decl.class_name: decl for decl in classes}
-    
+
     tables = []
     for decl in classes:
         try:
@@ -660,5 +687,5 @@ def analyze_inheritance(
 
     if not error_collector.ok():
         return []
-    
+
     return tables

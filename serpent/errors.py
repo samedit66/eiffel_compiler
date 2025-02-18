@@ -72,8 +72,13 @@ class ErrorCollector:
     def __init__(self) -> None:
         self.errors = []
 
+    def __contains__(self, error: CompilerError) -> bool:
+        msg = str(error)
+        return any(msg == str(error) for error in self.errors)
+
     def add_error(self, error: CompilerError) -> None:
-        self.errors.append(error)
+        if error not in self:
+            self.errors.append(error)
 
     def ok(self) -> bool:
         return len(self.errors) == 0
