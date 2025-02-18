@@ -514,7 +514,7 @@ mk_routine_with_args(Json *names, Json *params_list, Json *return_type, Json *ro
 
 Json*
 mk_void_routine_with_args(Json *names, Json *params_list, Json *routine_body) {
-    return mk_routine_with_args(names, params_list, mk_type("Void"), routine_body);
+    return mk_routine_with_args(names, params_list, mk_type("<VOID>"), routine_body);
 }
 
 Json*
