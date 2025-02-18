@@ -1,7 +1,6 @@
-from collections import defaultdict
 from typing import Iterable
 
-from ..tree.class_decl import ClassDecl
+from ..tree import ClassDecl
 
 from ..errors import ErrorCollector, CompilerError
 
@@ -14,10 +13,11 @@ def check_duplicated_classes(classes: list[ClassDecl]) -> None:
     seen = {}
     for decl in classes:
         if decl.class_name in seen:
-            # Используем location текущего объявления (можно и первое дублированное)
+            # Используем location текущего объявления (можно и первое
+            # дублированное)
             raise CompilerError(
-                f"Duplicate class declaration: '{decl.class_name}'", decl.location
-            )
+                f"Duplicate class declaration: '{
+                    decl.class_name}'", decl.location)
         seen[decl.class_name] = decl
 
 
@@ -31,7 +31,9 @@ def check_nonexistent_parents(classes: Iterable[ClassDecl]) -> None:
         for parent in decl.inherit:
             if parent.class_name not in valid_names:
                 raise CompilerError(
-                    f"Class '{decl.class_name}' inherits from undefined class '{parent.class_name}'",
+                    f"Class '{
+                        decl.class_name}' inherits from undefined class '{
+                        parent.class_name}'",
                     decl.location,
                 )
 
@@ -46,7 +48,9 @@ def check_duplicated_parents(classes: list[ClassDecl]) -> None:
         for parent in decl.inherit:
             if parent.class_name in seen:
                 raise CompilerError(
-                    f"Class '{decl.class_name}' has duplicate parent declaration: '{parent.class_name}'",
+                    f"Class '{
+                        decl.class_name}' has duplicate parent declaration: '{
+                        parent.class_name}'",
                     decl.location,
                 )
             seen.add(parent.class_name)
@@ -71,7 +75,8 @@ def _check_circular_inheritance_for(
         if any(v.class_name == parent_decl.class_name for v in visited):
             return visited + [parent_decl]
 
-        cycle = _check_circular_inheritance_for(parent_decl, visited + [parent_decl], class_map)
+        cycle = _check_circular_inheritance_for(
+            parent_decl, visited + [parent_decl], class_map)
         if cycle:
             return cycle
 
@@ -96,7 +101,8 @@ def check_circular_inheritance(classes: list[ClassDecl]) -> None:
             )
 
 
-def examine_system(classes: list[ClassDecl], error_collector: ErrorCollector) -> None:
+def examine_system(classes: list[ClassDecl],
+                   error_collector: ErrorCollector) -> None:
     """
     Первая стадия семантического анализа.
     Проверяет:
@@ -104,7 +110,7 @@ def examine_system(classes: list[ClassDecl], error_collector: ErrorCollector) ->
       2) Существование всех указанных родителей;
       3) Отсутствие дублированных записей родителей;
       4) Отсутствие циклического наследования.
-      
+
     При возникновении первой ошибки бросается CompilerError, который добавляется в ErrorCollector.
     """
     try:
@@ -112,5 +118,5 @@ def examine_system(classes: list[ClassDecl], error_collector: ErrorCollector) ->
         check_nonexistent_parents(classes)
         check_duplicated_parents(classes)
         check_circular_inheritance(classes)
-    except CompilerError as error:
-        error_collector.add_error(error)
+    except CompilerError as err:
+        error_collector.add_error(err)
