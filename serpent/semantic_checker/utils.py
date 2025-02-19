@@ -1,11 +1,11 @@
-from itertools import groupby
+from collections import defaultdict
 
 from serpent.tree.features import *
 from serpent.tree.type_decl import *
-from serpent.semantic_checker.analyze_inheritance import FeatureTable, FeatureRecord
+from serpent.semantic_checker.analyze_inheritance import FlattenClass, FeatureRecord
 
 
-def show_feature_table(table: FeatureTable) -> str:
+def show_feature_table(table: FlattenClass) -> str:
     """Отладочная процедура для печати интерфейса заданного
     класса по таблице фич"""
     ...
@@ -42,12 +42,17 @@ def show_feature_table(table: FeatureTable) -> str:
             if parameters != "":
                 parameters = f" ({parameters})"
             return_type = get_type_name(feature.node.return_type)
-            return f"{indent}{feature.name}{parameters}{": " + return_type if return_type else ""}"
+            return f"{indent}{
+                feature.name}{parameters}{
+                ": " + return_type if return_type else ""}"
         else:
             raise ValueError("Unsupported type declration")
 
-    for class_name, features in groupby(
-            printable_features, key=lambda feature: feature.from_class):
+    grouped_by_class_name = defaultdict(list)
+    for feature in printable_features:
+        grouped_by_class_name[feature.from_class].append(feature)
+
+    for class_name, features in grouped_by_class_name.items():
         section_title = f"feature(s) from {class_name}"
         lines.append(section_title)
 
