@@ -32,7 +32,7 @@ class FeatureRecord:
 
 
 @dataclass
-class FeatureTable:
+class FlattenClass:
     class_decl: ClassDecl
     renamed: list[FeatureRecord]
     undefined: list[FeatureRecord]
@@ -556,7 +556,7 @@ def split_create_features(
 
 
 def adapt(class_decl: ClassDecl,
-          class_mapping: dict[str, ClassDecl]) -> FeatureTable:
+          class_mapping: dict[str, ClassDecl]):
     own_child_features = [
         FeatureRecord(
             from_class=class_decl.class_name,
@@ -568,7 +568,7 @@ def adapt(class_decl: ClassDecl,
     # 0 этап. Проверяем отсутствие дубликатов в собственных фичах
     check_duplicate_features(own_child_features)
 
-    child_table = FeatureTable(
+    child_table = FlattenClass(
         class_decl=class_decl,
         renamed=[],
         undefined=[],
@@ -676,7 +676,7 @@ def adapt(class_decl: ClassDecl,
 
 def analyze_inheritance(
         classes: list[ClassDecl],
-        error_collector: ErrorCollector) -> list[FeatureTable]:
+        error_collector: ErrorCollector) -> list[FlattenClass]:
     class_mapping = {decl.class_name: decl for decl in classes}
 
     tables = []
